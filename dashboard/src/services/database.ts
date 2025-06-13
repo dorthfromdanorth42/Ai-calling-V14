@@ -251,7 +251,7 @@ export class DatabaseService {
 
     if (error) {
       console.error('Error fetching campaigns:', error)
-      return this.getDemoCampaigns()
+      return []
     }
 
     return data || []
@@ -332,7 +332,7 @@ export class DatabaseService {
 
     if (error) {
       console.error('Error fetching campaign leads:', error)
-      return this.getDemoCampaignLeads()
+      return []
     }
 
     return data || []
@@ -352,7 +352,7 @@ export class DatabaseService {
 
     if (error) {
       console.error('Error fetching appointments:', error)
-      return this.getDemoAppointments()
+      return []
     }
 
     return data || []
@@ -558,7 +558,7 @@ export class DatabaseService {
 
     if (error) {
       console.error('Error fetching system status:', error)
-      return this.getDemoSystemStatus()
+      return []
     }
 
     return data || []
