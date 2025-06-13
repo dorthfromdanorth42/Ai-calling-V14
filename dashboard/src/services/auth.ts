@@ -27,14 +27,16 @@ export interface ResetPasswordData {
 export class AuthService {
   // Check if we're in demo mode
   private static isDemoMode(): boolean {
-    // Force demo mode since Supabase URLs are commented out
-    const demoMode = true
+    // Get the current mode from localStorage (set by AppContext)
+    const appMode = localStorage.getItem('app_mode')
+    const isDemo = appMode === 'demo'
+    
     console.log('Demo mode check:', {
-      VITE_ENABLE_DEMO_MODE: import.meta.env.VITE_ENABLE_DEMO_MODE,
+      appMode,
       VITE_SUPABASE_URL: import.meta.env.VITE_SUPABASE_URL,
-      result: demoMode
+      result: isDemo
     })
-    return demoMode
+    return isDemo
   }
 
   // Sign up new user

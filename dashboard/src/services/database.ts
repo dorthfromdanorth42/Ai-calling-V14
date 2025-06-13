@@ -19,8 +19,9 @@ import type {
 export class DatabaseService {
   // Check if we're in demo mode
   private static isDemoMode(): boolean {
-    return !import.meta.env.VITE_SUPABASE_URL || 
-           import.meta.env.VITE_SUPABASE_URL === 'https://demo.supabase.co'
+    // Get the current mode from localStorage (set by AppContext)
+    const appMode = localStorage.getItem('app_mode')
+    return appMode === 'demo'
   }
 
   // Profile operations
@@ -37,7 +38,7 @@ export class DatabaseService {
 
     if (error) {
       console.error('Error fetching profile:', error)
-      return this.getDemoProfile()
+      throw error
     }
 
     return data
@@ -78,7 +79,8 @@ export class DatabaseService {
 
     if (error) {
       console.error('Error fetching AI agents:', error)
-      return this.getDemoAgents()
+      // In live mode, return empty array instead of demo data
+      return []
     }
 
     return data || []
@@ -167,7 +169,8 @@ export class DatabaseService {
 
     if (error) {
       console.error('Error fetching call logs:', error)
-      return this.getDemoCallLogs()
+      // In live mode, return empty array instead of demo data
+      return []
     }
 
     return data || []
@@ -248,7 +251,7 @@ export class DatabaseService {
 
     if (error) {
       console.error('Error fetching campaigns:', error)
-      return this.getDemoCampaigns()
+      return []
     }
 
     return data || []
@@ -329,7 +332,7 @@ export class DatabaseService {
 
     if (error) {
       console.error('Error fetching campaign leads:', error)
-      return this.getDemoCampaignLeads()
+      return []
     }
 
     return data || []
@@ -349,7 +352,7 @@ export class DatabaseService {
 
     if (error) {
       console.error('Error fetching appointments:', error)
-      return this.getDemoAppointments()
+      return []
     }
 
     return data || []
@@ -430,13 +433,14 @@ export class DatabaseService {
 
       if (error) {
         console.error('Error fetching analytics:', error)
-        return this.getDemoAnalytics()
+        // Return empty analytics in live mode
+        return this.getEmptyAnalytics()
       }
 
-      return data || this.getDemoAnalytics()
+      return data || this.getEmptyAnalytics()
     } catch (error) {
       console.error('Error fetching analytics:', error)
-      return this.getDemoAnalytics()
+      return this.getEmptyAnalytics()
     }
   }
 
@@ -554,7 +558,7 @@ export class DatabaseService {
 
     if (error) {
       console.error('Error fetching system status:', error)
-      return this.getDemoSystemStatus()
+      return []
     }
 
     return data || []
@@ -770,6 +774,26 @@ export class DatabaseService {
         activeCampaigns: 1,
         totalLeads: 1250,
         leadsContacted: 456
+      }
+    }
+  }
+
+  private static getEmptyAnalytics(): AnalyticsData {
+    return {
+      totalCalls: 0,
+      totalMinutes: 0,
+      successfulCalls: 0,
+      averageCallDuration: 0,
+      callsByDay: [],
+      callsByStatus: [],
+      topOutcomes: [],
+      minutesUsed: 0,
+      minutesLimit: 50000, // Default Enterprise plan limit
+      campaignStats: {
+        totalCampaigns: 0,
+        activeCampaigns: 0,
+        totalLeads: 0,
+        leadsContacted: 0
       }
     }
   }
