@@ -79,7 +79,8 @@ export class DatabaseService {
 
     if (error) {
       console.error('Error fetching AI agents:', error)
-      return this.getDemoAgents()
+      // In live mode, return empty array instead of demo data
+      return []
     }
 
     return data || []

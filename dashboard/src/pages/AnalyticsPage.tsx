@@ -1,42 +1,38 @@
 import { useState, useEffect } from 'react'
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line, PieChart, Pie, Cell } from 'recharts'
-
-const callVolumeData = [
-  { name: 'Mon', calls: 45, successful: 32 },
-  { name: 'Tue', calls: 52, successful: 38 },
-  { name: 'Wed', calls: 48, successful: 35 },
-  { name: 'Thu', calls: 61, successful: 44 },
-  { name: 'Fri', calls: 55, successful: 41 },
-  { name: 'Sat', calls: 28, successful: 20 },
-  { name: 'Sun', calls: 22, successful: 16 }
-]
-
-const performanceData = [
-  { name: 'Jan', successRate: 65, avgDuration: 180 },
-  { name: 'Feb', successRate: 68, avgDuration: 175 },
-  { name: 'Mar', successRate: 72, avgDuration: 165 },
-  { name: 'Apr', successRate: 75, avgDuration: 160 },
-  { name: 'May', successRate: 78, avgDuration: 155 },
-  { name: 'Jun', successRate: 82, avgDuration: 150 }
-]
-
-const callOutcomeData = [
-  { name: 'Successful', value: 342, color: '#10B981' },
-  { name: 'No Answer', value: 128, color: '#F59E0B' },
-  { name: 'Busy', value: 45, color: '#EF4444' },
-  { name: 'Voicemail', value: 67, color: '#6B7280' }
-]
+import { useUser } from '../contexts/UserContext'
+import { useApp } from '../contexts/AppContext'
+import { DatabaseService } from '../services/database'
+import type { AnalyticsData } from '../lib/supabase'
+import toast from 'react-hot-toast'
 
 export default function AnalyticsPage() {
+  const { user } = useUser()
+  const { isDemo } = useApp()
   const [loading, setLoading] = useState(true)
   const [timeRange, setTimeRange] = useState('7d')
+  const [analytics, setAnalytics] = useState<AnalyticsData | null>(null)
 
   useEffect(() => {
-    // Simulate loading analytics data
-    setTimeout(() => {
+    if (user) {
+      loadAnalytics()
+    }
+  }, [user])
+
+  const loadAnalytics = async () => {
+    if (!user) return
+
+    try {
+      setLoading(true)
+      const analyticsData = await DatabaseService.getAnalytics(user.id)
+      setAnalytics(analyticsData)
+    } catch (error) {
+      console.error('Error loading analytics:', error)
+      toast.error('Failed to load analytics')
+    } finally {
       setLoading(false)
-    }, 1000)
-  }, [])
+    }
+  }
 
   if (loading) {
     return (
@@ -82,15 +78,14 @@ export default function AnalyticsPage() {
               <div className="ml-5 w-0 flex-1">
                 <dl>
                   <dt className="text-sm font-medium text-gray-500 truncate">Total Calls</dt>
-                  <dd className="text-lg font-medium text-gray-900">1,247</dd>
+                  <dd className="text-lg font-medium text-gray-900">{analytics?.totalCalls || 0}</dd>
                 </dl>
               </div>
             </div>
           </div>
           <div className="bg-gray-50 px-5 py-3">
             <div className="text-sm">
-              <span className="text-green-600 font-medium">+12%</span>
-              <span className="text-gray-500"> from last week</span>
+              <span className="text-gray-500">Live data</span>
             </div>
           </div>
         </div>
@@ -106,15 +101,14 @@ export default function AnalyticsPage() {
               <div className="ml-5 w-0 flex-1">
                 <dl>
                   <dt className="text-sm font-medium text-gray-500 truncate">Success Rate</dt>
-                  <dd className="text-lg font-medium text-gray-900">74.2%</dd>
+                  <dd className="text-lg font-medium text-gray-900">{analytics?.successRate || 0}%</dd>
                 </dl>
               </div>
             </div>
           </div>
           <div className="bg-gray-50 px-5 py-3">
             <div className="text-sm">
-              <span className="text-green-600 font-medium">+3.1%</span>
-              <span className="text-gray-500"> from last week</span>
+              <span className="text-gray-500">Live data</span>
             </div>
           </div>
         </div>
@@ -130,15 +124,14 @@ export default function AnalyticsPage() {
               <div className="ml-5 w-0 flex-1">
                 <dl>
                   <dt className="text-sm font-medium text-gray-500 truncate">Avg Duration</dt>
-                  <dd className="text-lg font-medium text-gray-900">2:34</dd>
+                  <dd className="text-lg font-medium text-gray-900">{analytics?.avgDuration || '0:00'}</dd>
                 </dl>
               </div>
             </div>
           </div>
           <div className="bg-gray-50 px-5 py-3">
             <div className="text-sm">
-              <span className="text-red-600 font-medium">-8s</span>
-              <span className="text-gray-500"> from last week</span>
+              <span className="text-gray-500">Live data</span>
             </div>
           </div>
         </div>
@@ -154,15 +147,14 @@ export default function AnalyticsPage() {
               <div className="ml-5 w-0 flex-1">
                 <dl>
                   <dt className="text-sm font-medium text-gray-500 truncate">Cost per Call</dt>
-                  <dd className="text-lg font-medium text-gray-900">$0.23</dd>
+                  <dd className="text-lg font-medium text-gray-900">${analytics?.costPerCall || '0.00'}</dd>
                 </dl>
               </div>
             </div>
           </div>
           <div className="bg-gray-50 px-5 py-3">
             <div className="text-sm">
-              <span className="text-green-600 font-medium">-$0.02</span>
-              <span className="text-gray-500"> from last week</span>
+              <span className="text-gray-500">Live data</span>
             </div>
           </div>
         </div>
@@ -174,7 +166,7 @@ export default function AnalyticsPage() {
         <div className="bg-white p-6 rounded-lg shadow">
           <h3 className="text-lg font-medium text-gray-900 mb-4">Daily Call Volume</h3>
           <ResponsiveContainer width="100%" height={300}>
-            <BarChart data={callVolumeData}>
+            <BarChart data={analytics?.callVolumeData || []}>
               <CartesianGrid strokeDasharray="3 3" />
               <XAxis dataKey="name" />
               <YAxis />
@@ -189,7 +181,7 @@ export default function AnalyticsPage() {
         <div className="bg-white p-6 rounded-lg shadow">
           <h3 className="text-lg font-medium text-gray-900 mb-4">Performance Trend</h3>
           <ResponsiveContainer width="100%" height={300}>
-            <LineChart data={performanceData}>
+            <LineChart data={analytics?.performanceData || []}>
               <CartesianGrid strokeDasharray="3 3" />
               <XAxis dataKey="name" />
               <YAxis />
@@ -205,7 +197,7 @@ export default function AnalyticsPage() {
           <ResponsiveContainer width="100%" height={300}>
             <PieChart>
               <Pie
-                data={callOutcomeData}
+                data={analytics?.callOutcomeData || []}
                 cx="50%"
                 cy="50%"
                 labelLine={false}
@@ -214,7 +206,7 @@ export default function AnalyticsPage() {
                 fill="#8884d8"
                 dataKey="value"
               >
-                {callOutcomeData.map((entry, index) => (
+                {(analytics?.callOutcomeData || []).map((entry, index) => (
                   <Cell key={`cell-${index}`} fill={entry.color} />
                 ))}
               </Pie>
@@ -227,12 +219,12 @@ export default function AnalyticsPage() {
         <div className="bg-white p-6 rounded-lg shadow">
           <h3 className="text-lg font-medium text-gray-900 mb-4">Top Performing Scripts</h3>
           <div className="space-y-4">
-            {[
-              { name: 'Sales Outreach v2.1', successRate: 82, calls: 156 },
-              { name: 'Customer Survey', successRate: 78, calls: 89 },
-              { name: 'Product Demo Invite', successRate: 71, calls: 234 },
-              { name: 'Follow-up Call', successRate: 68, calls: 67 }
-            ].map((script, index) => (
+            {(analytics?.topScripts || []).length === 0 ? (
+              <div className="text-center py-8">
+                <p className="text-gray-500">No script data available yet</p>
+              </div>
+            ) : (
+              (analytics?.topScripts || []).map((script, index) => (
               <div key={index} className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-gray-900">{script.name}</p>
@@ -248,7 +240,8 @@ export default function AnalyticsPage() {
                   </div>
                 </div>
               </div>
-            ))}
+              ))
+            )}
           </div>
         </div>
       </div>
