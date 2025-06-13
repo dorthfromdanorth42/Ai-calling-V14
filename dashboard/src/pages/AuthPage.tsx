@@ -1,9 +1,11 @@
 import { useState } from 'react'
-import { PhoneIcon, MicrophoneIcon, EyeIcon, EyeSlashIcon } from '@heroicons/react/24/outline'
+import { PhoneIcon, MicrophoneIcon, EyeIcon, EyeSlashIcon, CogIcon } from '@heroicons/react/24/outline'
 import { AuthService } from '../services/auth'
+import { useApp } from '../contexts/AppContext'
 import toast from 'react-hot-toast'
 
 export default function AuthPage() {
+  const { mode, toggleMode, isDemo, isLive } = useApp()
   const [isAdminSetup, setIsAdminSetup] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
   const [showPassword, setShowPassword] = useState(false)
@@ -147,6 +149,21 @@ export default function AuthPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-purple-50 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
+      {/* Mode Toggle */}
+      <div className="absolute top-4 right-4">
+        <button
+          onClick={toggleMode}
+          className={`flex items-center space-x-2 px-3 py-2 rounded-lg text-sm font-medium transition-all ${
+            isDemo 
+              ? 'bg-orange-100 text-orange-800 hover:bg-orange-200' 
+              : 'bg-green-100 text-green-800 hover:bg-green-200'
+          }`}
+        >
+          <CogIcon className="h-4 w-4" />
+          <span>{mode.toUpperCase()} MODE</span>
+        </button>
+      </div>
+
       <div className="max-w-md w-full space-y-8">
         <div className="text-center">
           <div className="h-16 w-16 bg-gradient-to-r from-blue-500 to-purple-600 rounded-xl flex items-center justify-center mx-auto mb-4">
@@ -337,24 +354,37 @@ export default function AuthPage() {
             </div>
           )}
 
-          <div className="mt-6 p-4 bg-blue-50 rounded-lg">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-blue-800 font-medium">Demo Access</p>
-                <p className="text-xs text-blue-600 mt-1">
-                  Try the platform with demo data
+          {isDemo && (
+            <div className="mt-6 p-4 bg-blue-50 rounded-lg">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-blue-800 font-medium">Demo Access</p>
+                  <p className="text-xs text-blue-600 mt-1">
+                    Try the platform with demo data
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={handleDemoLogin}
+                  disabled={isLoading}
+                  className="px-3 py-1 text-xs font-medium text-blue-700 bg-blue-100 rounded-md hover:bg-blue-200 transition-colors disabled:opacity-50"
+                >
+                  Demo Login
+                </button>
+              </div>
+            </div>
+          )}
+
+          {isLive && (
+            <div className="mt-6 p-4 bg-green-50 rounded-lg">
+              <div className="text-center">
+                <p className="text-sm text-green-800 font-medium">Live Mode</p>
+                <p className="text-xs text-green-600 mt-1">
+                  Connected to live Supabase database
                 </p>
               </div>
-              <button
-                type="button"
-                onClick={handleDemoLogin}
-                disabled={isLoading}
-                className="px-3 py-1 text-xs font-medium text-blue-700 bg-blue-100 rounded-md hover:bg-blue-200 transition-colors disabled:opacity-50"
-              >
-                Demo Login
-              </button>
             </div>
-          </div>
+          )}
         </form>
       </div>
     </div>
