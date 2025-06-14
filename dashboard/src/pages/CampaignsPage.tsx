@@ -432,7 +432,7 @@ function CreateCampaignModal({ onClose, onSuccess }: { onClose: () => void; onSu
   ]
 
   const applyTemplate = (template: typeof campaignTemplates[0]) => {
-    const matchingAgent = agents.find(agent => agent.type === template.agent_type)
+    const matchingAgent = agents.find(agent => agent.agent_type === template.agent_type)
     setFormData(prev => ({
       ...prev,
       name: template.name,
@@ -528,7 +528,10 @@ function CreateCampaignModal({ onClose, onSuccess }: { onClose: () => void; onSu
         profile_id: user.id,
         status: 'draft',
         priority: 'normal' as const,
-        custom_voice_name: formData.custom_voice_name as Campaign['custom_voice_name']
+        custom_voice_name: formData.custom_voice_name as Campaign['custom_voice_name'],
+        // Convert empty strings to null for timestamp fields
+        scheduled_start_date: formData.scheduled_start_date || null,
+        scheduled_end_date: formData.scheduled_end_date || null
       })
 
       // Add leads to campaign
@@ -571,6 +574,27 @@ function CreateCampaignModal({ onClose, onSuccess }: { onClose: () => void; onSu
       status: 'pending'
     }
     setLeads([...leads, newLead])
+  }
+
+  const downloadCSVTemplate = () => {
+    const csvContent = [
+      'phone_number,first_name,last_name,email,company',
+      '+1234567890,John,Doe,john.doe@example.com,Acme Corp',
+      '+1234567891,Jane,Smith,jane.smith@example.com,Tech Solutions',
+      '+1234567892,Bob,Johnson,bob.johnson@example.com,Marketing Inc'
+    ].join('\n')
+    
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' })
+    const link = document.createElement('a')
+    const url = URL.createObjectURL(blob)
+    link.setAttribute('href', url)
+    link.setAttribute('download', 'campaign_leads_template.csv')
+    link.style.visibility = 'hidden'
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+    
+    toast.success('CSV template downloaded!')
   }
 
   const updateLead = (index: number, field: string, value: string) => {
@@ -671,7 +695,7 @@ function CreateCampaignModal({ onClose, onSuccess }: { onClose: () => void; onSu
                     <option value="">Select an AI Agent</option>
                     {agents.map((agent) => (
                       <option key={agent.id} value={agent.id}>
-                        {agent.name} ({agent.type})
+                        {agent.name} - {agent.agent_type.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())} ({agent.voice_name})
                       </option>
                     ))}
                   </select>
@@ -828,7 +852,7 @@ function CreateCampaignModal({ onClose, onSuccess }: { onClose: () => void; onSu
                         Upload CSV file with leads
                       </span>
                       <span className="mt-1 block text-sm text-gray-500">
-                        CSV should include columns: phone, first_name, last_name, email, company
+                        CSV should include columns: phone_number, first_name, last_name, email, company
                       </span>
                     </label>
                     <input
@@ -838,13 +862,26 @@ function CreateCampaignModal({ onClose, onSuccess }: { onClose: () => void; onSu
                       onChange={handleFileUpload}
                       className="hidden"
                     />
-                    <button
-                      type="button"
-                      onClick={() => document.getElementById('csv-upload')?.click()}
-                      className="mt-3 inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50"
-                    >
-                      Choose File
-                    </button>
+                    <div className="mt-3 flex items-center justify-center space-x-3">
+                      <button
+                        type="button"
+                        onClick={() => document.getElementById('csv-upload')?.click()}
+                        className="inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50"
+                      >
+                        Choose File
+                      </button>
+                      <span className="text-gray-400">or</span>
+                      <button
+                        type="button"
+                        onClick={downloadCSVTemplate}
+                        className="inline-flex items-center px-4 py-2 border border-blue-300 shadow-sm text-sm font-medium rounded-md text-blue-700 bg-blue-50 hover:bg-blue-100"
+                      >
+                        <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                        </svg>
+                        Download Template
+                      </button>
+                    </div>
                   </div>
                 </div>
 
