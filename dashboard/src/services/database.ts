@@ -65,6 +65,23 @@ export class DatabaseService {
     return data
   }
 
+  static async getUserSettings(userId: string): Promise<any> {
+    if (this.isDemoMode()) {
+      return {
+        twilio_phone_number: '+18553947135',
+        twilio_account_sid: 'demo_sid',
+        gemini_api_key: 'demo_key'
+      }
+    }
+
+    const profile = await this.getProfile(userId)
+    return {
+      twilio_phone_number: profile?.twilio_phone_number,
+      twilio_account_sid: profile?.twilio_account_sid,
+      gemini_api_key: profile?.gemini_api_key
+    }
+  }
+
   // AI Agents operations
   static async getAIAgents(profileId: string): Promise<AIAgent[]> {
     if (this.isDemoMode()) {
