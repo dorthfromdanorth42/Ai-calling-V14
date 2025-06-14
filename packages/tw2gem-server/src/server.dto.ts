@@ -5,11 +5,26 @@ import { ServerOptions } from 'ws';
 export class Tw2GemSocket extends TwilioWebSocket {
     twilioStreamSid?: string;
     geminiClient?: GeminiLiveClient;
+    
+    // Call tracking properties
+    callId?: string;
+    callStartTime?: string;
+    callEnded?: boolean;
+    userId?: string;
+    agentId?: string;
+    phoneNumberFrom?: string;
+    phoneNumberTo?: string;
+    direction?: 'inbound' | 'outbound';
+    transcript?: string;
+    functionCalls?: any[];
+    customerSatisfaction?: number;
 }
 
 export class Tw2GemServerOptions {
     serverOptions: ServerOptions;
     geminiOptions: GeminiLiveClientOptions;
+    supabaseUrl?: string;
+    supabaseKey?: string;
 }
 
 export class Tw2GemGeminiEvents {

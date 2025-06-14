@@ -2,19 +2,43 @@ import { TwilioMediaEvent, TwilioServerOptions, TwilioWebSocketServer } from '@t
 import { BidiGenerateContentServerContent, GeminiLiveClient } from '@tw2gem/gemini-live-client';
 import { Tw2GemGeminiEvents, Tw2GemServerOptions, Tw2GemSocket } from './server.dto';
 import { AudioConverter } from '@tw2gem/audio-converter';
+import { WebhookService } from './webhook-service';
 
 export class Tw2GemServer extends TwilioWebSocketServer {
 
     public onNewCall?: (socket: Tw2GemSocket) => void;
     public geminiLive = new Tw2GemGeminiEvents();
+    private webhookService: WebhookService;
 
     constructor(options: Tw2GemServerOptions) {
         super(options.serverOptions);
         const twilioServerOptions = <TwilioServerOptions>options.serverOptions;
+        
+        // Initialize webhook service
+        this.webhookService = new WebhookService(
+            options.supabaseUrl,
+            options.supabaseKey
+        );
 
         twilioServerOptions.handlers = {
             onStart: (socket: Tw2GemSocket, event) => {
                 this.onNewCall?.(socket);
+
+                // Generate call ID and store call metadata
+                const callId = `call_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
+                socket.callId = callId
+                socket.callStartTime = new Date().toISOString()
+
+                // Send call started webhook
+                this.webhookService.processCallEvent('call.started', {
+                    call_id: callId,
+                    phone_number_from: socket.phoneNumberFrom,
+                    phone_number_to: socket.phoneNumberTo,
+                    agent_id: socket.agentId,
+                    direction: socket.direction,
+                    status: 'in_progress',
+                    timestamp: socket.callStartTime
+                }, socket.userId)
 
                 const geminiClient = new GeminiLiveClient(options.geminiOptions);
                 socket.twilioStreamSid = event.streamSid;
@@ -25,19 +49,23 @@ export class Tw2GemServer extends TwilioWebSocketServer {
                 };
 
                 geminiClient.onClose = () => {
+                    this.handleCallEnd(socket, 'completed')
                     socket.close();
                     this.geminiLive.onClose?.(socket);
                 };
 
                 geminiClient.onError = (error) => {
+                    this.handleCallEnd(socket, 'failed')
                     this.onError?.(socket, error);
                 };
 
                 geminiClient.onServerContent = (serverContent) => {
                     this.onServerContent?.(socket, serverContent);
+                    this.handleFunctionCalls(socket, serverContent);
                 };
 
                 socket.onclose = (event) => {
+                    this.handleCallEnd(socket, 'completed')
                     if (socket?.geminiClient) {
                         socket.geminiClient.close();
                         delete socket.geminiClient;
@@ -81,6 +109,53 @@ export class Tw2GemServer extends TwilioWebSocketServer {
                     payload: audios
                 }
             });
+        }
+    }
+
+    private handleCallEnd(socket: Tw2GemSocket, outcome: string) {
+        if (!socket.callId || socket.callEnded) return
+        
+        socket.callEnded = true
+        const endTime = new Date().toISOString()
+        const durationSeconds = socket.callStartTime ? 
+            Math.floor((new Date(endTime).getTime() - new Date(socket.callStartTime).getTime()) / 1000) : 0
+
+        this.webhookService.processCallEvent(
+            outcome === 'failed' ? 'call.failed' : 'call.completed',
+            {
+                call_id: socket.callId,
+                duration_seconds: durationSeconds,
+                outcome: outcome,
+                transcript: socket.transcript || '',
+                function_calls: socket.functionCalls || [],
+                customer_satisfaction: socket.customerSatisfaction,
+                timestamp: endTime
+            },
+            socket.userId
+        )
+    }
+
+    private handleFunctionCalls(socket: Tw2GemSocket, serverContent: BidiGenerateContentServerContent) {
+        if (!serverContent.modelTurn?.parts) return
+
+        const functionCalls = serverContent.modelTurn.parts
+            .filter(part => part.functionCall)
+            .map(part => part.functionCall)
+
+        for (const functionCall of functionCalls) {
+            if (functionCall?.name && functionCall?.args) {
+                // Store function call on socket
+                if (!socket.functionCalls) socket.functionCalls = []
+                socket.functionCalls.push(functionCall)
+
+                // Send function call webhook
+                this.webhookService.processFunctionCall({
+                    call_id: socket.callId!,
+                    function_name: functionCall.name,
+                    parameters: functionCall.args,
+                    timestamp: new Date().toISOString()
+                }, socket.userId)
+            }
         }
     }
 }
