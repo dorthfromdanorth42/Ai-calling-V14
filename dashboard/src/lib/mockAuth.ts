@@ -5,10 +5,10 @@ export const mockAuth = {
     await new Promise(resolve => setTimeout(resolve, 1000))
     
     // Check for admin credentials
-    if (email === 'admin@aicallcenter.com' && password === 'AdminPass123!') {
+    if (email === 'gamblerspassion@gmail.com' && password === 'AdminPass123!') {
       const mockUser = {
         id: 'admin-user-id',
-        email: 'admin@aicallcenter.com',
+        email: 'gamblerspassion@gmail.com',
         user_metadata: {
           name: 'Admin User',
           role: 'admin'

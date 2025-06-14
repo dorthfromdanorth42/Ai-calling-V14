@@ -13,78 +13,95 @@ import toast from 'react-hot-toast'
 
 const PLANS = [
   {
-    id: 'free',
-    name: 'Free',
-    price: 0,
-    interval: 'month',
-    features: [
-      '100 minutes/month',
-      '1 AI agent',
-      'Basic analytics',
-      'Email support'
-    ],
-    limits: {
-      minutes: 100,
-      agents: 1,
-      concurrent_calls: 1
-    }
-  },
-  {
     id: 'starter',
-    name: 'Starter',
+    name: '🚀 Starter',
     price: 29,
     interval: 'month',
     features: [
-      '1,000 minutes/month',
-      '3 AI agents',
-      'Advanced analytics',
-      'Webhook integrations',
-      'Priority support'
+      '100 minutes of AI Voice Calling',
+      'Inbound Call Handling',
+      'Up to 5 Team Members',
+      'Basic CRM (Contacts & Notes)',
+      'SMS & Email Templates',
+      'Community Access',
+      '💬 Extra Voice Minutes: $0.18/min',
+      '📨 SMS Credits (~1,200 msgs): $10'
     ],
     limits: {
-      minutes: 1000,
-      agents: 3,
-      concurrent_calls: 3
+      minutes: 100,
+      agents: 5,
+      concurrent_calls: 5
     },
+    description: 'Built for solopreneurs and new teams.'
+  },
+  {
+    id: 'grow',
+    name: '🌱 Grow',
+    price: 79,
+    interval: 'month',
+    features: [
+      '250 minutes of AI Voice Calling',
+      'Inbound & Outbound Calling',
+      'Up to 10 Team Members',
+      'Shared Call Logs & CRM',
+      'SMS & Email Templates',
+      'Affiliate Program Access (15%)',
+      '💬 Extra Voice Minutes: $0.18/min',
+      '📨 SMS Credits (~1,200 msgs): $10'
+    ],
+    limits: {
+      minutes: 250,
+      agents: 10,
+      concurrent_calls: 10
+    },
+    description: 'For small teams starting to scale.',
     popular: true
   },
   {
-    id: 'professional',
-    name: 'Professional',
-    price: 99,
+    id: 'pro',
+    name: '⚡️ Pro',
+    price: 249,
     interval: 'month',
     features: [
-      '5,000 minutes/month',
-      '10 AI agents',
-      'Custom voice training',
-      'Advanced integrations',
-      'Phone support',
-      'Custom reporting'
+      '600 minutes of AI Voice Calling',
+      'Inbound & Outbound Calling',
+      'Up to 25 Team Members',
+      'Smart CRM',
+      'SMS & Email Templates',
+      'Light Workflow Automation',
+      'Affiliate Boost (20%)',
+      '💬 Extra Voice Minutes: $0.18/min',
+      '📨 SMS Credits (~1,200 msgs): $10'
     ],
     limits: {
-      minutes: 5000,
-      agents: 10,
-      concurrent_calls: 10
-    }
+      minutes: 600,
+      agents: 25,
+      concurrent_calls: 25
+    },
+    description: 'Great for fast-growing service businesses.'
   },
   {
-    id: 'enterprise',
-    name: 'Enterprise',
-    price: 299,
+    id: 'scale',
+    name: '🏆 Scale',
+    price: 449,
     interval: 'month',
     features: [
-      'Unlimited minutes',
-      'Unlimited agents',
-      'White-label options',
-      'Dedicated support',
-      'Custom integrations',
-      'SLA guarantee'
+      '1800 minutes of AI Voice Calling',
+      'Inbound & Outbound Calling',
+      'Up to 50 Team Members',
+      'CRM + Tags & Pipelines',
+      'Email Broadcasts (Basic)',
+      'Affiliate Boost (25%)',
+      'Priority Support',
+      '💬 Extra Voice Minutes: $0.18/min',
+      '📨 SMS Credits (~1,200 msgs): $10'
     ],
     limits: {
-      minutes: -1, // unlimited
-      agents: -1,
+      minutes: 1800,
+      agents: 50,
       concurrent_calls: 50
-    }
+    },
+    description: 'Designed for agencies and teams with high call volume.'
   }
 ]
 
@@ -96,6 +113,9 @@ export default function BillingPage() {
   const [upgradeLoading, setUpgradeLoading] = useState<string | null>(null)
   const [showPaymentModal, setShowPaymentModal] = useState(false)
   const [, ] = useState<string | null>(null)
+
+  // Debug user data
+  console.log('BillingPage - User data:', user)
 
   useEffect(() => {
     if (user) {
@@ -154,7 +174,14 @@ export default function BillingPage() {
   }
 
   const getCurrentPlan = () => {
-    return PLANS.find(plan => plan.id === (subscription?.plan_name || user?.plan_name || 'free'))
+    const planName = subscription?.plan_name || user?.plan_name || 'free'
+    console.log('BillingPage Debug:', {
+      subscription: subscription,
+      user: user,
+      planName: planName,
+      availablePlans: PLANS.map(p => p.id)
+    })
+    return PLANS.find(plan => plan.id === planName)
   }
 
   const calculateUsagePercentage = (used: number, limit: number) => {
@@ -202,7 +229,7 @@ export default function BillingPage() {
             )}
           </div>
           
-          {currentPlan && (
+          {currentPlan ? (
             <div>
               <div className="flex items-baseline">
                 <span className="text-2xl font-bold text-gray-900">{currentPlan.name}</span>
@@ -229,7 +256,7 @@ export default function BillingPage() {
                 ))}
               </div>
 
-              {currentPlan.id !== 'enterprise' && (
+              {currentPlan.id !== 'scale' && (
                 <button
                   onClick={() => setShowPaymentModal(true)}
                   className="mt-4 w-full inline-flex justify-center items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700"
@@ -238,6 +265,16 @@ export default function BillingPage() {
                   Upgrade Plan
                 </button>
               )}
+            </div>
+          ) : (
+            <div className="text-center py-8">
+              <p className="text-gray-500 mb-4">No active plan found</p>
+              <button
+                onClick={() => setShowPaymentModal(true)}
+                className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700"
+              >
+                Choose a Plan
+              </button>
             </div>
           )}
         </div>

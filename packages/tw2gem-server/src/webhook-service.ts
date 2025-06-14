@@ -152,7 +152,7 @@ export class WebhookService {
     } catch (error) {
       console.error('Error sending webhook:', error)
       // Log failed delivery
-      await this.logWebhookDelivery(webhook.id, eventType, 0, false, error.message)
+      await this.logWebhookDelivery(webhook.id, eventType, 0, false, error instanceof Error ? error.message : String(error))
     }
   }
 
