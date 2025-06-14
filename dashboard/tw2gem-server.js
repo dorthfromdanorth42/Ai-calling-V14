@@ -1,4 +1,9 @@
 import { Tw2GemServer } from '../packages/tw2gem-server/dist/index.js';
+import dotenv from 'dotenv';
+import express from 'express';
+
+// Load environment variables from .env file
+dotenv.config({ path: '../.env' });
 
 const PORT = parseInt(process.env.PORT || '12001', 10);
 
@@ -13,7 +18,7 @@ const server = new Tw2GemServer({
         setup: {
             model: 'models/gemini-2.0-flash-live-001',
             generationConfig: {
-                responseModalities: ['audio'],
+                responseModalities: ['AUDIO'],
                 speechConfig: {
                     voiceConfig: {
                         prebuiltVoiceConfig: {
@@ -50,6 +55,20 @@ server.onError = (socket, event) => {
 server.onClose = (socket, event) => {
     console.log('Call ended:', socket.twilioStreamSid);
 };
+
+// Add health check endpoint
+const app = express();
+app.get('/health', (req, res) => {
+    res.json({ 
+        status: 'healthy', 
+        timestamp: new Date().toISOString(),
+        gemini: process.env.GEMINI_API_KEY ? 'configured' : 'not configured'
+    });
+});
+
+app.listen(PORT + 1, () => {
+    console.log(`🏥 Health check endpoint running on port ${PORT + 1}`);
+});
 
 console.log(`🚀 TW2GEM Server running on port ${PORT}`);
 console.log(`📞 Twilio webhook URL: ws://localhost:${PORT}`);
