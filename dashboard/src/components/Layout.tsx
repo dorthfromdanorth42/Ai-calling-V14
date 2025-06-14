@@ -29,6 +29,8 @@ const navigation = [
   { name: 'Appointments', href: '/appointments', icon: CalendarIcon, permission: 'appointments' },
   { name: 'Analytics', href: '/analytics', icon: ChartBarIcon, permission: 'analytics' },
   { name: 'Campaigns', href: '/campaigns', icon: MegaphoneIcon, permission: 'campaigns' },
+  { name: 'Enhanced Dashboard', href: '/enhanced-dashboard', icon: HomeIcon, permission: 'dashboard' },
+  { name: 'Enhanced Campaigns', href: '/enhanced-campaigns', icon: MegaphoneIcon, permission: 'campaigns' },
   { name: 'DNC List', href: '/dnc', icon: ShieldExclamationIcon, permission: 'dnc' },
   { name: 'Webhooks', href: '/webhooks', icon: LinkIcon, permission: 'webhooks' },
   { name: 'Billing', href: '/billing', icon: CreditCardIcon, permission: 'billing' },

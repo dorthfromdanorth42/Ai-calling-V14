@@ -26,6 +26,9 @@ export interface Profile {
   can_use_inbound: boolean
   can_use_outbound_dialer: boolean
   max_concurrent_calls: number
+  twilio_phone_number?: string
+  twilio_account_sid?: string
+  gemini_api_key?: string
   created_at: string
   updated_at: string
 }
@@ -142,20 +145,30 @@ export interface CampaignLead {
 export interface Appointment {
   id: string
   profile_id: string
-  call_log_id?: string
-  lead_id?: string
+  call_id?: string
   customer_name: string
-  customer_phone: string
+  customer_phone?: string
   customer_email?: string
-  appointment_type: string
-  scheduled_date: string
-  duration_minutes: number
-  location?: string
+  appointment_date: string
+  appointment_time: string
+  service_type?: string
   notes?: string
   status: string
-  reminder_sent: boolean
   created_at: string
   updated_at: string
+}
+
+export interface FunctionCallLog {
+  id: string
+  profile_id: string
+  call_id?: string
+  function_name: string
+  parameters: Record<string, any>
+  result: Record<string, any>
+  execution_time_ms: number
+  success: boolean
+  error_message?: string
+  created_at: string
 }
 
 export interface AnalyticsData {
@@ -163,9 +176,16 @@ export interface AnalyticsData {
   totalMinutes: number
   successfulCalls: number
   averageCallDuration: number
+  successRate: number
+  avgDuration: number
+  costPerCall: number
   callsByDay: Array<{ date: string; count: number }>
   callsByStatus: Array<{ status: string; count: number }>
   topOutcomes: Array<{ outcome: string; count: number }>
+  callVolumeData: Array<{ date: string; calls: number }>
+  performanceData: Array<{ date: string; success_rate: number }>
+  callOutcomeData: Array<{ name: string; value: number; color: string }>
+  topScripts: Array<{ name: string; success_rate: number; total_calls: number }>
   minutesUsed: number
   minutesLimit: number
   campaignStats: {
@@ -174,6 +194,23 @@ export interface AnalyticsData {
     totalLeads: number
     leadsContacted: number
   }
+  // Enhanced dashboard properties
+  callsThisMonth?: number
+  answeredCalls?: number
+  answerRate?: number
+  avgCallDuration?: number
+  totalAppointments?: number
+  appointmentsThisMonth?: number
+  appointmentConversionRate?: number
+  activeCampaigns?: number
+  totalLeads?: number
+  contactedLeads?: number
+  convertedLeads?: number
+  leadConversionRate?: number
+  totalAgents?: number
+  activeAgents?: number
+  agentUtilization?: number
+  avgSatisfactionScore?: number
 }
 
 export interface DNCEntry {

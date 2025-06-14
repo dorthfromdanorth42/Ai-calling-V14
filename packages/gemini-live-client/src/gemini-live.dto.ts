@@ -7,6 +7,14 @@ export interface GeminiContentPart {
     thought?: boolean;
     text?: string;
     inlineData?: GeminiBlob;
+    functionCall?: {
+        name: string;
+        args: Record<string, any>;
+    };
+    functionResponse?: {
+        name: string;
+        response: any;
+    };
 }
 
 export interface GeminiContent {
@@ -17,6 +25,10 @@ export interface GeminiContent {
 export interface BidiRequest {
     setup?: BidiGenerateContentSetup;
     realtimeInput?: BidiGenerateContentRealtimeInput;
+    clientContent?: {
+        turns: any;
+        turnComplete?: boolean;
+    };
 }
 
 export interface GeminiLiveClientOptions {
@@ -39,21 +51,48 @@ export interface BidiGenerateContentSetup {
         topK?: number,
         presencePenalty?: number,
         frequencyPenalty?: number,
-        mediaResolution?: object
-        responseModalities: string[],
-        speechConfig: {
-            voiceConfig: {
-                prebuiltVoiceConfig: {
+        mediaResolution?: 'MEDIA_RESOLUTION_LOW' | 'MEDIA_RESOLUTION_MEDIUM' | 'MEDIA_RESOLUTION_HIGH'
+        responseModalities: ('TEXT' | 'AUDIO')[],
+        speechConfig?: {
+            voiceConfig?: {
+                prebuiltVoiceConfig?: {
                     voiceName: string
                 }
             },
-            languageCode: string
+            languageCode?: string
         },
     };
-    systemInstruction: {
+    systemInstruction?: {
         parts: [{ text: string }]
     };
-    tools: object[]
+    tools?: FunctionDeclaration[]
+    realtimeInputConfig?: {
+        automaticActivityDetection?: {
+            disabled?: boolean
+            startOfSpeechSensitivity?: 'START_SENSITIVITY_LOW' | 'START_SENSITIVITY_MEDIUM' | 'START_SENSITIVITY_HIGH'
+            endOfSpeechSensitivity?: 'END_SENSITIVITY_LOW' | 'END_SENSITIVITY_MEDIUM' | 'END_SENSITIVITY_HIGH'
+            prefixPaddingMs?: number
+            silenceDurationMs?: number
+        }
+    }
+    inputAudioTranscription?: {}
+    outputAudioTranscription?: {}
+    enableAffectiveDialog?: boolean
+    proactivity?: {
+        proactiveAudio?: boolean
+    }
+}
+
+export interface FunctionDeclaration {
+    function_declarations: [{
+        name: string
+        description: string
+        parameters: {
+            type: 'object'
+            properties: Record<string, any>
+            required?: string[]
+        }
+    }]
 }
 
 export interface BidiGenerateContentRealtimeInput {
@@ -70,9 +109,17 @@ export interface BidiGenerateContentServerContent {
     generationComplete?: boolean;
     turnComplete?: boolean;
     interrupted?: boolean;
-    // groundingMetadata?: GroundingMetadata;
-    // outputTranscription?: BidiGenerateContentTranscription;
     modelTurn?: GeminiContent;
+    inputTranscription?: {
+        text: string;
+    };
+    outputTranscription?: {
+        text: string;
+    };
+    usageMetadata?: {
+        totalTokenCount: number;
+        responseTokensDetails: any[];
+    };
 }
 
 export interface BidiGenerateContentSetupComplete { }

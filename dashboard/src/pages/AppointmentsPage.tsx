@@ -147,17 +147,17 @@ export default function AppointmentsPage() {
     switch (filter) {
       case 'today':
         return appointments.filter(apt => {
-          const aptDate = new Date(apt.scheduled_date)
+          const aptDate = new Date(`${apt.appointment_date}T${apt.appointment_time}`)
           return aptDate >= today && aptDate < tomorrow
         })
       case 'upcoming':
         return appointments.filter(apt => {
-          const aptDate = new Date(apt.scheduled_date)
+          const aptDate = new Date(`${apt.appointment_date}T${apt.appointment_time}`)
           return aptDate >= now && apt.status !== 'completed' && apt.status !== 'cancelled'
         })
       case 'past':
         return appointments.filter(apt => {
-          const aptDate = new Date(apt.scheduled_date)
+          const aptDate = new Date(`${apt.appointment_date}T${apt.appointment_time}`)
           return aptDate < now || apt.status === 'completed'
         })
       default:
@@ -234,7 +234,7 @@ export default function AppointmentsPage() {
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
                 {filteredAppointments.map((appointment) => {
-                  const dateTime = formatDateTime(appointment.scheduled_date)
+                  const dateTime = formatDateTime(`${appointment.appointment_date}T${appointment.appointment_time}`)
                   const statusInfo = getStatusInfo(appointment.status)
                   
                   return (
@@ -258,14 +258,14 @@ export default function AppointmentsPage() {
                         </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                        {appointment.appointment_type}
+                        {appointment.service_type}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="text-sm text-gray-900">{dateTime.date}</div>
                         <div className="text-sm text-gray-500">{dateTime.time}</div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                        {appointment.duration_minutes} min
+                        {60} min
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${statusInfo.color}`}>
@@ -369,10 +369,9 @@ function CreateAppointmentModal({ onClose, onSuccess }: { onClose: () => void; o
     customer_name: '',
     customer_phone: '',
     customer_email: '',
-    appointment_type: 'Consultation',
-    scheduled_date: '',
-    duration_minutes: 30,
-    location: '',
+    service_type: 'Consultation',
+    appointment_date: '',
+    appointment_time: '10:00',
     notes: ''
   })
 
@@ -385,8 +384,7 @@ function CreateAppointmentModal({ onClose, onSuccess }: { onClose: () => void; o
       await DatabaseService.createAppointment({
         ...formData,
         profile_id: user.id,
-        status: 'scheduled',
-        reminder_sent: false
+        status: 'scheduled'
       })
       
       toast.success('Appointment scheduled successfully')
@@ -444,8 +442,8 @@ function CreateAppointmentModal({ onClose, onSuccess }: { onClose: () => void; o
             <div>
               <label className="block text-sm font-medium text-gray-700">Appointment Type</label>
               <select
-                value={formData.appointment_type}
-                onChange={(e) => setFormData({ ...formData, appointment_type: e.target.value })}
+                value={formData.service_type}
+                onChange={(e) => setFormData({ ...formData, service_type: e.target.value })}
                 className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
               >
                 {APPOINTMENT_TYPES.map(type => (
@@ -459,8 +457,8 @@ function CreateAppointmentModal({ onClose, onSuccess }: { onClose: () => void; o
               <input
                 type="datetime-local"
                 required
-                value={formData.scheduled_date}
-                onChange={(e) => setFormData({ ...formData, scheduled_date: e.target.value })}
+                value={formData.appointment_date}
+                onChange={(e) => setFormData({ ...formData, appointment_date: e.target.value })}
                 className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
               />
             </div>
@@ -468,8 +466,8 @@ function CreateAppointmentModal({ onClose, onSuccess }: { onClose: () => void; o
             <div>
               <label className="block text-sm font-medium text-gray-700">Duration (minutes)</label>
               <select
-                value={formData.duration_minutes}
-                onChange={(e) => setFormData({ ...formData, duration_minutes: parseInt(e.target.value) })}
+                value={formData.appointment_time}
+                onChange={(e) => setFormData({ ...formData, appointment_time: e.target.value })}
                 className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
               >
                 <option value={15}>15 minutes</option>
@@ -485,8 +483,8 @@ function CreateAppointmentModal({ onClose, onSuccess }: { onClose: () => void; o
               <label className="block text-sm font-medium text-gray-700">Location (Optional)</label>
               <input
                 type="text"
-                value={formData.location}
-                onChange={(e) => setFormData({ ...formData, location: e.target.value })}
+                value={formData.notes}
+                onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
                 className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
                 placeholder="Office, Zoom, Phone call, etc."
               />
@@ -541,10 +539,9 @@ function EditAppointmentModal({
     customer_name: appointment.customer_name,
     customer_phone: appointment.customer_phone,
     customer_email: appointment.customer_email || '',
-    appointment_type: appointment.appointment_type,
-    scheduled_date: new Date(appointment.scheduled_date).toISOString().slice(0, 16),
-    duration_minutes: appointment.duration_minutes,
-    location: appointment.location || '',
+    service_type: appointment.service_type,
+    appointment_date: new Date(`${appointment.appointment_date}T${appointment.appointment_time}`).toISOString().slice(0, 16),
+    appointment_time: '60',
     notes: appointment.notes || '',
     status: appointment.status
   })
@@ -556,7 +553,7 @@ function EditAppointmentModal({
     try {
       await DatabaseService.updateAppointment(appointment.id, {
         ...formData,
-        scheduled_date: new Date(formData.scheduled_date).toISOString()
+        appointment_date: new Date(formData.appointment_date).toISOString()
       })
       
       toast.success('Appointment updated successfully')
@@ -606,8 +603,8 @@ function EditAppointmentModal({
               <input
                 type="datetime-local"
                 required
-                value={formData.scheduled_date}
-                onChange={(e) => setFormData({ ...formData, scheduled_date: e.target.value })}
+                value={formData.appointment_date}
+                onChange={(e) => setFormData({ ...formData, appointment_date: e.target.value })}
                 className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
               />
             </div>

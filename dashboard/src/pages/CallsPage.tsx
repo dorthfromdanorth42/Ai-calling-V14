@@ -75,7 +75,9 @@ export default function CallsPage() {
     )
 
     return () => {
-      RealtimeService.unsubscribe(subscription)
+      if (subscription && typeof subscription.unsubscribe === 'function') {
+        subscription.unsubscribe()
+      }
     }
   }
 

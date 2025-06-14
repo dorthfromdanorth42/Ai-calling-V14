@@ -69,6 +69,29 @@ export class GeminiLiveClient {
         this.send({ realtimeInput: realTimeData });
     }
 
+    public sendRealtimeInput(realTimeData: BidiGenerateContentRealtimeInput) {
+        this.send({ realtimeInput: realTimeData });
+    }
+
+    public sendClientContent(content: { turns: any, turnComplete?: boolean }) {
+        this.send({ clientContent: content });
+    }
+
+    public sendFunctionResponse(functionName: string, response: any) {
+        const functionResponse = {
+            name: functionName,
+            response: response
+        };
+        
+        this.sendClientContent({
+            turns: [{
+                role: 'function',
+                parts: [{ functionResponse }]
+            }],
+            turnComplete: true
+        });
+    }
+
     protected send(request: BidiRequest) {
         if (!this.isReady)
             return;

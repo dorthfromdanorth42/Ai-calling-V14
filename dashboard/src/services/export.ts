@@ -89,11 +89,11 @@ export class ExportService {
       appointment.customer_name,
       appointment.customer_phone,
       appointment.customer_email || '',
-      appointment.appointment_type,
-      new Date(appointment.scheduled_date).toLocaleString(),
-      appointment.duration_minutes.toString(),
+      appointment.service_type,
+      new Date(appointment.appointment_date + 'T' + appointment.appointment_time).toLocaleString(),
+      '60',
       appointment.status,
-      appointment.location || '',
+      appointment.notes || '',
       appointment.notes || '',
       new Date(appointment.created_at).toLocaleDateString()
     ])

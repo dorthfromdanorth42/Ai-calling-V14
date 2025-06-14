@@ -503,6 +503,254 @@ export class RealtimeService {
     })
   }
 
+  // Subscribe to live calls updates for real-time monitoring
+  static subscribeToLiveCallUpdates(
+    profileId: string,
+    onUpdate: (call: any) => void,
+    onInsert: (call: any) => void,
+    onDelete: (callId: string) => void
+  ) {
+    if (this.isDemoMode()) {
+      console.log('Demo mode: Real-time subscriptions not available')
+      return 'demo-subscription'
+    }
+
+    const channelName = `live_calls_${profileId}`
+    
+    // Unsubscribe from existing channel if it exists
+    this.unsubscribe(channelName)
+
+    const channel = supabase
+      .channel(channelName)
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'live_calls',
+          filter: `profile_id=eq.${profileId}`
+        },
+        (payload) => {
+          console.log('Live call updated:', payload.new)
+          onUpdate(payload.new)
+        }
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'live_calls',
+          filter: `profile_id=eq.${profileId}`
+        },
+        (payload) => {
+          console.log('New live call:', payload.new)
+          onInsert(payload.new)
+        }
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: 'DELETE',
+          schema: 'public',
+          table: 'live_calls',
+          filter: `profile_id=eq.${profileId}`
+        },
+        (payload) => {
+          console.log('Live call ended:', payload.old)
+          onDelete(payload.old.id)
+        }
+      )
+      .subscribe()
+
+    this.channels.set(channelName, channel)
+    return channelName
+  }
+
+  // Subscribe to webhook events for monitoring
+  static subscribeToWebhookEventUpdates(
+    profileId: string,
+    onInsert: (event: any) => void
+  ) {
+    if (this.isDemoMode()) {
+      console.log('Demo mode: Real-time subscriptions not available')
+      return 'demo-subscription'
+    }
+
+    const channelName = `webhook_events_${profileId}`
+    
+    // Unsubscribe from existing channel if it exists
+    this.unsubscribe(channelName)
+
+    const channel = supabase
+      .channel(channelName)
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'webhook_events',
+          filter: `profile_id=eq.${profileId}`
+        },
+        (payload) => {
+          console.log('New webhook event:', payload.new)
+          onInsert(payload.new)
+        }
+      )
+      .subscribe()
+
+    this.channels.set(channelName, channel)
+    return channelName
+  }
+
+  // Subscribe to dialer queue updates
+  static subscribeToDialerQueueUpdates(
+    profileId: string,
+    onUpdate: (entry: any) => void,
+    onInsert: (entry: any) => void,
+    onDelete: (entryId: string) => void
+  ) {
+    if (this.isDemoMode()) {
+      console.log('Demo mode: Real-time subscriptions not available')
+      return 'demo-subscription'
+    }
+
+    const channelName = `dialer_queue_${profileId}`
+    
+    // Unsubscribe from existing channel if it exists
+    this.unsubscribe(channelName)
+
+    const channel = supabase
+      .channel(channelName)
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'dialer_queue',
+          filter: `profile_id=eq.${profileId}`
+        },
+        (payload) => {
+          console.log('Dialer queue updated:', payload.new)
+          onUpdate(payload.new)
+        }
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'dialer_queue',
+          filter: `profile_id=eq.${profileId}`
+        },
+        (payload) => {
+          console.log('New dialer queue entry:', payload.new)
+          onInsert(payload.new)
+        }
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: 'DELETE',
+          schema: 'public',
+          table: 'dialer_queue',
+          filter: `profile_id=eq.${profileId}`
+        },
+        (payload) => {
+          console.log('Dialer queue entry removed:', payload.old)
+          onDelete(payload.old.id)
+        }
+      )
+      .subscribe()
+
+    this.channels.set(channelName, channel)
+    return channelName
+  }
+
+  // Subscribe to campaign metrics updates
+  static subscribeToCampaignMetricsUpdates(
+    profileId: string,
+    onUpdate: (metrics: any) => void,
+    onInsert: (metrics: any) => void
+  ) {
+    if (this.isDemoMode()) {
+      console.log('Demo mode: Real-time subscriptions not available')
+      return 'demo-subscription'
+    }
+
+    const channelName = `campaign_metrics_${profileId}`
+    
+    // Unsubscribe from existing channel if it exists
+    this.unsubscribe(channelName)
+
+    const channel = supabase
+      .channel(channelName)
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'campaign_metrics',
+          filter: `profile_id=eq.${profileId}`
+        },
+        (payload) => {
+          console.log('Campaign metrics updated:', payload.new)
+          onUpdate(payload.new)
+        }
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'campaign_metrics',
+          filter: `profile_id=eq.${profileId}`
+        },
+        (payload) => {
+          console.log('New campaign metrics:', payload.new)
+          onInsert(payload.new)
+        }
+      )
+      .subscribe()
+
+    this.channels.set(channelName, channel)
+    return channelName
+  }
+
+  // Subscribe to system metrics updates
+  static subscribeToSystemMetricsUpdates(
+    onInsert: (metrics: any) => void
+  ) {
+    if (this.isDemoMode()) {
+      console.log('Demo mode: Real-time subscriptions not available')
+      return 'demo-subscription'
+    }
+
+    const channelName = 'system_metrics_global'
+    
+    // Unsubscribe from existing channel if it exists
+    this.unsubscribe(channelName)
+
+    const channel = supabase
+      .channel(channelName)
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'system_metrics'
+        },
+        (payload) => {
+          console.log('New system metrics:', payload.new)
+          onInsert(payload.new)
+        }
+      )
+      .subscribe()
+
+    this.channels.set(channelName, channel)
+    return channelName
+  }
+
   // Subscribe to custom broadcast events
   static subscribeToBroadcast(
     channel: string, 
