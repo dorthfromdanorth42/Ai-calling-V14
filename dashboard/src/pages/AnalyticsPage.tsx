@@ -228,14 +228,14 @@ export default function AnalyticsPage() {
               <div key={index} className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-gray-900">{script.name}</p>
-                  <p className="text-sm text-gray-500">{script.calls} calls</p>
+                  <p className="text-sm text-gray-500">{script.total_calls} calls</p>
                 </div>
                 <div className="text-right">
-                  <p className="text-sm font-medium text-gray-900">{script.successRate}%</p>
+                  <p className="text-sm font-medium text-gray-900">{script.success_rate}%</p>
                   <div className="w-16 bg-gray-200 rounded-full h-2">
                     <div 
                       className="bg-green-600 h-2 rounded-full" 
-                      style={{ width: `${script.successRate}%` }}
+                      style={{ width: `${script.success_rate}%` }}
                     ></div>
                   </div>
                 </div>

@@ -530,8 +530,8 @@ function CreateCampaignModal({ onClose, onSuccess }: { onClose: () => void; onSu
         priority: 'normal' as const,
         custom_voice_name: formData.custom_voice_name as Campaign['custom_voice_name'],
         // Convert empty strings to null for timestamp fields
-        scheduled_start_date: formData.scheduled_start_date || null,
-        scheduled_end_date: formData.scheduled_end_date || null
+        scheduled_start_date: formData.scheduled_start_date || undefined,
+        scheduled_end_date: formData.scheduled_end_date || undefined
       })
 
       // Add leads to campaign

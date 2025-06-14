@@ -3,12 +3,14 @@ import { BidiGenerateContentServerContent, GeminiLiveClient } from '@tw2gem/gemi
 import { Tw2GemGeminiEvents, Tw2GemServerOptions, Tw2GemSocket } from './server.dto';
 import { AudioConverter } from '@tw2gem/audio-converter';
 import { WebhookService } from './webhook-service';
+import { FunctionCallHandler } from './function-handler';
 
 export class Tw2GemServer extends TwilioWebSocketServer {
 
     public onNewCall?: (socket: Tw2GemSocket) => void;
     public geminiLive = new Tw2GemGeminiEvents();
     private webhookService: WebhookService;
+    private functionHandler: FunctionCallHandler;
 
     constructor(options: Tw2GemServerOptions) {
         super(options.serverOptions);
@@ -16,6 +18,12 @@ export class Tw2GemServer extends TwilioWebSocketServer {
         
         // Initialize webhook service
         this.webhookService = new WebhookService(
+            options.supabaseUrl,
+            options.supabaseKey
+        );
+
+        // Initialize function call handler
+        this.functionHandler = new FunctionCallHandler(
             options.supabaseUrl,
             options.supabaseKey
         );
@@ -135,7 +143,12 @@ export class Tw2GemServer extends TwilioWebSocketServer {
         )
     }
 
-    private handleFunctionCalls(socket: Tw2GemSocket, serverContent: BidiGenerateContentServerContent) {
+    // Get function definitions for Gemini setup
+    public getFunctionDefinitions(): object[] {
+        return this.functionHandler.getFunctionDefinitions()
+    }
+
+    private async handleFunctionCalls(socket: Tw2GemSocket, serverContent: BidiGenerateContentServerContent) {
         if (!serverContent.modelTurn?.parts) return
 
         const functionCalls = serverContent.modelTurn.parts
@@ -148,13 +161,49 @@ export class Tw2GemServer extends TwilioWebSocketServer {
                 if (!socket.functionCalls) socket.functionCalls = []
                 socket.functionCalls.push(functionCall)
 
-                // Send function call webhook
-                this.webhookService.processFunctionCall({
-                    call_id: socket.callId!,
-                    function_name: functionCall.name,
-                    parameters: functionCall.args,
-                    timestamp: new Date().toISOString()
-                }, socket.userId)
+                try {
+                    // Execute the function call
+                    const result = await this.functionHandler.executeFunction({
+                        name: functionCall.name,
+                        args: functionCall.args,
+                        callId: socket.callId!,
+                        userId: socket.userId,
+                        agentId: socket.agentId
+                    })
+
+                    // Send function call webhook with result
+                    this.webhookService.processFunctionCall({
+                        call_id: socket.callId!,
+                        function_name: functionCall.name,
+                        parameters: functionCall.args,
+                        result: result.result,
+                        timestamp: new Date().toISOString()
+                    }, socket.userId)
+
+                    // Send function result back to Gemini
+                    if (socket.geminiClient) {
+                        if (result.success) {
+                            socket.geminiClient.sendFunctionResponse(functionCall.name, result.result)
+                        } else {
+                            socket.geminiClient.sendFunctionResponse(functionCall.name, {
+                                error: result.error,
+                                success: false
+                            })
+                        }
+                    }
+
+                } catch (error) {
+                    console.error('Error executing function call:', error)
+                    
+                    // Send error webhook
+                    this.webhookService.processFunctionCall({
+                        call_id: socket.callId!,
+                        function_name: functionCall.name,
+                        parameters: functionCall.args,
+                        result: { error: error instanceof Error ? error.message : 'Unknown error' },
+                        timestamp: new Date().toISOString()
+                    }, socket.userId)
+                }
             }
         }
     }

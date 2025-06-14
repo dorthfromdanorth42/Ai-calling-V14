@@ -10,10 +10,10 @@ import type {
   WebhookDelivery,
   Subscription,
   UsageRecord,
-
   SystemStatus,
   AIAgent,
-  Appointment
+  Appointment,
+  FunctionCallLog
 } from '../lib/supabase'
 
 export class DatabaseService {
@@ -341,17 +341,28 @@ export class DatabaseService {
   }
 
   // Campaign leads operations
-  static async getCampaignLeads(campaignId: string, limit = 100, offset = 0): Promise<CampaignLead[]> {
+  static async getCampaignLeads(campaignId: string, options: { limit?: number; offset?: number; status?: string[]; } = {}): Promise<CampaignLead[]> {
+    const { limit = 100, offset = 0, status } = options
+    
     if (this.isDemoMode()) {
       return this.getDemoCampaignLeads()
     }
 
-    const { data, error } = await supabase
+    let query = supabase
       .from('campaign_leads')
       .select('*')
       .eq('campaign_id', campaignId)
+
+    if (status && status.length > 0) {
+      query = query.in('status', status)
+    }
+
+    query = query
+      .order('priority', { ascending: false })
       .order('created_at', { ascending: false })
       .range(offset, offset + limit - 1)
+
+    const { data, error } = await query
 
     if (error) {
       console.error('Error fetching campaign leads:', error)
@@ -893,7 +904,7 @@ export class DatabaseService {
         customer_name: 'Jane Smith',
         customer_phone: '+1 (555) 333-4444',
         customer_email: 'jane.smith@example.com',
-        appointment_type: 'Product Demo',
+        service_type: 'Product Demo',
         scheduled_date: '2024-01-20T14:00:00Z',
         duration_minutes: 30,
         location: 'Zoom Meeting',
@@ -938,7 +949,29 @@ export class DatabaseService {
         activeCampaigns: 1,
         totalLeads: 1250,
         leadsContacted: 456
-      }
+      },
+      successRate: 76.5,
+      avgDuration: 447,
+      costPerCall: 0.12,
+      callVolumeData: [
+        { date: '2024-01-08', calls: 32 },
+        { date: '2024-01-09', calls: 28 },
+        { date: '2024-01-10', calls: 35 }
+      ],
+      performanceData: [
+        { date: '2024-01-08', success_rate: 75.2 },
+        { date: '2024-01-09', success_rate: 78.1 },
+        { date: '2024-01-10', success_rate: 72.8 }
+      ],
+      callOutcomeData: [
+        { name: 'Success', value: 189, color: '#10B981' },
+        { name: 'Failed', value: 32, color: '#EF4444' },
+        { name: 'Abandoned', value: 26, color: '#F59E0B' }
+      ],
+      topScripts: [
+        { name: 'Sales Script A', success_rate: 82.5, total_calls: 125 },
+        { name: 'Support Script B', success_rate: 78.2, total_calls: 89 }
+      ]
     }
   }
 
@@ -958,7 +991,14 @@ export class DatabaseService {
         activeCampaigns: 0,
         totalLeads: 0,
         leadsContacted: 0
-      }
+      },
+      successRate: 0,
+      avgDuration: 0,
+      costPerCall: 0,
+      callVolumeData: [],
+      performanceData: [],
+      callOutcomeData: [],
+      topScripts: []
     }
   }
 
@@ -1368,5 +1408,369 @@ export class DatabaseService {
     }
 
     return true
+  }
+
+  // New methods for the 5 enhanced features
+
+  // Live call monitoring methods
+  static async getLiveCalls(profileId: string): Promise<any[]> {
+    if (this.isDemoMode()) {
+      return this.getDemoActiveCalls()
+    }
+
+    const { data, error } = await supabase
+      .from('live_calls')
+      .select(`
+        *,
+        ai_agents!inner(name, agent_type, voice_name)
+      `)
+      .eq('profile_id', profileId)
+      .order('started_at', { ascending: false })
+
+    if (error) {
+      console.error('Error fetching live calls:', error)
+      return []
+    }
+
+    return data || []
+  }
+
+  static async updateLiveCallStatus(callId: string, status: string, metadata: any = {}): Promise<boolean> {
+    if (this.isDemoMode()) {
+      return true
+    }
+
+    const { error } = await supabase
+      .from('live_calls')
+      .update({ 
+        status,
+        last_updated: new Date().toISOString(),
+        metadata
+      })
+      .eq('id', callId)
+
+    if (error) {
+      console.error('Error updating live call status:', error)
+      return false
+    }
+
+    return true
+  }
+
+  // Webhook event methods
+  static async logWebhookEvent(event: {
+    profile_id?: string
+    event_type: string
+    call_id?: string
+    agent_id?: string
+    event_data: any
+  }): Promise<boolean> {
+    if (this.isDemoMode()) {
+      return true
+    }
+
+    const { error } = await supabase
+      .from('webhook_events')
+      .insert(event)
+
+    if (error) {
+      console.error('Error logging webhook event:', error)
+      return false
+    }
+
+    return true
+  }
+
+  static async getWebhookEvents(profileId: string, limit = 50): Promise<any[]> {
+    if (this.isDemoMode()) {
+      return []
+    }
+
+    const { data, error } = await supabase
+      .from('webhook_events')
+      .select('*')
+      .eq('profile_id', profileId)
+      .order('created_at', { ascending: false })
+      .limit(limit)
+
+    if (error) {
+      console.error('Error fetching webhook events:', error)
+      return []
+    }
+
+    return data || []
+  }
+
+  // Auto-dialer queue methods
+  static async addToDialerQueue(entry: {
+    profile_id: string
+    campaign_id: string
+    lead_id: string
+    agent_id?: string
+    priority?: string
+    scheduled_at?: string
+  }): Promise<boolean> {
+    if (this.isDemoMode()) {
+      return true
+    }
+
+    const { error } = await supabase
+      .from('dialer_queue')
+      .insert(entry)
+
+    if (error) {
+      console.error('Error adding to dialer queue:', error)
+      return false
+    }
+
+    return true
+  }
+
+  static async getDialerQueue(profileId: string, campaignId?: string): Promise<any[]> {
+    if (this.isDemoMode()) {
+      return []
+    }
+
+    let query = supabase
+      .from('dialer_queue')
+      .select(`
+        *,
+        campaign_leads!inner(phone_number, first_name, last_name, email, company),
+        ai_agents(name)
+      `)
+      .eq('profile_id', profileId)
+      .in('status', ['queued', 'dialing'])
+
+    if (campaignId) {
+      query = query.eq('campaign_id', campaignId)
+    }
+
+    const { data, error } = await query
+      .order('priority', { ascending: false })
+      .order('scheduled_at', { ascending: true })
+
+    if (error) {
+      console.error('Error fetching dialer queue:', error)
+      return []
+    }
+
+    return data || []
+  }
+
+  static async updateDialerQueueStatus(queueId: string, status: string, metadata: any = {}): Promise<boolean> {
+    if (this.isDemoMode()) {
+      return true
+    }
+
+    const updateData: any = { 
+      status,
+      updated_at: new Date().toISOString()
+    }
+
+    if (status === 'dialing') {
+      updateData.started_at = new Date().toISOString()
+    } else if (status === 'completed' || status === 'failed') {
+      updateData.completed_at = new Date().toISOString()
+    }
+
+    if (Object.keys(metadata).length > 0) {
+      updateData.metadata = metadata
+    }
+
+    const { error } = await supabase
+      .from('dialer_queue')
+      .update(updateData)
+      .eq('id', queueId)
+
+    if (error) {
+      console.error('Error updating dialer queue status:', error)
+      return false
+    }
+
+    return true
+  }
+
+  // Campaign metrics methods
+  static async getCampaignMetrics(profileId: string, campaignId?: string, days = 30): Promise<any[]> {
+    if (this.isDemoMode()) {
+      return this.getDemoCampaignMetrics()
+    }
+
+    let query = supabase
+      .from('campaign_metrics')
+      .select(`
+        *,
+        outbound_campaigns!inner(name)
+      `)
+      .eq('profile_id', profileId)
+      .gte('date', new Date(Date.now() - days * 24 * 60 * 60 * 1000).toISOString().split('T')[0])
+
+    if (campaignId) {
+      query = query.eq('campaign_id', campaignId)
+    }
+
+    const { data, error } = await query.order('date', { ascending: false })
+
+    if (error) {
+      console.error('Error fetching campaign metrics:', error)
+      return []
+    }
+
+    return data || []
+  }
+
+  static async updateCampaignMetrics(profileId: string, campaignId: string, date: string, metrics: any): Promise<boolean> {
+    if (this.isDemoMode()) {
+      return true
+    }
+
+    const { error } = await supabase
+      .from('campaign_metrics')
+      .upsert({
+        profile_id: profileId,
+        campaign_id: campaignId,
+        date,
+        ...metrics,
+        updated_at: new Date().toISOString()
+      })
+
+    if (error) {
+      console.error('Error updating campaign metrics:', error)
+      return false
+    }
+
+    return true
+  }
+
+  // System metrics methods
+  static async getSystemMetrics(profileId?: string): Promise<any[]> {
+    if (this.isDemoMode()) {
+      return this.getDemoSystemMetrics()
+    }
+
+    let query = supabase
+      .from('system_metrics')
+      .select('*')
+      .gte('recorded_at', new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString()) // Last 24 hours
+
+    if (profileId) {
+      query = query.eq('profile_id', profileId)
+    }
+
+    const { data, error } = await query.order('recorded_at', { ascending: false })
+
+    if (error) {
+      console.error('Error fetching system metrics:', error)
+      return []
+    }
+
+    return data || []
+  }
+
+  static async recordSystemMetric(metric: {
+    metric_name: string
+    metric_value: number
+    metric_unit?: string
+    profile_id?: string
+    agent_id?: string
+    metadata?: any
+  }): Promise<boolean> {
+    if (this.isDemoMode()) {
+      return true
+    }
+
+    const { error } = await supabase
+      .from('system_metrics')
+      .insert(metric)
+
+    if (error) {
+      console.error('Error recording system metric:', error)
+      return false
+    }
+
+    return true
+  }
+
+  // Function call logging methods
+  static async logFunctionCall(log: {
+    profile_id?: string
+    call_id: string
+    function_name: string
+    parameters: any
+    result?: any
+    execution_time_ms?: number
+    success?: boolean
+    error_message?: string
+  }): Promise<boolean> {
+    if (this.isDemoMode()) {
+      return true
+    }
+
+    const { error } = await supabase
+      .from('function_call_logs')
+      .insert(log)
+
+    if (error) {
+      console.error('Error logging function call:', error)
+      return false
+    }
+
+    return true
+  }
+
+  // Demo data methods for new features
+  private static getDemoCampaignMetrics(): any[] {
+    return [
+      {
+        id: 'metric-1',
+        campaign_id: 'demo-campaign-1',
+        date: new Date().toISOString().split('T')[0],
+        leads_queued: 100,
+        leads_dialed: 85,
+        leads_connected: 42,
+        leads_completed: 15,
+        conversion_rate: 17.6,
+        revenue_generated: 2500.00,
+        outbound_campaigns: { name: 'Demo Sales Campaign' }
+      },
+      {
+        id: 'metric-2',
+        campaign_id: 'demo-campaign-1',
+        date: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+        leads_queued: 120,
+        leads_dialed: 95,
+        leads_connected: 48,
+        leads_completed: 18,
+        conversion_rate: 18.9,
+        revenue_generated: 3200.00,
+        outbound_campaigns: { name: 'Demo Sales Campaign' }
+      }
+    ]
+  }
+
+  private static getDemoSystemMetrics(): any[] {
+    return [
+      {
+        id: 'sys-metric-1',
+        metric_name: 'active_calls',
+        metric_value: 3,
+        metric_unit: 'count',
+        recorded_at: new Date().toISOString()
+      },
+      {
+        id: 'sys-metric-2',
+        metric_name: 'api_response_time',
+        metric_value: 145.5,
+        metric_unit: 'milliseconds',
+        recorded_at: new Date().toISOString()
+      },
+      {
+        id: 'sys-metric-3',
+        metric_name: 'system_load',
+        metric_value: 65.2,
+        metric_unit: 'percentage',
+        recorded_at: new Date().toISOString()
+      }
+    ]
   }
 }
