@@ -157,6 +157,7 @@ export function usePermissions() {
       '/dashboard': 'dashboard',
       '/agents': 'agents',
       '/calls': 'calls',
+      '/live-calls': 'calls', // Live calls uses same permission as calls
       '/campaigns': 'campaigns',
       '/analytics': 'analytics',
       '/appointments': 'appointments',

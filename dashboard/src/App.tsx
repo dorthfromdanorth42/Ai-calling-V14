@@ -8,6 +8,7 @@ import VerifyPage from './pages/VerifyPage'
 import DashboardPage from './pages/DashboardPage'
 import AgentsPage from './pages/AgentsPage'
 import CallsPage from './pages/CallsPage'
+import LiveCallsPage from './pages/LiveCallsPage'
 import AppointmentsPage from './pages/AppointmentsPage'
 import CampaignsPage from './pages/CampaignsPage'
 import AnalyticsPage from './pages/AnalyticsPage'
@@ -59,6 +60,11 @@ function AppContent() {
         <Route path="/calls" element={
           <ProtectedRoute requiredPermission="calls">
             <CallsPage />
+          </ProtectedRoute>
+        } />
+        <Route path="/live-calls" element={
+          <ProtectedRoute requiredPermission="calls">
+            <LiveCallsPage />
           </ProtectedRoute>
         } />
         <Route path="/appointments" element={

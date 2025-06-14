@@ -32,12 +32,12 @@ export class RealtimeService {
   static subscribeToCallUpdates(
     profileId: string, 
     onUpdate: (call: CallLog) => void,
-    onInsert: (call: CallLog) => void,
-    onDelete: (callId: string) => void
+    onInsert?: (call: CallLog) => void,
+    onDelete?: (callId: string) => void
   ) {
     if (this.isDemoMode()) {
       console.log('Demo mode: Real-time subscriptions not available')
-      return 'demo-subscription'
+      return { unsubscribe: () => {} }
     }
 
     const channelName = `call_logs_${profileId}`
@@ -70,7 +70,7 @@ export class RealtimeService {
         },
         (payload) => {
           console.log('New call:', payload.new)
-          onInsert(payload.new as CallLog)
+          if (onInsert) onInsert(payload.new as CallLog)
         }
       )
       .on(
@@ -83,13 +83,15 @@ export class RealtimeService {
         },
         (payload) => {
           console.log('Call deleted:', payload.old)
-          onDelete(payload.old.id)
+          if (onDelete) onDelete(payload.old.id)
         }
       )
       .subscribe()
 
     this.channels.set(channelName, channel)
-    return channelName
+    return {
+      unsubscribe: () => this.unsubscribe(channelName)
+    }
   }
 
   // Subscribe to campaign updates
