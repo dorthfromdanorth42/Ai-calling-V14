@@ -30,7 +30,10 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     // Determine initial mode
     let initialMode: AppMode = 'live'
     
-    if (savedMode && (savedMode === 'demo' || savedMode === 'live')) {
+    if (hasSupabaseConfig) {
+      // Force live mode when proper Supabase config is available
+      initialMode = 'live'
+    } else if (savedMode && (savedMode === 'demo' || savedMode === 'live')) {
       initialMode = savedMode
     } else if (!hasSupabaseConfig && demoModeEnabled) {
       // Fall back to demo if no Supabase config

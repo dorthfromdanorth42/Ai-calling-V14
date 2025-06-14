@@ -277,7 +277,13 @@ export class DatabaseService {
   static async createCampaign(campaign: Omit<Campaign, 'id' | 'created_at' | 'updated_at'>): Promise<Campaign | null> {
     if (this.isDemoMode()) {
       console.log('Demo mode: Campaign creation simulated')
-      return null
+      // Return a mock campaign object instead of null to prevent frontend errors
+      return {
+        ...campaign,
+        id: 'demo-campaign-' + Date.now(),
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      } as Campaign
     }
 
     const { data, error } = await supabase
@@ -1037,7 +1043,14 @@ export class DatabaseService {
 
   static async createCampaignLead(lead: Omit<CampaignLead, 'id' | 'created_at' | 'updated_at'>): Promise<CampaignLead | null> {
     if (this.isDemoMode()) {
-      throw new Error('Campaign lead management not available in demo mode')
+      console.log('Demo mode: Campaign lead creation simulated')
+      // Return a mock lead object instead of throwing error
+      return {
+        ...lead,
+        id: 'demo-lead-' + Date.now(),
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      } as CampaignLead
     }
 
     const { data, error } = await supabase
