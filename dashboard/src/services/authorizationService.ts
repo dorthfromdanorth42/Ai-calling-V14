@@ -131,7 +131,7 @@ export class AuthorizationService {
       company_name: 'AI Call Center Demo',
       email: 'demo@callcenter.ai',
       phone_number: '+1 (555) 123-4567',
-      plan_name: 'professional',
+      plan_name: 'pro',
       monthly_minute_limit: 1000,
       minutes_used: 752,
 

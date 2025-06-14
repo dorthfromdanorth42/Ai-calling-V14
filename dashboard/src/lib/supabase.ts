@@ -19,7 +19,7 @@ export interface Profile {
   client_name?: string
   company_name?: string
   phone_number?: string
-  plan_name: 'free' | 'starter' | 'professional' | 'enterprise'
+  plan_name: 'starter' | 'grow' | 'pro' | 'scale'
   monthly_minute_limit: number
   minutes_used: number
   is_active: boolean

@@ -1,4 +1,4 @@
-import { DatabaseService } from '../../dashboard/src/services/database'
+// import { DatabaseService } from '../../dashboard/src/services/database'
 import { createClient } from '@supabase/supabase-js'
 
 export interface FunctionCallRequest {
@@ -507,8 +507,8 @@ export class FunctionCallHandler {
       end: 17   // 5 PM
     }
 
-    const availableSlots = []
-    const bookedTimes = appointments.map(apt => apt.appointment_time)
+    const availableSlots: string[] = []
+    const bookedTimes = appointments?.map((apt: any) => apt.appointment_time) || []
 
     for (let hour = businessHours.start; hour < businessHours.end; hour++) {
       const timeSlot = `${hour.toString().padStart(2, '0')}:00`

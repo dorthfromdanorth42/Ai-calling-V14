@@ -27,7 +27,7 @@ export class DatabaseService {
   // Profile operations
   static async getProfile(userId: string): Promise<Profile | null> {
     if (this.isDemoMode()) {
-      return this.getDemoProfile()
+      return this.getDemoProfile(userId)
     }
 
     const { data, error } = await supabase
@@ -47,7 +47,7 @@ export class DatabaseService {
   static async updateProfile(userId: string, updates: Partial<Profile>): Promise<Profile | null> {
     if (this.isDemoMode()) {
       console.log('Demo mode: Profile update simulated')
-      return { ...this.getDemoProfile(), ...updates }
+      return { ...this.getDemoProfile(userId), ...updates }
     }
 
     const { data, error } = await supabase
@@ -740,14 +740,35 @@ export class DatabaseService {
   }
 
   // Demo data methods
-  private static getDemoProfile(): Profile {
+  private static getDemoProfile(userId?: string): Profile {
+    // Check if this is the admin user
+    if (userId === 'admin-user-id') {
+      return {
+        id: 'admin-user-id',
+        email: 'gamblerspassion@gmail.com',
+        client_name: 'Admin User',
+        company_name: 'AI Call Center Admin',
+        phone_number: '+1 (555) 999-0000',
+        plan_name: 'scale',
+        monthly_minute_limit: 1800,
+        minutes_used: 245,
+        is_active: true,
+        can_use_inbound: true,
+        can_use_outbound_dialer: true,
+        max_concurrent_calls: 50,
+        created_at: '2024-01-01T00:00:00Z',
+        updated_at: '2024-06-14T00:00:00Z'
+      }
+    }
+    
+    // Default demo user profile
     return {
       id: 'demo-user-1',
       email: 'demo@example.com',
       client_name: 'Demo User',
       company_name: 'AI Call Center Demo',
       phone_number: '+1 (555) 123-4567',
-      plan_name: 'professional',
+      plan_name: 'pro',
       monthly_minute_limit: 1000,
       minutes_used: 752,
       is_active: true,

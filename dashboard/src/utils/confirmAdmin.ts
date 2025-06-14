@@ -5,7 +5,7 @@ export async function confirmAdminUser() {
     // This is a workaround to confirm the admin user
     // In production, you would do this through Supabase dashboard or admin API
     
-    const adminEmail = 'admin@aicallcenter.com'
+    const adminEmail = 'gamblerspassion@gmail.com'
     
     // Try to sign up the admin user again with a flag to auto-confirm
     const { data, error } = await supabase.auth.signUp({

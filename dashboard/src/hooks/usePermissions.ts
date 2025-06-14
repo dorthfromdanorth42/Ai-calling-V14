@@ -52,7 +52,7 @@ export function usePermissions() {
 
     try {
       // Check if user is admin
-      const adminEmail = 'admin@aicallcenter.com'
+      const adminEmail = 'gamblerspassion@gmail.com'
       const userIsAdmin = user.email === adminEmail
 
       setIsAdmin(userIsAdmin)
@@ -155,10 +155,12 @@ export function usePermissions() {
     
     const routePermissionMap: Record<string, keyof UserPermissions> = {
       '/dashboard': 'dashboard',
+      '/enhanced-dashboard': 'dashboard', // Enhanced dashboard uses same permission as dashboard
       '/agents': 'agents',
       '/calls': 'calls',
       '/live-calls': 'calls', // Live calls uses same permission as calls
       '/campaigns': 'campaigns',
+      '/enhanced-campaigns': 'campaigns', // Enhanced campaigns uses same permission as campaigns
       '/analytics': 'analytics',
       '/appointments': 'appointments',
       '/billing': 'billing',
