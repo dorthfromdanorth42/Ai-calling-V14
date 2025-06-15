@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState } from 'react';
 import { 
   PhoneIcon, 
   MicrophoneIcon, 
@@ -12,37 +12,37 @@ import {
   CheckCircleIcon,
   XCircleIcon,
   MegaphoneIcon
-} from '@heroicons/react/24/outline'
-import { usePermissions } from '../contexts/UserContext'
-import UsageTracker from './UsageTracker'
-import OutboundCampaigns from './OutboundCampaigns'
+} from '@heroicons/react/24/outline';
+import { usePermissions } from '../contexts/UserContext';
+import UsageTracker from './UsageTracker';
+import OutboundCampaigns from './OutboundCampaigns';
 
 interface DashboardProps {
   onLogout: () => void
 }
 
 export default function Dashboard({ onLogout }: DashboardProps) {
-  const [activeTab, setActiveTab] = useState('overview')
-  const [serverStatus, setServerStatus] = useState<'running' | 'stopped'>('stopped')
-  const { canUseInbound, canUseOutboundDialer } = usePermissions()
+  const [activeTab, setActiveTab] = useState('overview');
+  const [serverStatus, setServerStatus] = useState<'running' | 'stopped'>('stopped');
+  const { canUseInbound, canUseOutboundDialer } = usePermissions();
 
   const stats = [
     { name: 'Active Calls', value: '12', icon: PhoneIcon, color: 'text-green-500' },
     { name: 'Total Calls Today', value: '247', icon: UserGroupIcon, color: 'text-blue-500' },
     { name: 'Success Rate', value: '94.2%', icon: CheckCircleIcon, color: 'text-emerald-500' },
     { name: 'Avg Duration', value: '3m 42s', icon: ClockIcon, color: 'text-purple-500' },
-  ]
+  ];
 
   const recentCalls = [
     { id: 1, number: '+1 (555) 123-4567', status: 'completed', duration: '4m 23s', time: '2 min ago', ai_response: 'Customer inquiry handled' },
     { id: 2, number: '+1 (555) 987-6543', status: 'active', duration: '1m 15s', time: 'Now', ai_response: 'Appointment booking in progress' },
     { id: 3, number: '+1 (555) 456-7890', status: 'failed', duration: '0m 12s', time: '5 min ago', ai_response: 'Connection timeout' },
     { id: 4, number: '+1 (555) 321-0987', status: 'completed', duration: '6m 45s', time: '8 min ago', ai_response: 'Support ticket created' },
-  ]
+  ];
 
   const toggleServer = () => {
-    setServerStatus(serverStatus === 'running' ? 'stopped' : 'running')
-  }
+    setServerStatus(serverStatus === 'running' ? 'stopped' : 'running');
+  };
 
   return (
     <div className="min-h-screen bg-slate-50">
@@ -367,5 +367,5 @@ export default function Dashboard({ onLogout }: DashboardProps) {
         )}
       </div>
     </div>
-  )
+  );
 }

@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect } from 'react';
 import { 
   PhoneIcon, 
   PlayIcon, 
@@ -9,12 +9,12 @@ import {
   UserIcon,
   SignalIcon,
   CheckCircleIcon
-} from '@heroicons/react/24/outline'
-import { useUser } from '../contexts/UserContext'
-import { DatabaseService } from '../services/database'
-import { RealtimeService } from '../services/realtime'
-import type { AIAgent, CallLog, ActiveCall } from '../lib/supabase'
-import toast from 'react-hot-toast'
+} from '@heroicons/react/24/outline';
+import { useUser } from '../contexts/UserContext';
+import { DatabaseService } from '../services/database';
+import { RealtimeService } from '../services/realtime';
+import type { AIAgent, CallLog, ActiveCall } from '../lib/supabase';
+import toast from 'react-hot-toast';
 
 // ActiveCall interface imported from supabase types
 
@@ -35,50 +35,50 @@ interface SystemMetrics {
 }
 
 export default function LiveCallsPage() {
-  const { user } = useUser()
-  const [activeCalls, setActiveCalls] = useState<ActiveCall[]>([])
-  const [agentStatuses, setAgentStatuses] = useState<AgentStatus[]>([])
-  const [callQueue, setCallQueue] = useState<CallLog[]>([])
+  const { user } = useUser();
+  const [activeCalls, setActiveCalls] = useState<ActiveCall[]>([]);
+  const [agentStatuses, setAgentStatuses] = useState<AgentStatus[]>([]);
+  const [callQueue, setCallQueue] = useState<CallLog[]>([]);
   const [systemMetrics, setSystemMetrics] = useState<SystemMetrics>({
     total_active_calls: 0,
     total_queued_calls: 0,
     average_wait_time: 0,
     system_health: 'healthy',
     uptime_percentage: 99.9
-  })
-  const [loading, setLoading] = useState(true)
+  });
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     if (user) {
-      loadLiveData()
-      setupRealtimeSubscriptions()
+      loadLiveData();
+      setupRealtimeSubscriptions();
     }
-  }, [user])
+  }, [user]);
 
   const loadLiveData = async () => {
-    if (!user) return
+    if (!user) return;
 
     try {
-      setLoading(true)
+      setLoading(true);
       
       // Load active calls
-      const calls = await DatabaseService.getActiveCalls(user!.id)
+      const calls = await DatabaseService.getActiveCalls(user!.id);
       setActiveCalls(calls.map(call => ({
         ...call,
         agent_id: call.agent_id || 'unknown'
-      })))
+      })));
       
       // Load agent statuses
-      const agents = await DatabaseService.getAgentStatuses(user!.id)
+      const agents = await DatabaseService.getAgentStatuses(user!.id);
       setAgentStatuses(agents.map(agent => ({
         ...agent,
         current_calls: 0, // Default value since AIAgent doesn't have this
         status: 'available' as const
-      })))
+      })));
       
       // Load call queue
-      const queue = await DatabaseService.getCallQueue(user!.id)
-      setCallQueue(queue)
+      const queue = await DatabaseService.getCallQueue(user!.id);
+      setCallQueue(queue);
       
       // Calculate system metrics
       const metrics: SystemMetrics = {
@@ -87,26 +87,26 @@ export default function LiveCallsPage() {
         average_wait_time: queue.length > 0 ? 120 : 0, // Default wait time for demo
         system_health: (calls.length > 10 ? 'warning' : 'healthy') as 'healthy' | 'warning' | 'critical',
         uptime_percentage: 99.9
-      }
-      setSystemMetrics(metrics)
+      };
+      setSystemMetrics(metrics);
       
     } catch (error) {
-      console.error('Error loading live data:', error)
-      toast.error('Failed to load live call data')
+      console.error('Error loading live data:', error);
+      toast.error('Failed to load live call data');
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   const setupRealtimeSubscriptions = () => {
-    if (!user) return
+    if (!user) return;
 
     // Subscribe to call updates
     const callSubscription = RealtimeService.subscribeToCallUpdates(
       user!.id,
       (updatedCall) => {
         setActiveCalls(prev => {
-          const existing = prev.find(call => call.id === updatedCall.id)
+          const existing = prev.find(call => call.id === updatedCall.id);
           if (existing) {
             // Convert RealtimeCallUpdate to ActiveCall
             const activeCall: ActiveCall = {
@@ -117,13 +117,13 @@ export default function LiveCallsPage() {
               ...(updatedCall.call_summary && { call_summary: updatedCall.call_summary }),
               ...(updatedCall.sentiment_score && { sentiment_score: updatedCall.sentiment_score }),
               ...(updatedCall.outcome && { outcome: updatedCall.outcome })
-            }
-            return prev.map(call => call.id === updatedCall.id ? activeCall : call)
+            };
+            return prev.map(call => call.id === updatedCall.id ? activeCall : call);
           }
-          return prev
-        })
+          return prev;
+        });
       }
-    )
+    );
 
     // Subscribe to agent status updates
     const agentSubscription = RealtimeService.subscribeToAgentUpdates(
@@ -133,97 +133,97 @@ export default function LiveCallsPage() {
           prev.map(agent => 
             agent.id === updatedAgent.id ? { ...agent, ...updatedAgent } : agent
           )
-        )
+        );
       },
       (newAgent) => {
-        setAgentStatuses(prev => [...prev, newAgent as AgentStatus])
+        setAgentStatuses(prev => [...prev, newAgent as AgentStatus]);
       },
       (agentId) => {
-        setAgentStatuses(prev => prev.filter(agent => agent.id !== agentId))
+        setAgentStatuses(prev => prev.filter(agent => agent.id !== agentId));
       }
-    )
+    );
 
     return () => {
       if (typeof callSubscription === 'object' && callSubscription?.unsubscribe) {
-        callSubscription.unsubscribe()
+        callSubscription.unsubscribe();
       }
       if (typeof agentSubscription === 'string') {
-        RealtimeService.unsubscribe(agentSubscription)
+        RealtimeService.unsubscribe(agentSubscription);
       }
-    }
-  }
+    };
+  };
 
   const handleEmergencyStop = async () => {
     if (!confirm('Are you sure you want to stop ALL active calls? This action cannot be undone.')) {
-      return
+      return;
     }
 
     try {
-      await DatabaseService.emergencyStopAllCalls(user!.id)
-      toast.success('All calls stopped successfully')
-      loadLiveData()
+      await DatabaseService.emergencyStopAllCalls(user!.id);
+      toast.success('All calls stopped successfully');
+      loadLiveData();
     } catch (error) {
-      console.error('Error stopping calls:', error)
-      toast.error('Failed to stop calls')
+      console.error('Error stopping calls:', error);
+      toast.error('Failed to stop calls');
     }
-  }
+  };
 
   const handleToggleAgent = async (agentId: string, isActive: boolean) => {
     try {
-      await DatabaseService.toggleAgent(agentId, !isActive)
-      toast.success(`Agent ${!isActive ? 'activated' : 'deactivated'} successfully`)
+      await DatabaseService.toggleAgent(agentId, !isActive);
+      toast.success(`Agent ${!isActive ? 'activated' : 'deactivated'} successfully`);
     } catch (error) {
-      console.error('Error toggling agent:', error)
-      toast.error('Failed to toggle agent')
+      console.error('Error toggling agent:', error);
+      toast.error('Failed to toggle agent');
     }
-  }
+  };
 
   const formatDuration = (seconds: number) => {
-    const mins = Math.floor(seconds / 60)
-    const secs = seconds % 60
-    return `${mins}:${secs.toString().padStart(2, '0')}`
-  }
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins}:${secs.toString().padStart(2, '0')}`;
+  };
 
   const formatWaitTime = (seconds: number) => {
-    if (seconds < 60) return `${seconds}s`
-    const mins = Math.floor(seconds / 60)
-    return `${mins}m ${seconds % 60}s`
-  }
+    if (seconds < 60) return `${seconds}s`;
+    const mins = Math.floor(seconds / 60);
+    return `${mins}m ${seconds % 60}s`;
+  };
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'available': return 'text-green-600 bg-green-100'
-      case 'busy': return 'text-yellow-600 bg-yellow-100'
-      case 'offline': return 'text-red-600 bg-red-100'
-      default: return 'text-gray-600 bg-gray-100'
+      case 'available': return 'text-green-600 bg-green-100';
+      case 'busy': return 'text-yellow-600 bg-yellow-100';
+      case 'offline': return 'text-red-600 bg-red-100';
+      default: return 'text-gray-600 bg-gray-100';
     }
-  }
+  };
 
   const getPriorityColor = (priority: string) => {
     switch (priority) {
-      case 'urgent': return 'text-red-600 bg-red-100'
-      case 'high': return 'text-orange-600 bg-orange-100'
-      case 'normal': return 'text-blue-600 bg-blue-100'
-      case 'low': return 'text-gray-600 bg-gray-100'
-      default: return 'text-gray-600 bg-gray-100'
+      case 'urgent': return 'text-red-600 bg-red-100';
+      case 'high': return 'text-orange-600 bg-orange-100';
+      case 'normal': return 'text-blue-600 bg-blue-100';
+      case 'low': return 'text-gray-600 bg-gray-100';
+      default: return 'text-gray-600 bg-gray-100';
     }
-  }
+  };
 
   const getHealthColor = (health: string) => {
     switch (health) {
-      case 'healthy': return 'text-green-600'
-      case 'warning': return 'text-yellow-600'
-      case 'critical': return 'text-red-600'
-      default: return 'text-gray-600'
+      case 'healthy': return 'text-green-600';
+      case 'warning': return 'text-yellow-600';
+      case 'critical': return 'text-red-600';
+      default: return 'text-gray-600';
     }
-  }
+  };
 
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
         <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-indigo-600"></div>
       </div>
-    )
+    );
   }
 
   return (
@@ -434,5 +434,5 @@ export default function LiveCallsPage() {
         </div>
       )}
     </div>
-  )
+  );
 }

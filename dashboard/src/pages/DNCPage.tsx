@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect } from 'react';
 import { 
   PlusIcon, 
   TrashIcon,
@@ -8,52 +8,52 @@ import {
   PhoneIcon,
   CalendarIcon,
 
-} from '@heroicons/react/24/outline'
-import { useUser } from '../contexts/UserContext'
-import { DatabaseService } from '../services/database'
-import { RealtimeService } from '../services/realtime'
-import type { DNCEntry } from '../lib/supabase'
-import toast from 'react-hot-toast'
+} from '@heroicons/react/24/outline';
+import { useUser } from '../contexts/UserContext';
+import { DatabaseService } from '../services/database';
+import { RealtimeService } from '../services/realtime';
+import type { DNCEntry } from '../lib/supabase';
+import toast from 'react-hot-toast';
 
 const DNC_SOURCES = [
   { value: 'customer_request', label: 'Customer Request', color: 'bg-blue-100 text-blue-800' },
   { value: 'legal_requirement', label: 'Legal Requirement', color: 'bg-red-100 text-red-800' },
   { value: 'manual', label: 'Manual Entry', color: 'bg-gray-100 text-gray-800' },
   { value: 'complaint', label: 'Complaint', color: 'bg-yellow-100 text-yellow-800' }
-]
+];
 
 export default function DNCPage() {
-  const { user } = useUser()
-  const [dncEntries, setDncEntries] = useState<DNCEntry[]>([])
-  const [loading, setLoading] = useState(true)
-  const [showAddModal, setShowAddModal] = useState(false)
-  const [showBulkUpload, setShowBulkUpload] = useState(false)
-  const [searchTerm, setSearchTerm] = useState('')
+  const { user } = useUser();
+  const [dncEntries, setDncEntries] = useState<DNCEntry[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [showAddModal, setShowAddModal] = useState(false);
+  const [showBulkUpload, setShowBulkUpload] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
 
   useEffect(() => {
     if (user) {
-      loadDNCEntries()
-      setupRealtimeSubscriptions()
+      loadDNCEntries();
+      setupRealtimeSubscriptions();
     }
-  }, [user])
+  }, [user]);
 
   const loadDNCEntries = async () => {
-    if (!user) return
+    if (!user) return;
 
     try {
-      setLoading(true)
-      const entries = await DatabaseService.getDNCEntries(user.id)
-      setDncEntries(entries)
+      setLoading(true);
+      const entries = await DatabaseService.getDNCEntries(user.id);
+      setDncEntries(entries);
     } catch (error) {
-      console.error('Error loading DNC entries:', error)
-      toast.error('Failed to load DNC list')
+      console.error('Error loading DNC entries:', error);
+      toast.error('Failed to load DNC list');
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   const setupRealtimeSubscriptions = () => {
-    if (!user) return
+    if (!user) return;
 
     const subscription = RealtimeService.subscribeToDNCUpdates(
       user.id,
@@ -62,34 +62,34 @@ export default function DNCPage() {
           prev.map(entry => 
             entry.id === updatedEntry.id ? updatedEntry : entry
           )
-        )
+        );
       },
       (newEntry) => {
-        setDncEntries(prev => [newEntry, ...prev])
+        setDncEntries(prev => [newEntry, ...prev]);
       },
       (entryId) => {
-        setDncEntries(prev => prev.filter(entry => entry.id !== entryId))
+        setDncEntries(prev => prev.filter(entry => entry.id !== entryId));
       }
-    )
+    );
 
     return () => {
-      RealtimeService.unsubscribe(subscription)
-    }
-  }
+      RealtimeService.unsubscribe(subscription);
+    };
+  };
 
   const handleDeleteEntry = async (entryId: string) => {
     if (!confirm('Are you sure you want to remove this number from the DNC list?')) {
-      return
+      return;
     }
 
     try {
-      await DatabaseService.deleteDNCEntry(entryId)
-      toast.success('Number removed from DNC list')
+      await DatabaseService.deleteDNCEntry(entryId);
+      toast.success('Number removed from DNC list');
     } catch (error) {
-      console.error('Error deleting DNC entry:', error)
-      toast.error('Failed to remove number from DNC list')
+      console.error('Error deleting DNC entry:', error);
+      toast.error('Failed to remove number from DNC list');
     }
-  }
+  };
 
   const handleExportCSV = () => {
     const csvContent = [
@@ -101,32 +101,32 @@ export default function DNCPage() {
         entry.notes || '',
         entry.expiry_date ? new Date(entry.expiry_date).toLocaleDateString() : ''
       ])
-    ].map(row => row.map(field => `"${field}"`).join(',')).join('\n')
+    ].map(row => row.map(field => `"${field}"`).join(',')).join('\n');
 
-    const blob = new Blob([csvContent], { type: 'text/csv' })
-    const url = window.URL.createObjectURL(blob)
-    const a = document.createElement('a')
-    a.href = url
-    a.download = `dnc-list-${new Date().toISOString().split('T')[0]}.csv`
-    a.click()
-    window.URL.revokeObjectURL(url)
-  }
+    const blob = new Blob([csvContent], { type: 'text/csv' });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `dnc-list-${new Date().toISOString().split('T')[0]}.csv`;
+    a.click();
+    window.URL.revokeObjectURL(url);
+  };
 
   const getSourceInfo = (source: string) => {
-    return DNC_SOURCES.find(s => s.value === source) || DNC_SOURCES[0]
-  }
+    return DNC_SOURCES.find(s => s.value === source) || DNC_SOURCES[0];
+  };
 
   const filteredEntries = dncEntries.filter(entry =>
     entry.phone_number.toLowerCase().includes(searchTerm.toLowerCase()) ||
     (entry.notes && entry.notes.toLowerCase().includes(searchTerm.toLowerCase()))
-  )
+  );
 
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
       </div>
-    )
+    );
   }
 
   return (
@@ -224,8 +224,8 @@ export default function DNCPage() {
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
                 {filteredEntries.map((entry) => {
-                  const sourceInfo = getSourceInfo(entry.source)
-                  const isExpired = entry.expiry_date && new Date(entry.expiry_date) < new Date()
+                  const sourceInfo = getSourceInfo(entry.source);
+                  const isExpired = entry.expiry_date && new Date(entry.expiry_date) < new Date();
                   
                   return (
                     <tr key={entry.id} className={`hover:bg-gray-50 ${isExpired ? 'opacity-60' : ''}`}>
@@ -272,7 +272,7 @@ export default function DNCPage() {
                         </button>
                       </td>
                     </tr>
-                  )
+                  );
                 })}
               </tbody>
             </table>
@@ -321,25 +321,25 @@ export default function DNCPage() {
         />
       )}
     </div>
-  )
+  );
 }
 
 // Add DNC Entry Modal
 function AddDNCModal({ onClose, onSuccess }: { onClose: () => void; onSuccess: () => void }) {
-  const { user } = useUser()
-  const [loading, setLoading] = useState(false)
+  const { user } = useUser();
+  const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
     phone_number: '',
     source: 'manual',
     notes: '',
     expiry_date: ''
-  })
+  });
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    if (!user) return
+    e.preventDefault();
+    if (!user) return;
 
-    setLoading(true)
+    setLoading(true);
     try {
       await DatabaseService.addDNCEntry({
         ...formData,
@@ -348,18 +348,18 @@ function AddDNCModal({ onClose, onSuccess }: { onClose: () => void; onSuccess: (
         added_date: new Date().toISOString(),
         expiry_date: formData.expiry_date || undefined,
         source: formData.source as DNCEntry['source']
-      })
+      });
       
-      toast.success('Number added to DNC list')
-      onSuccess()
-      onClose()
+      toast.success('Number added to DNC list');
+      onSuccess();
+      onClose();
     } catch (error) {
-      console.error('Error adding DNC entry:', error)
-      toast.error('Failed to add number to DNC list')
+      console.error('Error adding DNC entry:', error);
+      toast.error('Failed to add number to DNC list');
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   return (
     <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
@@ -438,71 +438,71 @@ function AddDNCModal({ onClose, onSuccess }: { onClose: () => void; onSuccess: (
         </div>
       </div>
     </div>
-  )
+  );
 }
 
 // Bulk Upload Modal
 function BulkUploadModal({ onClose, onSuccess }: { onClose: () => void; onSuccess: () => void }) {
-  const { user } = useUser()
-  const [loading, setLoading] = useState(false)
-  const [file, setFile] = useState<File | null>(null)
-  const [preview, setPreview] = useState<string[]>([])
+  const { user } = useUser();
+  const [loading, setLoading] = useState(false);
+  const [file, setFile] = useState<File | null>(null);
+  const [preview, setPreview] = useState<string[]>([]);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const selectedFile = e.target.files?.[0]
+    const selectedFile = e.target.files?.[0];
     if (selectedFile) {
-      setFile(selectedFile)
+      setFile(selectedFile);
       
       // Preview first few lines
-      const reader = new FileReader()
+      const reader = new FileReader();
       reader.onload = (event) => {
-        const text = event.target?.result as string
-        const lines = text.split('\n').slice(0, 5).filter(line => line.trim())
-        setPreview(lines)
-      }
-      reader.readAsText(selectedFile)
+        const text = event.target?.result as string;
+        const lines = text.split('\n').slice(0, 5).filter(line => line.trim());
+        setPreview(lines);
+      };
+      reader.readAsText(selectedFile);
     }
-  }
+  };
 
   const handleUpload = async () => {
-    if (!file || !user) return
+    if (!file || !user) return;
 
-    setLoading(true)
+    setLoading(true);
     try {
-      const reader = new FileReader()
+      const reader = new FileReader();
       reader.onload = async (event) => {
-        const text = event.target?.result as string
-        const lines = text.split('\n').filter(line => line.trim())
+        const text = event.target?.result as string;
+        const lines = text.split('\n').filter(line => line.trim());
         
         const entries = lines.map(line => {
-          const phoneNumber = line.split(',')[0].replace(/[^+\d]/g, '')
+          const phoneNumber = line.split(',')[0].replace(/[^+\d]/g, '');
           return {
             profile_id: user.id,
             phone_number: phoneNumber,
             source: 'manual',
             notes: 'Bulk upload'
-          }
-        }).filter(entry => entry.phone_number)
+          };
+        }).filter(entry => entry.phone_number);
 
         const entriesWithDefaults = entries.map(entry => ({
           ...entry,
           is_active: true,
           added_date: new Date().toISOString(),
           source: entry.source as DNCEntry['source']
-        }))
-        await DatabaseService.bulkAddDNCEntries(entriesWithDefaults)
-        toast.success(`Added ${entries.length} numbers to DNC list`)
-        onSuccess()
-        onClose()
-      }
-      reader.readAsText(file)
+        }));
+        await DatabaseService.bulkAddDNCEntries(entriesWithDefaults);
+        toast.success(`Added ${entries.length} numbers to DNC list`);
+        onSuccess();
+        onClose();
+      };
+      reader.readAsText(file);
     } catch (error) {
-      console.error('Error uploading DNC entries:', error)
-      toast.error('Failed to upload DNC entries')
+      console.error('Error uploading DNC entries:', error);
+      toast.error('Failed to upload DNC entries');
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   return (
     <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
@@ -559,5 +559,5 @@ function BulkUploadModal({ onClose, onSuccess }: { onClose: () => void; onSucces
         </div>
       </div>
     </div>
-  )
+  );
 }

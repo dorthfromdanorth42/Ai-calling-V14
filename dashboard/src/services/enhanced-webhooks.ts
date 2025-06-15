@@ -1,5 +1,5 @@
-import CryptoJS from 'crypto-js'
-import { supabase } from '../lib/supabase'
+import CryptoJS from 'crypto-js';
+import { supabase } from '../lib/supabase';
 
 export interface WebhookEndpoint {
   id: string
@@ -67,18 +67,18 @@ export class EnhancedWebhookService {
     retry_delay_ms: 1000,
     backoff_multiplier: 2,
     max_delay_ms: 30000
-  }
+  };
 
   private static readonly DEFAULT_SECURITY_CONFIG = {
     verify_ssl: true,
     timeout_ms: 10000
-  }
+  };
 
   // Webhook Endpoint Management
   static async createWebhookEndpoint(endpoint: Omit<WebhookEndpoint, 'id' | 'created_at' | 'updated_at' | 'secret_key'>): Promise<WebhookEndpoint | null> {
     try {
       // Generate secret key for webhook signing
-      const secretKey = CryptoJS.lib.WordArray.random(32).toString(CryptoJS.enc.Hex)
+      const secretKey = CryptoJS.lib.WordArray.random(32).toString(CryptoJS.enc.Hex);
 
       const { data, error } = await supabase
         .from('webhook_endpoints')
@@ -90,17 +90,17 @@ export class EnhancedWebhookService {
           updated_at: new Date().toISOString()
         })
         .select()
-        .single()
+        .single();
 
       if (error) {
-        console.error('Error creating webhook endpoint:', error)
-        return null
+        console.error('Error creating webhook endpoint:', error);
+        return null;
       }
 
-      return data
+      return data;
     } catch (error) {
-      console.error('Error creating webhook endpoint:', error)
-      return null
+      console.error('Error creating webhook endpoint:', error);
+      return null;
     }
   }
 
@@ -110,17 +110,17 @@ export class EnhancedWebhookService {
         .from('webhook_endpoints')
         .select('*')
         .eq('profile_id', profileId)
-        .order('created_at', { ascending: false })
+        .order('created_at', { ascending: false });
 
       if (error) {
-        console.error('Error fetching webhook endpoints:', error)
-        return []
+        console.error('Error fetching webhook endpoints:', error);
+        return [];
       }
 
-      return data || []
+      return data || [];
     } catch (error) {
-      console.error('Error fetching webhook endpoints:', error)
-      return []
+      console.error('Error fetching webhook endpoints:', error);
+      return [];
     }
   }
 
@@ -132,12 +132,12 @@ export class EnhancedWebhookService {
           ...updates,
           updated_at: new Date().toISOString()
         })
-        .eq('id', endpointId)
+        .eq('id', endpointId);
 
-      return !error
+      return !error;
     } catch (error) {
-      console.error('Error updating webhook endpoint:', error)
-      return false
+      console.error('Error updating webhook endpoint:', error);
+      return false;
     }
   }
 
@@ -146,12 +146,12 @@ export class EnhancedWebhookService {
       const { error } = await supabase
         .from('webhook_endpoints')
         .delete()
-        .eq('id', endpointId)
+        .eq('id', endpointId);
 
-      return !error
+      return !error;
     } catch (error) {
-      console.error('Error deleting webhook endpoint:', error)
-      return false
+      console.error('Error deleting webhook endpoint:', error);
+      return false;
     }
   }
 
@@ -163,30 +163,30 @@ export class EnhancedWebhookService {
         .from('webhook_endpoints')
         .select('*')
         .eq('id', endpointId)
-        .single()
+        .single();
 
       if (endpointError || !endpoint || !endpoint.active) {
-        console.error('Webhook endpoint not found or inactive:', endpointError)
-        return null
+        console.error('Webhook endpoint not found or inactive:', endpointError);
+        return null;
       }
 
       // Check if endpoint is subscribed to this event type
       if (!endpoint.events.includes(eventType) && !endpoint.events.includes('*')) {
-        console.log(`Endpoint ${endpointId} not subscribed to event ${eventType}`)
-        return null
+        console.log(`Endpoint ${endpointId} not subscribed to event ${eventType}`);
+        return null;
       }
 
       // Create delivery record
-      const delivery = await this.createDeliveryRecord(endpointId, eventType, payload)
-      if (!delivery) return null
+      const delivery = await this.createDeliveryRecord(endpointId, eventType, payload);
+      if (!delivery) return null;
 
       // Attempt delivery
-      await this.attemptDelivery(delivery, endpoint)
+      await this.attemptDelivery(delivery, endpoint);
 
-      return delivery
+      return delivery;
     } catch (error) {
-      console.error('Error delivering webhook:', error)
-      return null
+      console.error('Error delivering webhook:', error);
+      return null;
     }
   }
 
@@ -202,17 +202,17 @@ export class EnhancedWebhookService {
           attempt_count: 0
         })
         .select()
-        .single()
+        .single();
 
       if (error) {
-        console.error('Error creating delivery record:', error)
-        return null
+        console.error('Error creating delivery record:', error);
+        return null;
       }
 
-      return data
+      return data;
     } catch (error) {
-      console.error('Error creating delivery record:', error)
-      return null
+      console.error('Error creating delivery record:', error);
+      return null;
     }
   }
 
@@ -226,10 +226,10 @@ export class EnhancedWebhookService {
         event_type: delivery.event_type,
         created_at: delivery.created_at,
         data: delivery.payload
-      }
+      };
 
       // Generate signature
-      const signature = this.generateSignature(JSON.stringify(webhookPayload), endpoint.secret_key)
+      const signature = this.generateSignature(JSON.stringify(webhookPayload), endpoint.secret_key);
 
       // Prepare headers
       const headers: Record<string, string> = {
@@ -239,11 +239,11 @@ export class EnhancedWebhookService {
         'X-Webhook-Delivery': delivery.id,
         'User-Agent': 'AI-Calling-Webhook/1.0',
         ...endpoint.security_config.custom_headers
-      }
+      };
 
       // Make HTTP request
-      const controller = new AbortController()
-      const timeoutId = setTimeout(() => controller.abort(), endpoint.security_config.timeout_ms)
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), endpoint.security_config.timeout_ms);
 
       try {
         const response = await fetch(endpoint.url, {
@@ -251,12 +251,12 @@ export class EnhancedWebhookService {
           headers,
           body: JSON.stringify(webhookPayload),
           signal: controller.signal
-        })
+        });
 
-        clearTimeout(timeoutId)
+        clearTimeout(timeoutId);
 
         // const responseTime = Date.now() - startTime
-        const responseBody = await response.text()
+        const responseBody = await response.text();
 
         // Update delivery record
         if (response.ok) {
@@ -266,32 +266,32 @@ export class EnhancedWebhookService {
             response_body: responseBody.substring(0, 1000), // Limit response body size
             delivered_at: new Date().toISOString(),
             last_attempt_at: new Date().toISOString()
-          })
+          });
         } else {
-          await this.handleFailedDelivery(delivery, endpoint, response.status, responseBody)
+          await this.handleFailedDelivery(delivery, endpoint, response.status, responseBody);
         }
       } catch (fetchError) {
-        clearTimeout(timeoutId)
-        await this.handleFailedDelivery(delivery, endpoint, 0, fetchError instanceof Error ? fetchError.message : 'Unknown error')
+        clearTimeout(timeoutId);
+        await this.handleFailedDelivery(delivery, endpoint, 0, fetchError instanceof Error ? fetchError.message : 'Unknown error');
       }
     } catch (error) {
-      console.error('Error attempting webhook delivery:', error)
-      await this.handleFailedDelivery(delivery, endpoint, 0, error instanceof Error ? error.message : 'Unknown error')
+      console.error('Error attempting webhook delivery:', error);
+      await this.handleFailedDelivery(delivery, endpoint, 0, error instanceof Error ? error.message : 'Unknown error');
     }
   }
 
   private static async handleFailedDelivery(delivery: WebhookDelivery, endpoint: WebhookEndpoint, statusCode: number, errorMessage: string): Promise<void> {
-    const attemptCount = delivery.attempt_count + 1
-    const maxRetries = endpoint.retry_config.max_retries
+    const attemptCount = delivery.attempt_count + 1;
+    const maxRetries = endpoint.retry_config.max_retries;
 
     if (attemptCount < maxRetries) {
       // Schedule retry
       const delay = Math.min(
         endpoint.retry_config.retry_delay_ms * Math.pow(endpoint.retry_config.backoff_multiplier, attemptCount - 1),
         endpoint.retry_config.max_delay_ms
-      )
+      );
       
-      const nextRetryAt = new Date(Date.now() + delay)
+      const nextRetryAt = new Date(Date.now() + delay);
 
       await this.updateDeliveryStatus(delivery.id, {
         status: 'retrying',
@@ -300,12 +300,12 @@ export class EnhancedWebhookService {
         error_message: errorMessage,
         next_retry_at: nextRetryAt.toISOString(),
         last_attempt_at: new Date().toISOString()
-      })
+      });
 
       // Schedule retry (in a real implementation, you'd use a job queue)
       setTimeout(() => {
-        this.retryDelivery(delivery.id)
-      }, delay)
+        this.retryDelivery(delivery.id);
+      }, delay);
     } else {
       // Mark as failed
       await this.updateDeliveryStatus(delivery.id, {
@@ -314,7 +314,7 @@ export class EnhancedWebhookService {
         response_status: statusCode,
         error_message: errorMessage,
         last_attempt_at: new Date().toISOString()
-      })
+      });
     }
   }
 
@@ -323,9 +323,9 @@ export class EnhancedWebhookService {
       await supabase
         .from('webhook_deliveries')
         .update(updates)
-        .eq('id', deliveryId)
+        .eq('id', deliveryId);
     } catch (error) {
-      console.error('Error updating delivery status:', error)
+      console.error('Error updating delivery status:', error);
     }
   }
 
@@ -336,24 +336,24 @@ export class EnhancedWebhookService {
         .from('webhook_deliveries')
         .select('*, webhook_endpoints(*)')
         .eq('id', deliveryId)
-        .single()
+        .single();
 
       if (delivery && delivery.webhook_endpoints) {
-        await this.attemptDelivery(delivery, delivery.webhook_endpoints)
+        await this.attemptDelivery(delivery, delivery.webhook_endpoints);
       }
     } catch (error) {
-      console.error('Error retrying delivery:', error)
+      console.error('Error retrying delivery:', error);
     }
   }
 
   // Signature Generation and Verification
   private static generateSignature(payload: string, secret: string): string {
-    return CryptoJS.HmacSHA256(payload, secret).toString(CryptoJS.enc.Hex)
+    return CryptoJS.HmacSHA256(payload, secret).toString(CryptoJS.enc.Hex);
   }
 
   static verifySignature(payload: string, signature: string, secret: string): boolean {
-    const expectedSignature = this.generateSignature(payload, secret)
-    return signature === expectedSignature
+    const expectedSignature = this.generateSignature(payload, secret);
+    return signature === expectedSignature;
   }
 
   // Event Management
@@ -363,20 +363,20 @@ export class EnhancedWebhookService {
         .from('webhook_events')
         .insert(event)
         .select()
-        .single()
+        .single();
 
       if (error) {
-        console.error('Error creating webhook event:', error)
-        return null
+        console.error('Error creating webhook event:', error);
+        return null;
       }
 
       // Process event for all relevant endpoints
-      await this.processWebhookEvent(data)
+      await this.processWebhookEvent(data);
 
-      return data
+      return data;
     } catch (error) {
-      console.error('Error creating webhook event:', error)
-      return null
+      console.error('Error creating webhook event:', error);
+      return null;
     }
   }
 
@@ -387,29 +387,29 @@ export class EnhancedWebhookService {
         .from('webhook_endpoints')
         .select('*')
         .eq('profile_id', event.profile_id)
-        .eq('active', true)
+        .eq('active', true);
 
-      if (!endpoints) return
+      if (!endpoints) return;
 
       // Filter endpoints that subscribe to this event type
       const relevantEndpoints = endpoints.filter(endpoint =>
         endpoint.events.includes(event.event_type) || endpoint.events.includes('*')
-      )
+      );
 
       // Deliver to all relevant endpoints
       const deliveryPromises = relevantEndpoints.map(endpoint =>
         this.deliverWebhook(endpoint.id, event.event_type, event.event_data)
-      )
+      );
 
-      await Promise.allSettled(deliveryPromises)
+      await Promise.allSettled(deliveryPromises);
 
       // Mark event as processed
       await supabase
         .from('webhook_events')
         .update({ processed: true })
-        .eq('id', event.id)
+        .eq('id', event.id);
     } catch (error) {
-      console.error('Error processing webhook event:', error)
+      console.error('Error processing webhook event:', error);
     }
   }
 
@@ -419,37 +419,37 @@ export class EnhancedWebhookService {
       let deliveryQuery = supabase
         .from('webhook_deliveries')
         .select('*, webhook_endpoints!inner(profile_id)')
-        .eq('webhook_endpoints.profile_id', profileId)
+        .eq('webhook_endpoints.profile_id', profileId);
 
       if (timeRange) {
         deliveryQuery = deliveryQuery
           .gte('created_at', timeRange.start)
-          .lte('created_at', timeRange.end)
+          .lte('created_at', timeRange.end);
       }
 
-      const { data: deliveries } = await deliveryQuery
+      const { data: deliveries } = await deliveryQuery;
 
-      const totalDeliveries = deliveries?.length || 0
-      const successfulDeliveries = deliveries?.filter(d => d.status === 'delivered').length || 0
-      const failedDeliveries = deliveries?.filter(d => d.status === 'failed').length || 0
-      const successRate = totalDeliveries > 0 ? Math.round((successfulDeliveries / totalDeliveries) * 100) : 0
+      const totalDeliveries = deliveries?.length || 0;
+      const successfulDeliveries = deliveries?.filter(d => d.status === 'delivered').length || 0;
+      const failedDeliveries = deliveries?.filter(d => d.status === 'failed').length || 0;
+      const successRate = totalDeliveries > 0 ? Math.round((successfulDeliveries / totalDeliveries) * 100) : 0;
 
       // Get last 24h deliveries
-      const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000)
+      const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
       const { data: recentDeliveries } = await supabase
         .from('webhook_deliveries')
         .select('*, webhook_endpoints!inner(profile_id)')
         .eq('webhook_endpoints.profile_id', profileId)
-        .gte('created_at', twentyFourHoursAgo.toISOString())
+        .gte('created_at', twentyFourHoursAgo.toISOString());
 
       // Get endpoint counts
       const { data: endpoints } = await supabase
         .from('webhook_endpoints')
         .select('*')
-        .eq('profile_id', profileId)
+        .eq('profile_id', profileId);
 
-      const endpointsCount = endpoints?.length || 0
-      const activeEndpoints = endpoints?.filter(e => e.active).length || 0
+      const endpointsCount = endpoints?.length || 0;
+      const activeEndpoints = endpoints?.filter(e => e.active).length || 0;
 
       return {
         total_deliveries: totalDeliveries,
@@ -460,9 +460,9 @@ export class EnhancedWebhookService {
         last_24h_deliveries: recentDeliveries?.length || 0,
         endpoints_count: endpointsCount,
         active_endpoints: activeEndpoints
-      }
+      };
     } catch (error) {
-      console.error('Error fetching webhook stats:', error)
+      console.error('Error fetching webhook stats:', error);
       return {
         total_deliveries: 0,
         successful_deliveries: 0,
@@ -472,7 +472,7 @@ export class EnhancedWebhookService {
         last_24h_deliveries: 0,
         endpoints_count: 0,
         active_endpoints: 0
-      }
+      };
     }
   }
 
@@ -483,23 +483,23 @@ export class EnhancedWebhookService {
         .select('*, webhook_endpoints!inner(profile_id, name, url)')
         .eq('webhook_endpoints.profile_id', profileId)
         .order('created_at', { ascending: false })
-        .limit(limit)
+        .limit(limit);
 
       if (endpointId) {
-        query = query.eq('endpoint_id', endpointId)
+        query = query.eq('endpoint_id', endpointId);
       }
 
-      const { data, error } = await query
+      const { data, error } = await query;
 
       if (error) {
-        console.error('Error fetching webhook deliveries:', error)
-        return []
+        console.error('Error fetching webhook deliveries:', error);
+        return [];
       }
 
-      return data || []
+      return data || [];
     } catch (error) {
-      console.error('Error fetching webhook deliveries:', error)
-      return []
+      console.error('Error fetching webhook deliveries:', error);
+      return [];
     }
   }
 
@@ -515,14 +515,14 @@ export class EnhancedWebhookService {
         .from('webhook_endpoints')
         .select('*')
         .eq('id', endpointId)
-        .single()
+        .single();
 
       if (!endpoint) {
         return {
           success: false,
           response_time: 0,
           error_message: 'Endpoint not found'
-        }
+        };
       }
 
       const testPayload = {
@@ -533,10 +533,10 @@ export class EnhancedWebhookService {
           message: 'This is a test webhook delivery',
           timestamp: new Date().toISOString()
         }
-      }
+      };
 
-      const startTime = Date.now()
-      const signature = this.generateSignature(JSON.stringify(testPayload), endpoint.secret_key)
+      const startTime = Date.now();
+      const signature = this.generateSignature(JSON.stringify(testPayload), endpoint.secret_key);
 
       const response = await fetch(endpoint.url, {
         method: 'POST',
@@ -549,22 +549,22 @@ export class EnhancedWebhookService {
         },
         body: JSON.stringify(testPayload),
         signal: AbortSignal.timeout(endpoint.security_config.timeout_ms)
-      })
+      });
 
-      const responseTime = Date.now() - startTime
+      const responseTime = Date.now() - startTime;
 
       return {
         success: response.ok,
         response_time: responseTime,
         status_code: response.status,
         error_message: response.ok ? undefined : `HTTP ${response.status}: ${response.statusText}`
-      }
+      };
     } catch (error) {
       return {
         success: false,
         response_time: 0,
         error_message: error instanceof Error ? error.message : 'Unknown error'
-      }
+      };
     }
   }
 
@@ -578,20 +578,20 @@ export class EnhancedWebhookService {
         .from('webhook_deliveries')
         .select('*, webhook_endpoints!inner(profile_id)')
         .eq('webhook_endpoints.profile_id', profileId)
-        .eq('status', 'failed')
+        .eq('status', 'failed');
 
       if (endpointId) {
-        query = query.eq('endpoint_id', endpointId)
+        query = query.eq('endpoint_id', endpointId);
       }
 
-      const { data: failedDeliveries } = await query
+      const { data: failedDeliveries } = await query;
 
       if (!failedDeliveries || failedDeliveries.length === 0) {
-        return { retried_count: 0, errors: [] }
+        return { retried_count: 0, errors: [] };
       }
 
-      const errors: string[] = []
-      let retriedCount = 0
+      const errors: string[] = [];
+      let retriedCount = 0;
 
       for (const delivery of failedDeliveries) {
         try {
@@ -601,30 +601,30 @@ export class EnhancedWebhookService {
             attempt_count: 0,
             error_message: undefined,
             next_retry_at: undefined
-          })
+          });
 
           // Get endpoint and retry
           const { data: endpoint } = await supabase
             .from('webhook_endpoints')
             .select('*')
             .eq('id', delivery.endpoint_id)
-            .single()
+            .single();
 
           if (endpoint) {
-            await this.attemptDelivery(delivery, endpoint)
-            retriedCount++
+            await this.attemptDelivery(delivery, endpoint);
+            retriedCount++;
           }
         } catch (error) {
-          errors.push(`Failed to retry delivery ${delivery.id}: ${error instanceof Error ? error.message : 'Unknown error'}`)
+          errors.push(`Failed to retry delivery ${delivery.id}: ${error instanceof Error ? error.message : 'Unknown error'}`);
         }
       }
 
-      return { retried_count: retriedCount, errors }
+      return { retried_count: retriedCount, errors };
     } catch (error) {
       return {
         retried_count: 0,
         errors: [`Error retrying failed deliveries: ${error instanceof Error ? error.message : 'Unknown error'}`]
-      }
+      };
     }
   }
 
@@ -695,6 +695,6 @@ export class EnhancedWebhookService {
           description: 'Call made to number on DNC list'
         }
       }
-    ]
+    ];
   }
 }

@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect } from 'react';
 import { 
   PhoneIcon, 
   ClockIcon, 
@@ -9,156 +9,156 @@ import {
   FunnelIcon,
   ArrowDownTrayIcon,
   MagnifyingGlassIcon
-} from '@heroicons/react/24/outline'
-import { useUser } from '../contexts/UserContext'
-import { DatabaseService } from '../services/database'
-import { RealtimeService } from '../services/realtime'
-import { ExportService } from '../services/export'
-import type { CallLog } from '../lib/supabase'
-import toast from 'react-hot-toast'
+} from '@heroicons/react/24/outline';
+import { useUser } from '../contexts/UserContext';
+import { DatabaseService } from '../services/database';
+import { RealtimeService } from '../services/realtime';
+import { ExportService } from '../services/export';
+import type { CallLog } from '../lib/supabase';
+import toast from 'react-hot-toast';
 
 export default function CallsPage() {
-  const { user } = useUser()
-  const [calls, setCalls] = useState<CallLog[]>([])
-  const [loading, setLoading] = useState(true)
-  const [filter, setFilter] = useState<'all' | 'inbound' | 'outbound'>('all')
-  const [statusFilter, setStatusFilter] = useState<'all' | 'completed' | 'failed' | 'in_progress' | 'abandoned'>('all')
-  const [searchTerm, setSearchTerm] = useState('')
-  const [selectedCall, setSelectedCall] = useState<CallLog | null>(null)
-  const [showTranscript, setShowTranscript] = useState(false)
-  const [currentPage, setCurrentPage] = useState(1)
-  const [totalCalls, setTotalCalls] = useState(0)
-  const callsPerPage = 20
+  const { user } = useUser();
+  const [calls, setCalls] = useState<CallLog[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [filter, setFilter] = useState<'all' | 'inbound' | 'outbound'>('all');
+  const [statusFilter, setStatusFilter] = useState<'all' | 'completed' | 'failed' | 'in_progress' | 'abandoned'>('all');
+  const [searchTerm, setSearchTerm] = useState('');
+  const [selectedCall, setSelectedCall] = useState<CallLog | null>(null);
+  const [showTranscript, setShowTranscript] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalCalls, setTotalCalls] = useState(0);
+  const callsPerPage = 20;
 
   useEffect(() => {
     if (user) {
-      loadCalls()
-      setupRealtimeSubscriptions()
+      loadCalls();
+      setupRealtimeSubscriptions();
     }
-  }, [user, currentPage, filter, statusFilter])
+  }, [user, currentPage, filter, statusFilter]);
 
   const loadCalls = async () => {
-    if (!user) return
+    if (!user) return;
 
     try {
-      setLoading(true)
-      const offset = (currentPage - 1) * callsPerPage
-      const callsData = await DatabaseService.getCallLogs(user.id, callsPerPage, offset)
-      setCalls(callsData)
+      setLoading(true);
+      const offset = (currentPage - 1) * callsPerPage;
+      const callsData = await DatabaseService.getCallLogs(user.id, callsPerPage, offset);
+      setCalls(callsData);
       
       // In a real implementation, you'd get the total count from the API
-      setTotalCalls(callsData.length)
+      setTotalCalls(callsData.length);
     } catch (error) {
-      console.error('Error loading calls:', error)
-      toast.error('Failed to load call history')
+      console.error('Error loading calls:', error);
+      toast.error('Failed to load call history');
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   const setupRealtimeSubscriptions = () => {
-    if (!user) return
+    if (!user) return;
 
     const subscription = RealtimeService.subscribeToCallUpdates(
       user.id,
       (updatedCall) => {
         setCalls(prev => 
           prev.map(call => call.id === updatedCall.id ? updatedCall : call)
-        )
+        );
       },
       (newCall) => {
-        setCalls(prev => [newCall, ...prev.slice(0, callsPerPage - 1)])
+        setCalls(prev => [newCall, ...prev.slice(0, callsPerPage - 1)]);
       },
       (callId) => {
-        setCalls(prev => prev.filter(call => call.id !== callId))
+        setCalls(prev => prev.filter(call => call.id !== callId));
       }
-    )
+    );
 
     return () => {
       if (subscription && typeof subscription.unsubscribe === 'function') {
-        subscription.unsubscribe()
+        subscription.unsubscribe();
       }
-    }
-  }
+    };
+  };
 
   const handleExportCalls = async () => {
     try {
       // Get all calls for export (not just current page)
-      const allCalls = await DatabaseService.getAllCallLogs(user!.id)
-      ExportService.exportCallsToCSV(allCalls)
-      toast.success('Call history exported successfully')
+      const allCalls = await DatabaseService.getAllCallLogs(user!.id);
+      ExportService.exportCallsToCSV(allCalls);
+      toast.success('Call history exported successfully');
     } catch (error) {
-      console.error('Error exporting calls:', error)
-      toast.error('Failed to export call history')
+      console.error('Error exporting calls:', error);
+      toast.error('Failed to export call history');
     }
-  }
+  };
 
   const formatDuration = (seconds: number) => {
-    const minutes = Math.floor(seconds / 60)
-    const remainingSeconds = seconds % 60
-    return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`
-  }
+    const minutes = Math.floor(seconds / 60);
+    const remainingSeconds = seconds % 60;
+    return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`;
+  };
 
   const formatTimeAgo = (dateString: string) => {
-    const date = new Date(dateString)
-    const now = new Date()
-    const diffInMinutes = Math.floor((now.getTime() - date.getTime()) / (1000 * 60))
+    const date = new Date(dateString);
+    const now = new Date();
+    const diffInMinutes = Math.floor((now.getTime() - date.getTime()) / (1000 * 60));
     
-    if (diffInMinutes < 1) return 'Just now'
-    if (diffInMinutes < 60) return `${diffInMinutes}m ago`
+    if (diffInMinutes < 1) return 'Just now';
+    if (diffInMinutes < 60) return `${diffInMinutes}m ago`;
     
-    const diffInHours = Math.floor(diffInMinutes / 60)
-    if (diffInHours < 24) return `${diffInHours}h ago`
+    const diffInHours = Math.floor(diffInMinutes / 60);
+    if (diffInHours < 24) return `${diffInHours}h ago`;
     
-    const diffInDays = Math.floor(diffInHours / 24)
-    return `${diffInDays}d ago`
-  }
+    const diffInDays = Math.floor(diffInHours / 24);
+    return `${diffInDays}d ago`;
+  };
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'completed': return 'text-green-600 bg-green-100'
-      case 'failed': return 'text-red-600 bg-red-100'
-      case 'in_progress': return 'text-blue-600 bg-blue-100'
-      case 'abandoned': return 'text-yellow-600 bg-yellow-100'
-      default: return 'text-gray-600 bg-gray-100'
+      case 'completed': return 'text-green-600 bg-green-100';
+      case 'failed': return 'text-red-600 bg-red-100';
+      case 'in_progress': return 'text-blue-600 bg-blue-100';
+      case 'abandoned': return 'text-yellow-600 bg-yellow-100';
+      default: return 'text-gray-600 bg-gray-100';
     }
-  }
+  };
 
   const getStatusIcon = (status: string) => {
     switch (status) {
-      case 'completed': return <CheckCircleIcon className="h-4 w-4" />
-      case 'failed': return <ExclamationTriangleIcon className="h-4 w-4" />
-      case 'in_progress': return <PlayIcon className="h-4 w-4" />
-      case 'abandoned': return <ClockIcon className="h-4 w-4" />
-      default: return null
+      case 'completed': return <CheckCircleIcon className="h-4 w-4" />;
+      case 'failed': return <ExclamationTriangleIcon className="h-4 w-4" />;
+      case 'in_progress': return <PlayIcon className="h-4 w-4" />;
+      case 'abandoned': return <ClockIcon className="h-4 w-4" />;
+      default: return null;
     }
-  }
+  };
 
   const handleViewTranscript = (call: CallLog) => {
-    setSelectedCall(call)
-    setShowTranscript(true)
-  }
+    setSelectedCall(call);
+    setShowTranscript(true);
+  };
 
 
 
   const filteredCalls = calls.filter(call => {
-    const matchesDirection = filter === 'all' || call.direction === filter
-    const matchesStatus = statusFilter === 'all' || call.status === statusFilter
+    const matchesDirection = filter === 'all' || call.direction === filter;
+    const matchesStatus = statusFilter === 'all' || call.status === statusFilter;
     const matchesSearch = searchTerm === '' || 
       call.phone_number_from.includes(searchTerm) ||
       call.phone_number_to.includes(searchTerm) ||
       call.call_summary?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      call.outcome?.toLowerCase().includes(searchTerm.toLowerCase())
+      call.outcome?.toLowerCase().includes(searchTerm.toLowerCase());
     
-    return matchesDirection && matchesStatus && matchesSearch
-  })
+    return matchesDirection && matchesStatus && matchesSearch;
+  });
 
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
       </div>
-    )
+    );
   }
 
   return (
@@ -226,9 +226,9 @@ export default function CallsPage() {
           <div className="flex items-end">
             <button
               onClick={() => {
-                setFilter('all')
-                setStatusFilter('all')
-                setSearchTerm('')
+                setFilter('all');
+                setStatusFilter('all');
+                setSearchTerm('');
               }}
               className="w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50"
             >
@@ -475,5 +475,5 @@ export default function CallsPage() {
         </div>
       )}
     </div>
-  )
+  );
 }

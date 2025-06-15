@@ -1,43 +1,43 @@
-import { useState, useEffect } from 'react'
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line, PieChart, Pie, Cell } from 'recharts'
-import { useUser } from '../contexts/UserContext'
-import { DatabaseService } from '../services/database'
-import type { AnalyticsData } from '../lib/supabase'
-import toast from 'react-hot-toast'
+import { useState, useEffect } from 'react';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line, PieChart, Pie, Cell } from 'recharts';
+import { useUser } from '../contexts/UserContext';
+import { DatabaseService } from '../services/database';
+import type { AnalyticsData } from '../lib/supabase';
+import toast from 'react-hot-toast';
 
 export default function AnalyticsPage() {
-  const { user } = useUser()
-  const [loading, setLoading] = useState(true)
-  const [timeRange, setTimeRange] = useState('7d')
-  const [analytics, setAnalytics] = useState<AnalyticsData | null>(null)
+  const { user } = useUser();
+  const [loading, setLoading] = useState(true);
+  const [timeRange, setTimeRange] = useState('7d');
+  const [analytics, setAnalytics] = useState<AnalyticsData | null>(null);
 
   useEffect(() => {
     if (user) {
-      loadAnalytics()
+      loadAnalytics();
     }
-  }, [user])
+  }, [user]);
 
   const loadAnalytics = async () => {
-    if (!user) return
+    if (!user) return;
 
     try {
-      setLoading(true)
-      const analyticsData = await DatabaseService.getAnalytics(user.id)
-      setAnalytics(analyticsData)
+      setLoading(true);
+      const analyticsData = await DatabaseService.getAnalytics(user.id);
+      setAnalytics(analyticsData);
     } catch (error) {
-      console.error('Error loading analytics:', error)
-      toast.error('Failed to load analytics')
+      console.error('Error loading analytics:', error);
+      toast.error('Failed to load analytics');
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
       </div>
-    )
+    );
   }
 
   return (
@@ -244,5 +244,5 @@ export default function AnalyticsPage() {
         </div>
       </div>
     </div>
-  )
+  );
 }

@@ -1,15 +1,15 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect } from 'react';
 import { 
   CreditCardIcon,
   DocumentTextIcon,
   CheckCircleIcon,
   ExclamationTriangleIcon,
   ArrowUpIcon
-} from '@heroicons/react/24/outline'
-import { useUser } from '../contexts/UserContext'
-import { DatabaseService } from '../services/database'
-import type { Subscription, UsageRecord } from '../lib/supabase'
-import toast from 'react-hot-toast'
+} from '@heroicons/react/24/outline';
+import { useUser } from '../contexts/UserContext';
+import { DatabaseService } from '../services/database';
+import type { Subscription, UsageRecord } from '../lib/supabase';
+import toast from 'react-hot-toast';
 
 const PLANS = [
   {
@@ -103,109 +103,109 @@ const PLANS = [
     },
     description: 'Designed for agencies and teams with high call volume.'
   }
-]
+];
 
 export default function BillingPage() {
-  const { user } = useUser()
-  const [subscription, setSubscription] = useState<Subscription | null>(null)
-  const [usageRecords, setUsageRecords] = useState<UsageRecord[]>([])
-  const [loading, setLoading] = useState(true)
-  const [upgradeLoading, setUpgradeLoading] = useState<string | null>(null)
-  const [showPaymentModal, setShowPaymentModal] = useState(false)
-  const [, ] = useState<string | null>(null)
+  const { user } = useUser();
+  const [subscription, setSubscription] = useState<Subscription | null>(null);
+  const [usageRecords, setUsageRecords] = useState<UsageRecord[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [upgradeLoading, setUpgradeLoading] = useState<string | null>(null);
+  const [showPaymentModal, setShowPaymentModal] = useState(false);
+  const [, ] = useState<string | null>(null);
 
   // Debug user data
-  console.log('BillingPage - User data:', user)
+  console.log('BillingPage - User data:', user);
 
   useEffect(() => {
     if (user) {
-      loadBillingData()
+      loadBillingData();
     }
-  }, [user])
+  }, [user]);
 
   const loadBillingData = async () => {
-    if (!user) return
+    if (!user) return;
 
     try {
-      setLoading(true)
+      setLoading(true);
       const [subscriptionData, usageData] = await Promise.all([
         DatabaseService.getSubscription(user.id),
         DatabaseService.getUsageRecords(user.id)
-      ])
-      setSubscription(subscriptionData)
-      setUsageRecords(usageData)
+      ]);
+      setSubscription(subscriptionData);
+      setUsageRecords(usageData);
     } catch (error) {
-      console.error('Error loading billing data:', error)
-      toast.error('Failed to load billing information')
+      console.error('Error loading billing data:', error);
+      toast.error('Failed to load billing information');
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   const handleUpgrade = async (planId: string) => {
-    if (!user) return
+    if (!user) return;
 
-    setUpgradeLoading(planId)
+    setUpgradeLoading(planId);
     try {
       // In a real implementation, this would create a Stripe checkout session
-      const checkoutUrl = await DatabaseService.createCheckoutSession(user.id, planId)
-      window.location.href = checkoutUrl
+      const checkoutUrl = await DatabaseService.createCheckoutSession(user.id, planId);
+      window.location.href = checkoutUrl;
     } catch (error) {
-      console.error('Error creating checkout session:', error)
-      toast.error('Failed to start upgrade process')
+      console.error('Error creating checkout session:', error);
+      toast.error('Failed to start upgrade process');
     } finally {
-      setUpgradeLoading(null)
+      setUpgradeLoading(null);
     }
-  }
+  };
 
   const handleCancelSubscription = async () => {
     if (!subscription || !confirm('Are you sure you want to cancel your subscription?')) {
-      return
+      return;
     }
 
     try {
-      await DatabaseService.cancelSubscription(subscription.id)
-      toast.success('Subscription cancelled successfully')
-      loadBillingData()
+      await DatabaseService.cancelSubscription(subscription.id);
+      toast.success('Subscription cancelled successfully');
+      loadBillingData();
     } catch (error) {
-      console.error('Error cancelling subscription:', error)
-      toast.error('Failed to cancel subscription')
+      console.error('Error cancelling subscription:', error);
+      toast.error('Failed to cancel subscription');
     }
-  }
+  };
 
   const getCurrentPlan = () => {
-    const planName = subscription?.plan_name || user?.plan_name || 'free'
+    const planName = subscription?.plan_name || user?.plan_name || 'free';
     console.log('BillingPage Debug:', {
       subscription: subscription,
       user: user,
       planName: planName,
       availablePlans: PLANS.map(p => p.id)
-    })
-    return PLANS.find(plan => plan.id === planName)
-  }
+    });
+    return PLANS.find(plan => plan.id === planName);
+  };
 
   const calculateUsagePercentage = (used: number, limit: number) => {
-    if (limit === -1) return 0 // unlimited
-    return Math.min((used / limit) * 100, 100)
-  }
+    if (limit === -1) return 0; // unlimited
+    return Math.min((used / limit) * 100, 100);
+  };
 
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('en-US', {
       style: 'currency',
       currency: 'USD'
-    }).format(amount)
-  }
+    }).format(amount);
+  };
 
-  const currentPlan = getCurrentPlan()
-  const currentUsage = user?.minutes_used || 0
-  const usagePercentage = currentPlan ? calculateUsagePercentage(currentUsage, currentPlan.limits.minutes) : 0
+  const currentPlan = getCurrentPlan();
+  const currentUsage = user?.minutes_used || 0;
+  const usagePercentage = currentPlan ? calculateUsagePercentage(currentUsage, currentPlan.limits.minutes) : 0;
 
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
       </div>
-    )
+    );
   }
 
   return (
@@ -510,5 +510,5 @@ export default function BillingPage() {
         </div>
       )}
     </div>
-  )
+  );
 }

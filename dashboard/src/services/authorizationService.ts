@@ -1,4 +1,4 @@
-import type { Profile } from '../lib/supabase'
+import type { Profile } from '../lib/supabase';
 
 export interface AuthorizationResult {
   authorized: boolean
@@ -29,13 +29,13 @@ export class AuthorizationService {
       // })
 
       // For demo purposes, we'll simulate the authorization logic
-      const mockUser = await this.getMockUserProfile(userId)
+      const mockUser = await this.getMockUserProfile(userId);
       
       if (!mockUser) {
         return {
           authorized: false,
           reason: 'User not found'
-        }
+        };
       }
 
       // Check if user is active
@@ -43,7 +43,7 @@ export class AuthorizationService {
         return {
           authorized: false,
           reason: 'Account is inactive'
-        }
+        };
       }
 
       // Check feature permissions
@@ -51,25 +51,25 @@ export class AuthorizationService {
         return {
           authorized: false,
           reason: 'Inbound calls not permitted for this plan'
-        }
+        };
       }
 
       if (callType === 'outbound' && !mockUser.can_use_outbound_dialer) {
         return {
           authorized: false,
           reason: 'Outbound dialer not permitted for this plan'
-        }
+        };
       }
 
       // Check usage limits
-      const remainingMinutes = mockUser.monthly_minute_limit - mockUser.minutes_used
+      const remainingMinutes = mockUser.monthly_minute_limit - mockUser.minutes_used;
       
       if (remainingMinutes <= 0) {
         return {
           authorized: false,
           reason: 'Monthly minute limit exceeded',
           remainingMinutes: 0
-        }
+        };
       }
 
       if (remainingMinutes < estimatedDurationMinutes) {
@@ -77,21 +77,21 @@ export class AuthorizationService {
           authorized: false,
           reason: `Insufficient minutes remaining (${remainingMinutes} min available, ${estimatedDurationMinutes} min estimated)`,
           remainingMinutes
-        }
+        };
       }
 
       // Authorization successful
       return {
         authorized: true,
         remainingMinutes
-      }
+      };
 
     } catch (error) {
-      console.error('Authorization check failed:', error)
+      console.error('Authorization check failed:', error);
       return {
         authorized: false,
         reason: 'Authorization service unavailable'
-      }
+      };
     }
   }
 
@@ -110,11 +110,11 @@ export class AuthorizationService {
       //   duration_minutes: actualDurationMinutes
       // })
 
-      console.log(`Recording ${actualDurationMinutes} minutes of usage for user ${userId}`)
-      return true
+      console.log(`Recording ${actualDurationMinutes} minutes of usage for user ${userId}`);
+      return true;
     } catch (error) {
-      console.error('Failed to record call usage:', error)
-      return false
+      console.error('Failed to record call usage:', error);
+      return false;
     }
   }
 
@@ -143,8 +143,8 @@ export class AuthorizationService {
       max_concurrent_calls: 5,
       created_at: '2024-01-01T00:00:00Z',
       updated_at: '2024-06-10T00:00:00Z'
-    }
+    };
 
-    return mockUser
+    return mockUser;
   }
 }

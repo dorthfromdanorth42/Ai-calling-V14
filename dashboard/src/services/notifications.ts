@@ -1,4 +1,4 @@
-import { supabase } from '../lib/supabase'
+import { supabase } from '../lib/supabase';
 
 export interface EmailNotification {
   to: string
@@ -78,7 +78,7 @@ export class NotificationService {
         <p>Please review your <a href="{dnc_url}">DNC list</a> and campaign settings.</p>
       `
     }
-  }
+  };
 
   // Send email notification using SendGrid (or similar service)
   static async sendEmail(notification: EmailNotification): Promise<boolean> {
@@ -95,12 +95,12 @@ export class NotificationService {
           subject: notification.subject,
           html: this.processTemplate(notification.template, notification.data)
         })
-      })
+      });
 
-      return response.ok
+      return response.ok;
     } catch (error) {
-      console.error('Failed to send email:', error)
-      return false
+      console.error('Failed to send email:', error);
+      return false;
     }
   }
 
@@ -110,24 +110,24 @@ export class NotificationService {
       const headers: Record<string, string> = {
         'Content-Type': 'application/json',
         'User-Agent': 'AI-Call-Center-Webhook/1.0'
-      }
+      };
 
       // Add signature for webhook verification
       if (secretKey) {
-        const signature = await this.generateWebhookSignature(JSON.stringify(payload), secretKey)
-        headers['X-Webhook-Signature'] = signature
+        const signature = await this.generateWebhookSignature(JSON.stringify(payload), secretKey);
+        headers['X-Webhook-Signature'] = signature;
       }
 
       const response = await fetch(webhookUrl, {
         method: 'POST',
         headers,
         body: JSON.stringify(payload)
-      })
+      });
 
-      return response.ok
+      return response.ok;
     } catch (error) {
-      console.error('Failed to send webhook:', error)
-      return false
+      console.error('Failed to send webhook:', error);
+      return false;
     }
   }
 
@@ -140,10 +140,10 @@ export class NotificationService {
         .select('*')
         .eq('profile_id', userId)
         .eq('is_active', true)
-        .contains('events', [event])
+        .contains('events', [event]);
 
       if (!webhooks || webhooks.length === 0) {
-        return
+        return;
       }
 
       const payload: WebhookPayload = {
@@ -151,11 +151,11 @@ export class NotificationService {
         data,
         timestamp: new Date().toISOString(),
         user_id: userId
-      }
+      };
 
       // Send to all matching webhooks
       const deliveryPromises = webhooks.map(async (webhook) => {
-        const success = await this.sendWebhook(webhook.url, payload, webhook.secret_key)
+        const success = await this.sendWebhook(webhook.url, payload, webhook.secret_key);
         
         // Log delivery attempt
         await supabase.from('webhook_deliveries').insert({
@@ -164,7 +164,7 @@ export class NotificationService {
           payload,
           success,
           response_status: success ? 200 : 500
-        })
+        });
 
         // Update webhook stats
         if (success) {
@@ -174,27 +174,27 @@ export class NotificationService {
               success_count: webhook.success_count + 1,
               last_triggered_at: new Date().toISOString()
             })
-            .eq('id', webhook.id)
+            .eq('id', webhook.id);
         } else {
           await supabase
             .from('webhook_endpoints')
             .update({ failure_count: webhook.failure_count + 1 })
-            .eq('id', webhook.id)
+            .eq('id', webhook.id);
         }
 
-        return success
-      })
+        return success;
+      });
 
-      await Promise.all(deliveryPromises)
+      await Promise.all(deliveryPromises);
     } catch (error) {
-      console.error('Error processing webhook event:', error)
+      console.error('Error processing webhook event:', error);
     }
   }
 
   // Send campaign completion notification
   static async notifyCampaignCompleted(userId: string, campaignData: any) {
-    const user = await this.getUserProfile(userId)
-    if (!user?.email) return
+    const user = await this.getUserProfile(userId);
+    if (!user?.email) return;
 
     const notification: EmailNotification = {
       to: user.email,
@@ -208,18 +208,18 @@ export class NotificationService {
         success_rate: ((campaignData.leads_answered / campaignData.total_leads) * 100).toFixed(1),
         dashboard_url: `${process.env.VITE_APP_URL}/campaigns`
       }
-    }
+    };
 
-    await this.sendEmail(notification)
-    await this.processWebhookEvent('campaign.completed', campaignData, userId)
+    await this.sendEmail(notification);
+    await this.processWebhookEvent('campaign.completed', campaignData, userId);
   }
 
   // Send usage limit warning
   static async notifyUsageLimitWarning(userId: string, usageData: any) {
-    const user = await this.getUserProfile(userId)
-    if (!user?.email) return
+    const user = await this.getUserProfile(userId);
+    if (!user?.email) return;
 
-    const usagePercentage = ((usageData.minutes_used / usageData.monthly_limit) * 100).toFixed(1)
+    const usagePercentage = ((usageData.minutes_used / usageData.monthly_limit) * 100).toFixed(1);
 
     const notification: EmailNotification = {
       to: user.email,
@@ -231,15 +231,15 @@ export class NotificationService {
         usage_percentage: usagePercentage,
         billing_url: `${process.env.VITE_APP_URL}/billing`
       }
-    }
+    };
 
-    await this.sendEmail(notification)
+    await this.sendEmail(notification);
   }
 
   // Send appointment notification
   static async notifyAppointmentScheduled(userId: string, appointmentData: any) {
-    const user = await this.getUserProfile(userId)
-    if (!user?.email) return
+    const user = await this.getUserProfile(userId);
+    if (!user?.email) return;
 
     const notification: EmailNotification = {
       to: user.email,
@@ -252,16 +252,16 @@ export class NotificationService {
         appointment_type: appointmentData.appointment_type,
         appointments_url: `${process.env.VITE_APP_URL}/appointments`
       }
-    }
+    };
 
-    await this.sendEmail(notification)
-    await this.processWebhookEvent('appointment.scheduled', appointmentData, userId)
+    await this.sendEmail(notification);
+    await this.processWebhookEvent('appointment.scheduled', appointmentData, userId);
   }
 
   // Send system alert
   static async notifySystemAlert(userId: string, alertData: any) {
-    const user = await this.getUserProfile(userId)
-    if (!user?.email) return
+    const user = await this.getUserProfile(userId);
+    if (!user?.email) return;
 
     const notification: EmailNotification = {
       to: user.email,
@@ -273,15 +273,15 @@ export class NotificationService {
         timestamp: new Date().toLocaleString(),
         status_url: `${process.env.VITE_APP_URL}/status`
       }
-    }
+    };
 
-    await this.sendEmail(notification)
+    await this.sendEmail(notification);
   }
 
   // Send DNC violation alert
   static async notifyDNCViolation(userId: string, violationData: any) {
-    const user = await this.getUserProfile(userId)
-    if (!user?.email) return
+    const user = await this.getUserProfile(userId);
+    if (!user?.email) return;
 
     const notification: EmailNotification = {
       to: user.email,
@@ -293,35 +293,35 @@ export class NotificationService {
         campaign_name: violationData.campaign_name,
         dnc_url: `${process.env.VITE_APP_URL}/dnc`
       }
-    }
+    };
 
-    await this.sendEmail(notification)
+    await this.sendEmail(notification);
   }
 
   // Utility methods
   private static processTemplate(template: string, data: Record<string, any>): string {
-    let processed = template
+    let processed = template;
     Object.entries(data).forEach(([key, value]) => {
-      const placeholder = `{${key}}`
-      processed = processed.replace(new RegExp(placeholder, 'g'), String(value))
-    })
-    return processed
+      const placeholder = `{${key}}`;
+      processed = processed.replace(new RegExp(placeholder, 'g'), String(value));
+    });
+    return processed;
   }
 
   private static async generateWebhookSignature(payload: string, secret: string): Promise<string> {
-    const encoder = new TextEncoder()
+    const encoder = new TextEncoder();
     const key = await crypto.subtle.importKey(
       'raw',
       encoder.encode(secret),
       { name: 'HMAC', hash: 'SHA-256' },
       false,
       ['sign']
-    )
+    );
     
-    const signature = await crypto.subtle.sign('HMAC', key, encoder.encode(payload))
+    const signature = await crypto.subtle.sign('HMAC', key, encoder.encode(payload));
     return Array.from(new Uint8Array(signature))
       .map(b => b.toString(16).padStart(2, '0'))
-      .join('')
+      .join('');
   }
 
   private static async getUserProfile(userId: string) {
@@ -329,14 +329,14 @@ export class NotificationService {
       .from('profiles')
       .select('email, client_name')
       .eq('id', userId)
-      .single()
+      .single();
     
-    return data
+    return data;
   }
 
   // Zapier integration helpers
   static generateZapierWebhookUrl(zapId: string): string {
-    return `https://hooks.zapier.com/hooks/catch/${zapId}/`
+    return `https://hooks.zapier.com/hooks/catch/${zapId}/`;
   }
 
   static getZapierTemplateConfig(templateName: string) {
@@ -387,8 +387,8 @@ export class NotificationService {
           }
         }
       }
-    }
+    };
 
-    return templates[templateName as keyof typeof templates]
+    return templates[templateName as keyof typeof templates];
   }
 }

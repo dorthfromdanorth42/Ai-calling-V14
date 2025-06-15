@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect } from 'react';
 import { 
   PlusIcon, 
   TrashIcon,
@@ -11,12 +11,12 @@ import {
   ArrowPathIcon,
   LinkIcon,
   BoltIcon
-} from '@heroicons/react/24/outline'
-import { useUser } from '../contexts/UserContext'
-import { DatabaseService } from '../services/database'
-import { RealtimeService } from '../services/realtime'
-import type { WebhookEndpoint, WebhookDelivery } from '../lib/supabase'
-import toast from 'react-hot-toast'
+} from '@heroicons/react/24/outline';
+import { useUser } from '../contexts/UserContext';
+import { DatabaseService } from '../services/database';
+import { RealtimeService } from '../services/realtime';
+import type { WebhookEndpoint, WebhookDelivery } from '../lib/supabase';
+import toast from 'react-hot-toast';
 
 const WEBHOOK_EVENTS = [
   { value: 'call.started', label: 'Call Started', description: 'When a call begins' },
@@ -29,7 +29,7 @@ const WEBHOOK_EVENTS = [
   { value: 'appointment.cancelled', label: 'Appointment Cancelled', description: 'When an appointment is cancelled' },
   { value: 'lead.updated', label: 'Lead Updated', description: 'When a lead status changes' },
   { value: 'agent.status_changed', label: 'Agent Status Changed', description: 'When an agent goes online/offline' }
-]
+];
 
 const ZAPIER_TEMPLATES = [
   {
@@ -56,54 +56,54 @@ const ZAPIER_TEMPLATES = [
     events: ['campaign.completed'],
     zapierUrl: 'https://zapier.com/apps/email/integrations'
   }
-]
+];
 
 export default function WebhooksPage() {
-  const { user } = useUser()
-  const [webhooks, setWebhooks] = useState<WebhookEndpoint[]>([])
-  const [deliveries, setDeliveries] = useState<WebhookDelivery[]>([])
-  const [loading, setLoading] = useState(true)
-  const [showCreateModal, setShowCreateModal] = useState(false)
-  const [showEditModal, setShowEditModal] = useState(false)
-  const [selectedWebhook, setSelectedWebhook] = useState<WebhookEndpoint | null>(null)
-  const [activeTab, setActiveTab] = useState<'webhooks' | 'deliveries' | 'marketplace'>('webhooks')
+  const { user } = useUser();
+  const [webhooks, setWebhooks] = useState<WebhookEndpoint[]>([]);
+  const [deliveries, setDeliveries] = useState<WebhookDelivery[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [showCreateModal, setShowCreateModal] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [selectedWebhook, setSelectedWebhook] = useState<WebhookEndpoint | null>(null);
+  const [activeTab, setActiveTab] = useState<'webhooks' | 'deliveries' | 'marketplace'>('webhooks');
 
   useEffect(() => {
     if (user) {
-      loadWebhooks()
-      loadDeliveries()
-      setupRealtimeSubscriptions()
+      loadWebhooks();
+      loadDeliveries();
+      setupRealtimeSubscriptions();
     }
-  }, [user])
+  }, [user]);
 
   const loadWebhooks = async () => {
-    if (!user) return
+    if (!user) return;
 
     try {
-      setLoading(true)
-      const webhooksData = await DatabaseService.getWebhookEndpoints(user.id)
-      setWebhooks(webhooksData)
+      setLoading(true);
+      const webhooksData = await DatabaseService.getWebhookEndpoints(user.id);
+      setWebhooks(webhooksData);
     } catch (error) {
-      console.error('Error loading webhooks:', error)
-      toast.error('Failed to load webhooks')
+      console.error('Error loading webhooks:', error);
+      toast.error('Failed to load webhooks');
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   const loadDeliveries = async () => {
-    if (!user) return
+    if (!user) return;
 
     try {
-      const deliveriesData = await DatabaseService.getWebhookDeliveries(user.id)
-      setDeliveries(deliveriesData)
+      const deliveriesData = await DatabaseService.getWebhookDeliveries(user.id);
+      setDeliveries(deliveriesData);
     } catch (error) {
-      console.error('Error loading webhook deliveries:', error)
+      console.error('Error loading webhook deliveries:', error);
     }
-  }
+  };
 
   const setupRealtimeSubscriptions = () => {
-    if (!user) return
+    if (!user) return;
 
     const subscription = RealtimeService.subscribeToWebhookUpdates(
       user.id,
@@ -112,70 +112,70 @@ export default function WebhooksPage() {
           prev.map(webhook => 
             webhook.id === updatedWebhook.id ? updatedWebhook : webhook
           )
-        )
+        );
       },
       (newWebhook) => {
-        setWebhooks(prev => [newWebhook, ...prev])
+        setWebhooks(prev => [newWebhook, ...prev]);
       },
       (webhookId) => {
-        setWebhooks(prev => prev.filter(webhook => webhook.id !== webhookId))
+        setWebhooks(prev => prev.filter(webhook => webhook.id !== webhookId));
       }
-    )
+    );
 
     return () => {
-      RealtimeService.unsubscribe(subscription)
-    }
-  }
+      RealtimeService.unsubscribe(subscription);
+    };
+  };
 
   const handleToggleWebhook = async (webhookId: string, isActive: boolean) => {
     try {
-      await DatabaseService.updateWebhookEndpoint(webhookId, { is_active: !isActive })
-      toast.success(`Webhook ${!isActive ? 'enabled' : 'disabled'}`)
+      await DatabaseService.updateWebhookEndpoint(webhookId, { is_active: !isActive });
+      toast.success(`Webhook ${!isActive ? 'enabled' : 'disabled'}`);
     } catch (error) {
-      console.error('Error toggling webhook:', error)
-      toast.error('Failed to update webhook status')
+      console.error('Error toggling webhook:', error);
+      toast.error('Failed to update webhook status');
     }
-  }
+  };
 
   const handleDeleteWebhook = async (webhookId: string) => {
     if (!confirm('Are you sure you want to delete this webhook? This action cannot be undone.')) {
-      return
+      return;
     }
 
     try {
-      await DatabaseService.deleteWebhookEndpoint(webhookId)
-      toast.success('Webhook deleted successfully')
+      await DatabaseService.deleteWebhookEndpoint(webhookId);
+      toast.success('Webhook deleted successfully');
     } catch (error) {
-      console.error('Error deleting webhook:', error)
-      toast.error('Failed to delete webhook')
+      console.error('Error deleting webhook:', error);
+      toast.error('Failed to delete webhook');
     }
-  }
+  };
 
   const handleTestWebhook = async (webhookId: string) => {
     try {
-      await DatabaseService.testWebhookEndpoint(webhookId)
-      toast.success('Test webhook sent successfully')
+      await DatabaseService.testWebhookEndpoint(webhookId);
+      toast.success('Test webhook sent successfully');
     } catch (error) {
-      console.error('Error testing webhook:', error)
-      toast.error('Failed to send test webhook')
+      console.error('Error testing webhook:', error);
+      toast.error('Failed to send test webhook');
     }
-  }
+  };
 
   const handleEditWebhook = (webhook: WebhookEndpoint) => {
-    setSelectedWebhook(webhook)
-    setShowEditModal(true)
-  }
+    setSelectedWebhook(webhook);
+    setShowEditModal(true);
+  };
 
   const formatDeliveryTime = (timestamp: string) => {
-    return new Date(timestamp).toLocaleString()
-  }
+    return new Date(timestamp).toLocaleString();
+  };
 
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
       </div>
-    )
+    );
   }
 
   return (
@@ -271,7 +271,7 @@ export default function WebhooksPage() {
                     {webhooks.map((webhook) => {
                       const successRate = webhook.success_count + webhook.failure_count > 0 
                         ? (webhook.success_count / (webhook.success_count + webhook.failure_count) * 100).toFixed(1)
-                        : 'N/A'
+                        : 'N/A';
                       
                       return (
                         <tr key={webhook.id} className="hover:bg-gray-50">
@@ -371,7 +371,7 @@ export default function WebhooksPage() {
                             </div>
                           </td>
                         </tr>
-                      )
+                      );
                     })}
                   </tbody>
                 </table>
@@ -494,7 +494,7 @@ export default function WebhooksPage() {
                 </a>
                 <button
                   onClick={() => {
-                    setShowCreateModal(true)
+                    setShowCreateModal(true);
                     // Pre-fill with template events
                   }}
                   className="flex-1 inline-flex justify-center items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700"
@@ -520,27 +520,27 @@ export default function WebhooksPage() {
         <EditWebhookModal
           webhook={selectedWebhook}
           onClose={() => {
-            setShowEditModal(false)
-            setSelectedWebhook(null)
+            setShowEditModal(false);
+            setSelectedWebhook(null);
           }}
           onSuccess={loadWebhooks}
         />
       )}
     </div>
-  )
+  );
 }
 
 // Create Webhook Modal Component
 function CreateWebhookModal({ onClose, onSuccess }: { onClose: () => void; onSuccess: () => void }) {
-  const { user } = useUser()
-  const [loading, setLoading] = useState(false)
+  const { user } = useUser();
+  const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
     name: '',
     url: '',
     events: [] as string[],
     secret_key: '',
     retry_attempts: 3
-  })
+  });
 
   const handleEventToggle = (event: string) => {
     setFormData(prev => ({
@@ -548,36 +548,36 @@ function CreateWebhookModal({ onClose, onSuccess }: { onClose: () => void; onSuc
       events: prev.events.includes(event)
         ? prev.events.filter(e => e !== event)
         : [...prev.events, event]
-    }))
-  }
+    }));
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    if (!user) return
+    e.preventDefault();
+    if (!user) return;
 
     if (formData.events.length === 0) {
-      toast.error('Please select at least one event')
-      return
+      toast.error('Please select at least one event');
+      return;
     }
 
-    setLoading(true)
+    setLoading(true);
     try {
       await DatabaseService.createWebhookEndpoint({
         ...formData,
         profile_id: user.id,
         is_active: true
-      })
+      });
       
-      toast.success('Webhook created successfully')
-      onSuccess()
-      onClose()
+      toast.success('Webhook created successfully');
+      onSuccess();
+      onClose();
     } catch (error) {
-      console.error('Error creating webhook:', error)
-      toast.error('Failed to create webhook')
+      console.error('Error creating webhook:', error);
+      toast.error('Failed to create webhook');
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   return (
     <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
@@ -674,7 +674,7 @@ function CreateWebhookModal({ onClose, onSuccess }: { onClose: () => void; onSuc
         </div>
       </div>
     </div>
-  )
+  );
 }
 
 // Edit Webhook Modal Component (similar structure to Create)
@@ -687,14 +687,14 @@ function EditWebhookModal({
   onClose: () => void; 
   onSuccess: () => void 
 }) {
-  const [loading, setLoading] = useState(false)
+  const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
     name: webhook.name,
     url: webhook.url,
     events: webhook.events,
     secret_key: webhook.secret_key || '',
     retry_attempts: webhook.retry_attempts
-  })
+  });
 
   const handleEventToggle = (event: string) => {
     setFormData(prev => ({
@@ -702,31 +702,31 @@ function EditWebhookModal({
       events: prev.events.includes(event)
         ? prev.events.filter(e => e !== event)
         : [...prev.events, event]
-    }))
-  }
+    }));
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
+    e.preventDefault();
 
     if (formData.events.length === 0) {
-      toast.error('Please select at least one event')
-      return
+      toast.error('Please select at least one event');
+      return;
     }
 
-    setLoading(true)
+    setLoading(true);
     try {
-      await DatabaseService.updateWebhookEndpoint(webhook.id, formData)
+      await DatabaseService.updateWebhookEndpoint(webhook.id, formData);
       
-      toast.success('Webhook updated successfully')
-      onSuccess()
-      onClose()
+      toast.success('Webhook updated successfully');
+      onSuccess();
+      onClose();
     } catch (error) {
-      console.error('Error updating webhook:', error)
-      toast.error('Failed to update webhook')
+      console.error('Error updating webhook:', error);
+      toast.error('Failed to update webhook');
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   return (
     <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
@@ -797,5 +797,5 @@ function EditWebhookModal({
         </div>
       </div>
     </div>
-  )
+  );
 }

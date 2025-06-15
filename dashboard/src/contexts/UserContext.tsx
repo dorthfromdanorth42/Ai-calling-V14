@@ -1,8 +1,8 @@
-import React, { createContext, useContext, useState, useEffect } from 'react'
-import type { Profile } from '../lib/supabase'
-import { DatabaseService } from '../services/database'
-import { useAuth } from '../hooks/useAuth'
-import toast from 'react-hot-toast'
+import React, { createContext, useContext, useState, useEffect } from 'react';
+import type { Profile } from '../lib/supabase';
+import { DatabaseService } from '../services/database';
+import { useAuth } from '../hooks/useAuth';
+import toast from 'react-hot-toast';
 
 interface UserContextType {
   user: Profile | null
@@ -11,80 +11,80 @@ interface UserContextType {
   refreshUser: () => Promise<void>
 }
 
-const UserContext = createContext<UserContextType | undefined>(undefined)
+const UserContext = createContext<UserContextType | undefined>(undefined);
 
 export function UserProvider({ children }: { children: React.ReactNode }) {
-  const [user, setUser] = useState<Profile | null>(null)
-  const [loading, setLoading] = useState(true)
-  const { user: authUser } = useAuth()
+  const [user, setUser] = useState<Profile | null>(null);
+  const [loading, setLoading] = useState(true);
+  const { user: authUser } = useAuth();
 
   const loadUser = async () => {
     if (!authUser) {
-      setUser(null)
-      setLoading(false)
-      return
+      setUser(null);
+      setLoading(false);
+      return;
     }
 
     try {
-      setLoading(true)
-      const profile = await DatabaseService.getProfile(authUser.id)
-      setUser(profile)
+      setLoading(true);
+      const profile = await DatabaseService.getProfile(authUser.id);
+      setUser(profile);
     } catch (error) {
-      console.error('Error loading user profile:', error)
-      toast.error('Failed to load user profile')
-      setUser(null)
+      console.error('Error loading user profile:', error);
+      toast.error('Failed to load user profile');
+      setUser(null);
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   useEffect(() => {
-    loadUser()
-  }, [authUser])
+    loadUser();
+  }, [authUser]);
 
   const updateUser = async (updates: Partial<Profile>) => {
     if (!user || !authUser) {
-      toast.error('No user to update')
-      return
+      toast.error('No user to update');
+      return;
     }
 
     try {
-      const updatedProfile = await DatabaseService.updateProfile(authUser.id, updates)
+      const updatedProfile = await DatabaseService.updateProfile(authUser.id, updates);
       
       if (updatedProfile) {
-        setUser(updatedProfile)
-        toast.success('Profile updated successfully')
+        setUser(updatedProfile);
+        toast.success('Profile updated successfully');
       } else {
-        toast.error('Failed to update profile')
+        toast.error('Failed to update profile');
       }
     } catch (error) {
-      console.error('Error updating user profile:', error)
-      toast.error('Failed to update profile')
+      console.error('Error updating user profile:', error);
+      toast.error('Failed to update profile');
     }
-  }
+  };
 
   const refreshUser = async () => {
-    await loadUser()
-  }
+    await loadUser();
+  };
 
   return (
     <UserContext.Provider value={{ user, loading, updateUser, refreshUser }}>
       {children}
     </UserContext.Provider>
-  )
+  );
 }
 
 export function useUser() {
-  const context = useContext(UserContext)
+  const context = useContext(UserContext);
   if (context === undefined) {
-    throw new Error('useUser must be used within a UserProvider')
+    throw new Error('useUser must be used within a UserProvider');
   }
-  return context
+  return context;
 }
 
 // Hook for checking permissions
 export function usePermissions() {
-  const { user } = useUser()
+  const { user } = useUser();
   
   return {
     canUseInbound: user?.can_use_inbound ?? false,
@@ -93,5 +93,5 @@ export function usePermissions() {
     hasReachedAgentLimit: (currentCount: number) => 
       currentCount >= (user?.max_concurrent_calls ?? 1),
     planName: user?.plan_name ?? 'free'
-  }
+  };
 }

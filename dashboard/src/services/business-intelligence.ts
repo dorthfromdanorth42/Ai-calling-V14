@@ -1,4 +1,4 @@
-import { supabase } from '../lib/supabase'
+import { supabase } from '../lib/supabase';
 
 export interface AnalyticsMetric {
   id: string
@@ -94,45 +94,45 @@ export class BusinessIntelligenceService {
         .select('*')
         .eq('profile_id', profileId)
         .gte('created_at', timeRange.start)
-        .lte('created_at', timeRange.end)
+        .lte('created_at', timeRange.end);
 
       if (error) {
-        console.error('Error fetching call analytics:', error)
-        return this.getEmptyCallAnalytics()
+        console.error('Error fetching call analytics:', error);
+        return this.getEmptyCallAnalytics();
       }
 
-      const totalCalls = callLogs?.length || 0
+      const totalCalls = callLogs?.length || 0;
       const successfulCalls = callLogs?.filter(call => 
         call.outcome === 'completed' || call.outcome === 'converted'
-      ).length || 0
+      ).length || 0;
 
-      const totalDuration = callLogs?.reduce((sum, call) => sum + (call.duration_seconds || 0), 0) || 0
-      const averageDuration = totalCalls > 0 ? Math.round(totalDuration / totalCalls) : 0
+      const totalDuration = callLogs?.reduce((sum, call) => sum + (call.duration_seconds || 0), 0) || 0;
+      const averageDuration = totalCalls > 0 ? Math.round(totalDuration / totalCalls) : 0;
 
-      const conversions = callLogs?.filter(call => call.outcome === 'converted').length || 0
-      const conversionRate = totalCalls > 0 ? Math.round((conversions / totalCalls) * 100) : 0
+      const conversions = callLogs?.filter(call => call.outcome === 'converted').length || 0;
+      const conversionRate = totalCalls > 0 ? Math.round((conversions / totalCalls) * 100) : 0;
 
       // Hourly distribution
       const hourlyDistribution = Array.from({ length: 24 }, (_, hour) => ({
         hour,
         calls: callLogs?.filter(call => {
-          const callHour = new Date(call.created_at).getHours()
-          return callHour === hour
+          const callHour = new Date(call.created_at).getHours();
+          return callHour === hour;
         }).length || 0
-      }))
+      }));
 
       // Outcome breakdown
-      const outcomeMap = new Map<string, number>()
+      const outcomeMap = new Map<string, number>();
       callLogs?.forEach(call => {
-        const outcome = call.outcome || 'unknown'
-        outcomeMap.set(outcome, (outcomeMap.get(outcome) || 0) + 1)
-      })
+        const outcome = call.outcome || 'unknown';
+        outcomeMap.set(outcome, (outcomeMap.get(outcome) || 0) + 1);
+      });
 
       const outcomeBreakdown = Array.from(outcomeMap.entries()).map(([outcome, count]) => ({
         outcome,
         count,
         percentage: totalCalls > 0 ? Math.round((count / totalCalls) * 100) : 0
-      }))
+      }));
 
       return {
         totalCalls,
@@ -141,10 +141,10 @@ export class BusinessIntelligenceService {
         conversionRate,
         hourlyDistribution,
         outcomeBreakdown
-      }
+      };
     } catch (error) {
-      console.error('Error calculating call analytics:', error)
-      return this.getEmptyCallAnalytics()
+      console.error('Error calculating call analytics:', error);
+      return this.getEmptyCallAnalytics();
     }
   }
 
@@ -156,7 +156,7 @@ export class BusinessIntelligenceService {
       conversionRate: 0,
       hourlyDistribution: Array.from({ length: 24 }, (_, hour) => ({ hour, calls: 0 })),
       outcomeBreakdown: []
-    }
+    };
   }
 
   static async getCampaignAnalytics(profileId: string, campaignId?: string): Promise<{
@@ -181,39 +181,39 @@ export class BusinessIntelligenceService {
       let campaignQuery = supabase
         .from('campaigns')
         .select('*')
-        .eq('profile_id', profileId)
+        .eq('profile_id', profileId);
 
       if (campaignId) {
-        campaignQuery = campaignQuery.eq('id', campaignId)
+        campaignQuery = campaignQuery.eq('id', campaignId);
       }
 
-      const { data: campaigns } = await campaignQuery
+      const { data: campaigns } = await campaignQuery;
 
       // Get leads
       let leadsQuery = supabase
         .from('campaign_leads')
         .select('*')
-        .eq('profile_id', profileId)
+        .eq('profile_id', profileId);
 
       if (campaignId) {
-        leadsQuery = leadsQuery.eq('campaign_id', campaignId)
+        leadsQuery = leadsQuery.eq('campaign_id', campaignId);
       }
 
-      const { data: leads } = await leadsQuery
+      const { data: leads } = await leadsQuery;
 
-      const totalCampaigns = campaigns?.length || 0
-      const activeCampaigns = campaigns?.filter(c => c.status === 'active').length || 0
-      const totalLeads = leads?.length || 0
-      const contactedLeads = leads?.filter(l => l.status !== 'new').length || 0
-      const convertedLeads = leads?.filter(l => l.status === 'converted').length || 0
-      const averageConversionRate = totalLeads > 0 ? Math.round((convertedLeads / totalLeads) * 100) : 0
+      const totalCampaigns = campaigns?.length || 0;
+      const activeCampaigns = campaigns?.filter(c => c.status === 'active').length || 0;
+      const totalLeads = leads?.length || 0;
+      const contactedLeads = leads?.filter(l => l.status !== 'new').length || 0;
+      const convertedLeads = leads?.filter(l => l.status === 'converted').length || 0;
+      const averageConversionRate = totalLeads > 0 ? Math.round((convertedLeads / totalLeads) * 100) : 0;
 
       // Campaign performance
       const campaignPerformance = campaigns?.map(campaign => {
-        const campaignLeads = leads?.filter(l => l.campaign_id === campaign.id) || []
-        const contacted = campaignLeads.filter(l => l.status !== 'new').length
-        const converted = campaignLeads.filter(l => l.status === 'converted').length
-        const conversionRate = campaignLeads.length > 0 ? Math.round((converted / campaignLeads.length) * 100) : 0
+        const campaignLeads = leads?.filter(l => l.campaign_id === campaign.id) || [];
+        const contacted = campaignLeads.filter(l => l.status !== 'new').length;
+        const converted = campaignLeads.filter(l => l.status === 'converted').length;
+        const conversionRate = campaignLeads.length > 0 ? Math.round((converted / campaignLeads.length) * 100) : 0;
 
         return {
           campaign_id: campaign.id,
@@ -223,8 +223,8 @@ export class BusinessIntelligenceService {
           converted,
           conversion_rate: conversionRate,
           status: campaign.status
-        }
-      }) || []
+        };
+      }) || [];
 
       return {
         totalCampaigns,
@@ -234,9 +234,9 @@ export class BusinessIntelligenceService {
         convertedLeads,
         averageConversionRate,
         campaignPerformance
-      }
+      };
     } catch (error) {
-      console.error('Error calculating campaign analytics:', error)
+      console.error('Error calculating campaign analytics:', error);
       return {
         totalCampaigns: 0,
         activeCampaigns: 0,
@@ -245,7 +245,7 @@ export class BusinessIntelligenceService {
         convertedLeads: 0,
         averageConversionRate: 0,
         campaignPerformance: []
-      }
+      };
     }
   }
 
@@ -269,37 +269,37 @@ export class BusinessIntelligenceService {
       const { data: agents } = await supabase
         .from('ai_agents')
         .select('*')
-        .eq('profile_id', profileId)
+        .eq('profile_id', profileId);
 
       // Get call logs with agent information
       const { data: callLogs } = await supabase
         .from('call_logs')
         .select('*')
         .eq('profile_id', profileId)
-        .not('agent_id', 'is', null)
+        .not('agent_id', 'is', null);
 
-      const totalAgents = agents?.length || 0
-      const activeAgents = agents?.filter(a => a.status === 'active').length || 0
-      const totalCalls = callLogs?.length || 0
-      const averageCallsPerAgent = activeAgents > 0 ? Math.round(totalCalls / activeAgents) : 0
+      const totalAgents = agents?.length || 0;
+      const activeAgents = agents?.filter(a => a.status === 'active').length || 0;
+      const totalCalls = callLogs?.length || 0;
+      const averageCallsPerAgent = activeAgents > 0 ? Math.round(totalCalls / activeAgents) : 0;
 
       // Calculate agent metrics
       const agentMetrics = agents?.map(agent => {
-        const agentCalls = callLogs?.filter(call => call.agent_id === agent.id) || []
+        const agentCalls = callLogs?.filter(call => call.agent_id === agent.id) || [];
         const successfulCalls = agentCalls.filter(call => 
           call.outcome === 'completed' || call.outcome === 'converted'
-        ).length
-        const conversions = agentCalls.filter(call => call.outcome === 'converted').length
-        const totalDuration = agentCalls.reduce((sum, call) => sum + (call.duration_seconds || 0), 0)
-        const averageDuration = agentCalls.length > 0 ? Math.round(totalDuration / agentCalls.length) : 0
-        const conversionRate = agentCalls.length > 0 ? Math.round((conversions / agentCalls.length) * 100) : 0
+        ).length;
+        const conversions = agentCalls.filter(call => call.outcome === 'converted').length;
+        const totalDuration = agentCalls.reduce((sum, call) => sum + (call.duration_seconds || 0), 0);
+        const averageDuration = agentCalls.length > 0 ? Math.round(totalDuration / agentCalls.length) : 0;
+        const conversionRate = agentCalls.length > 0 ? Math.round((conversions / agentCalls.length) * 100) : 0;
         
         // Calculate efficiency score (weighted combination of metrics)
         const efficiencyScore = Math.round(
           (conversionRate * 0.4) + 
           ((successfulCalls / Math.max(agentCalls.length, 1)) * 100 * 0.3) +
           (Math.min(averageDuration / 300, 1) * 100 * 0.3) // Normalize duration to 5 minutes
-        )
+        );
 
         return {
           agent_id: agent.id,
@@ -309,14 +309,14 @@ export class BusinessIntelligenceService {
           average_duration: averageDuration,
           conversion_rate: conversionRate,
           efficiency_score: efficiencyScore
-        }
-      }) || []
+        };
+      }) || [];
 
       // Find top performing agent
       const topAgent = agentMetrics.reduce((top, current) => 
         current.efficiency_score > top.efficiency_score ? current : top,
         agentMetrics[0] || { agent_name: 'N/A', efficiency_score: 0 }
-      )
+      );
 
       return {
         totalAgents,
@@ -324,16 +324,16 @@ export class BusinessIntelligenceService {
         averageCallsPerAgent,
         topPerformingAgent: topAgent.agent_name,
         agentMetrics
-      }
+      };
     } catch (error) {
-      console.error('Error calculating agent performance:', error)
+      console.error('Error calculating agent performance:', error);
       return {
         totalAgents: 0,
         activeAgents: 0,
         averageCallsPerAgent: 0,
         topPerformingAgent: 'N/A',
         agentMetrics: []
-      }
+      };
     }
   }
 
@@ -347,17 +347,17 @@ export class BusinessIntelligenceService {
           updated_at: new Date().toISOString()
         })
         .select()
-        .single()
+        .single();
 
       if (error) {
-        console.error('Error creating KPI target:', error)
-        return null
+        console.error('Error creating KPI target:', error);
+        return null;
       }
 
-      return data
+      return data;
     } catch (error) {
-      console.error('Error creating KPI target:', error)
-      return null
+      console.error('Error creating KPI target:', error);
+      return null;
     }
   }
 
@@ -367,27 +367,27 @@ export class BusinessIntelligenceService {
         .from('kpi_targets')
         .select('*')
         .eq('profile_id', profileId)
-        .order('created_at', { ascending: false })
+        .order('created_at', { ascending: false });
 
       if (error) {
-        console.error('Error fetching KPI targets:', error)
-        return []
+        console.error('Error fetching KPI targets:', error);
+        return [];
       }
 
-      return data || []
+      return data || [];
     } catch (error) {
-      console.error('Error fetching KPI targets:', error)
-      return []
+      console.error('Error fetching KPI targets:', error);
+      return [];
     }
   }
 
   static async updateKPIProgress(profileId: string): Promise<void> {
     try {
-      const targets = await this.getKPITargets(profileId)
+      const targets = await this.getKPITargets(profileId);
       
       for (const target of targets) {
-        let currentValue = 0
-        let status: KPITarget['status'] = 'on_track'
+        let currentValue = 0;
+        let status: KPITarget['status'] = 'on_track';
 
         // Calculate current value based on KPI type
         switch (target.kpi_name) {
@@ -395,37 +395,37 @@ export class BusinessIntelligenceService {
             const conversionData = await this.getCallAnalytics(profileId, {
               start: this.getPeriodStart(target.target_period),
               end: new Date().toISOString()
-            })
-            currentValue = conversionData.conversionRate
-            break
+            });
+            currentValue = conversionData.conversionRate;
+            break;
           
           case 'total_calls':
             const callData = await this.getCallAnalytics(profileId, {
               start: this.getPeriodStart(target.target_period),
               end: new Date().toISOString()
-            })
-            currentValue = callData.totalCalls
-            break
+            });
+            currentValue = callData.totalCalls;
+            break;
           
           case 'average_duration':
             const durationData = await this.getCallAnalytics(profileId, {
               start: this.getPeriodStart(target.target_period),
               end: new Date().toISOString()
-            })
-            currentValue = durationData.averageDuration
-            break
+            });
+            currentValue = durationData.averageDuration;
+            break;
         }
 
         // Determine status
-        const progress = currentValue / target.target_value
+        const progress = currentValue / target.target_value;
         if (progress >= 1) {
-          status = 'exceeded'
+          status = 'exceeded';
         } else if (progress >= 0.8) {
-          status = 'on_track'
+          status = 'on_track';
         } else if (progress >= 0.6) {
-          status = 'at_risk'
+          status = 'at_risk';
         } else {
-          status = 'behind'
+          status = 'behind';
         }
 
         // Update KPI
@@ -436,61 +436,61 @@ export class BusinessIntelligenceService {
             status,
             updated_at: new Date().toISOString()
           })
-          .eq('id', target.id)
+          .eq('id', target.id);
       }
     } catch (error) {
-      console.error('Error updating KPI progress:', error)
+      console.error('Error updating KPI progress:', error);
     }
   }
 
   private static getPeriodStart(period: string): string {
-    const now = new Date()
+    const now = new Date();
     switch (period) {
       case 'daily':
-        return new Date(now.getFullYear(), now.getMonth(), now.getDate()).toISOString()
+        return new Date(now.getFullYear(), now.getMonth(), now.getDate()).toISOString();
       case 'weekly':
-        const weekStart = new Date(now)
-        weekStart.setDate(now.getDate() - now.getDay())
-        return weekStart.toISOString()
+        const weekStart = new Date(now);
+        weekStart.setDate(now.getDate() - now.getDay());
+        return weekStart.toISOString();
       case 'monthly':
-        return new Date(now.getFullYear(), now.getMonth(), 1).toISOString()
+        return new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
       case 'quarterly':
-        const quarter = Math.floor(now.getMonth() / 3)
-        return new Date(now.getFullYear(), quarter * 3, 1).toISOString()
+        const quarter = Math.floor(now.getMonth() / 3);
+        return new Date(now.getFullYear(), quarter * 3, 1).toISOString();
       case 'yearly':
-        return new Date(now.getFullYear(), 0, 1).toISOString()
+        return new Date(now.getFullYear(), 0, 1).toISOString();
       default:
-        return new Date(now.getFullYear(), now.getMonth(), 1).toISOString()
+        return new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
     }
   }
 
   // Predictive Analytics
   static async generatePredictiveInsights(profileId: string): Promise<PredictiveInsight[]> {
     try {
-      const insights: Omit<PredictiveInsight, 'id' | 'created_at'>[] = []
+      const insights: Omit<PredictiveInsight, 'id' | 'created_at'>[] = [];
 
       // Get historical data for trends
-      const thirtyDaysAgo = new Date()
-      thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30)
+      const thirtyDaysAgo = new Date();
+      thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
 
       const callAnalytics = await this.getCallAnalytics(profileId, {
         start: thirtyDaysAgo.toISOString(),
         end: new Date().toISOString()
-      })
+      });
 
       // Trend analysis
       if (callAnalytics.totalCalls > 0) {
         const recentWeekCalls = await this.getCallAnalytics(profileId, {
           start: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(),
           end: new Date().toISOString()
-        })
+        });
 
         const previousWeekCalls = await this.getCallAnalytics(profileId, {
           start: new Date(Date.now() - 14 * 24 * 60 * 60 * 1000).toISOString(),
           end: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString()
-        })
+        });
 
-        const callTrend = recentWeekCalls.totalCalls - previousWeekCalls.totalCalls
+        const callTrend = recentWeekCalls.totalCalls - previousWeekCalls.totalCalls;
         if (Math.abs(callTrend) > previousWeekCalls.totalCalls * 0.2) {
           insights.push({
             profile_id: profileId,
@@ -505,11 +505,11 @@ export class BusinessIntelligenceService {
             action_items: callTrend > 0 
               ? ['Consider scaling up agent capacity', 'Review campaign effectiveness']
               : ['Investigate causes of decline', 'Optimize campaign targeting']
-          })
+          });
         }
 
         // Conversion rate insights
-        const conversionTrend = recentWeekCalls.conversionRate - previousWeekCalls.conversionRate
+        const conversionTrend = recentWeekCalls.conversionRate - previousWeekCalls.conversionRate;
         if (Math.abs(conversionTrend) > 5) {
           insights.push({
             profile_id: profileId,
@@ -524,12 +524,12 @@ export class BusinessIntelligenceService {
             action_items: conversionTrend > 0
               ? ['Analyze successful strategies', 'Scale winning approaches']
               : ['Review agent scripts', 'Analyze failed calls', 'Improve targeting']
-          })
+          });
         }
       }
 
       // Anomaly detection
-      const avgDuration = callAnalytics.averageDuration
+      const avgDuration = callAnalytics.averageDuration;
       if (avgDuration > 600) { // More than 10 minutes
         insights.push({
           profile_id: profileId,
@@ -540,7 +540,7 @@ export class BusinessIntelligenceService {
           impact_level: 'medium',
           metric_affected: 'average_duration',
           action_items: ['Review agent efficiency', 'Optimize call scripts', 'Provide additional training']
-        })
+        });
       }
 
       // Save insights to database
@@ -548,15 +548,15 @@ export class BusinessIntelligenceService {
         const { data } = await supabase
           .from('predictive_insights')
           .insert(insights)
-          .select()
+          .select();
 
-        return data || []
+        return data || [];
       }
 
-      return []
+      return [];
     } catch (error) {
-      console.error('Error generating predictive insights:', error)
-      return []
+      console.error('Error generating predictive insights:', error);
+      return [];
     }
   }
 
@@ -567,17 +567,17 @@ export class BusinessIntelligenceService {
         .select('*')
         .eq('profile_id', profileId)
         .order('created_at', { ascending: false })
-        .limit(limit)
+        .limit(limit);
 
       if (error) {
-        console.error('Error fetching predictive insights:', error)
-        return []
+        console.error('Error fetching predictive insights:', error);
+        return [];
       }
 
-      return data || []
+      return data || [];
     } catch (error) {
-      console.error('Error fetching predictive insights:', error)
-      return []
+      console.error('Error fetching predictive insights:', error);
+      return [];
     }
   }
 
@@ -588,7 +588,7 @@ export class BusinessIntelligenceService {
       const callAnalytics = await this.getCallAnalytics(profileId, {
         start: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString(),
         end: new Date().toISOString()
-      })
+      });
 
       // Industry benchmarks (these would typically come from a benchmarking service)
       const benchmarks: BenchmarkData[] = [
@@ -617,19 +617,19 @@ export class BusinessIntelligenceService {
             80
           )
         }
-      ]
+      ];
 
-      return benchmarks
+      return benchmarks;
     } catch (error) {
-      console.error('Error fetching benchmark data:', error)
-      return []
+      console.error('Error fetching benchmark data:', error);
+      return [];
     }
   }
 
   private static calculatePercentile(userValue: number, average: number, topQuartile: number): number {
-    if (userValue >= topQuartile) return 90
-    if (userValue >= average) return 50 + ((userValue - average) / (topQuartile - average)) * 40
-    return (userValue / average) * 50
+    if (userValue >= topQuartile) return 90;
+    if (userValue >= average) return 50 + ((userValue - average) / (topQuartile - average)) * 40;
+    return (userValue / average) * 50;
   }
 
   // Custom Reports
@@ -642,17 +642,17 @@ export class BusinessIntelligenceService {
           updated_at: new Date().toISOString()
         })
         .select()
-        .single()
+        .single();
 
       if (error) {
-        console.error('Error creating custom report:', error)
-        return null
+        console.error('Error creating custom report:', error);
+        return null;
       }
 
-      return data
+      return data;
     } catch (error) {
-      console.error('Error creating custom report:', error)
-      return null
+      console.error('Error creating custom report:', error);
+      return null;
     }
   }
 
@@ -662,17 +662,17 @@ export class BusinessIntelligenceService {
         .from('custom_reports')
         .select('*')
         .eq('profile_id', profileId)
-        .order('created_at', { ascending: false })
+        .order('created_at', { ascending: false });
 
       if (error) {
-        console.error('Error fetching custom reports:', error)
-        return []
+        console.error('Error fetching custom reports:', error);
+        return [];
       }
 
-      return data || []
+      return data || [];
     } catch (error) {
-      console.error('Error fetching custom reports:', error)
-      return []
+      console.error('Error fetching custom reports:', error);
+      return [];
     }
   }
 
@@ -682,15 +682,15 @@ export class BusinessIntelligenceService {
         .from('custom_reports')
         .select('*')
         .eq('id', reportId)
-        .single()
+        .single();
 
       if (error || !report) {
-        console.error('Error fetching report configuration:', error)
-        return null
+        console.error('Error fetching report configuration:', error);
+        return null;
       }
 
-      const { configuration } = report
-      const reportData: any = {}
+      const { configuration } = report;
+      const reportData: any = {};
 
       // Generate data based on configuration
       for (const metric of configuration.metrics) {
@@ -699,14 +699,14 @@ export class BusinessIntelligenceService {
             reportData.call_analytics = await this.getCallAnalytics(
               report.profile_id,
               configuration.timeRange
-            )
-            break
+            );
+            break;
           case 'campaign_analytics':
-            reportData.campaign_analytics = await this.getCampaignAnalytics(report.profile_id)
-            break
+            reportData.campaign_analytics = await this.getCampaignAnalytics(report.profile_id);
+            break;
           case 'agent_performance':
-            reportData.agent_performance = await this.getAgentPerformance(report.profile_id)
-            break
+            reportData.agent_performance = await this.getAgentPerformance(report.profile_id);
+            break;
         }
       }
 
@@ -715,10 +715,10 @@ export class BusinessIntelligenceService {
         report_name: report.report_name,
         generated_at: new Date().toISOString(),
         data: reportData
-      }
+      };
     } catch (error) {
-      console.error('Error generating report data:', error)
-      return null
+      console.error('Error generating report data:', error);
+      return null;
     }
   }
 
@@ -734,15 +734,15 @@ export class BusinessIntelligenceService {
       const currentMetrics = await this.getCallAnalytics(profileId, {
         start: this.getPeriodStart('monthly'),
         end: new Date().toISOString()
-      })
+      });
 
       // Get previous period for comparison
-      const previousPeriodStart = new Date()
-      previousPeriodStart.setMonth(previousPeriodStart.getMonth() - 1)
+      const previousPeriodStart = new Date();
+      previousPeriodStart.setMonth(previousPeriodStart.getMonth() - 1);
       const previousMetrics = await this.getCallAnalytics(profileId, {
         start: previousPeriodStart.toISOString(),
         end: this.getPeriodStart('monthly')
-      })
+      });
 
       // Calculate KPIs with changes
       const kpis = [
@@ -764,33 +764,33 @@ export class BusinessIntelligenceService {
           change: Math.round((currentMetrics.averageDuration - previousMetrics.averageDuration) / 60),
           status: currentMetrics.averageDuration > previousMetrics.averageDuration ? 'up' : 'down'
         }
-      ]
+      ];
 
       // Get insights and benchmarks
-      const insights = await this.getPredictiveInsights(profileId, 5)
-      const benchmarks = await this.getBenchmarkData(profileId)
+      const insights = await this.getPredictiveInsights(profileId, 5);
+      const benchmarks = await this.getBenchmarkData(profileId);
 
       // Generate alerts
-      const alerts = []
+      const alerts = [];
       if (currentMetrics.conversionRate < 10) {
         alerts.push({
           type: 'performance',
           message: 'Conversion rate is below 10% - consider reviewing scripts and targeting',
           severity: 'warning'
-        })
+        });
       }
       if (currentMetrics.totalCalls < previousMetrics.totalCalls * 0.8) {
         alerts.push({
           type: 'volume',
           message: 'Call volume has decreased by more than 20% compared to last month',
           severity: 'critical'
-        })
+        });
       }
 
-      return { kpis, insights, benchmarks, alerts }
+      return { kpis, insights, benchmarks, alerts };
     } catch (error) {
-      console.error('Error generating executive dashboard:', error)
-      return { kpis: [], insights: [], benchmarks: [], alerts: [] }
+      console.error('Error generating executive dashboard:', error);
+      return { kpis: [], insights: [], benchmarks: [], alerts: [] };
     }
   }
 }

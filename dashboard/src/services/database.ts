@@ -1,4 +1,4 @@
-import { supabase } from '../lib/supabase'
+import { supabase } from '../lib/supabase';
 import type { 
   Profile, 
   CallLog, 
@@ -15,40 +15,40 @@ import type {
   Appointment,
   ActiveCall,
   // FunctionCallLog
-} from '../lib/supabase'
+} from '../lib/supabase';
 
 export class DatabaseService {
   // Check if we're in demo mode
   private static isDemoMode(): boolean {
     // Get the current mode from localStorage (set by AppContext)
-    const appMode = localStorage.getItem('app_mode')
-    return appMode === 'demo'
+    const appMode = localStorage.getItem('app_mode');
+    return appMode === 'demo';
   }
 
   // Profile operations
   static async getProfile(userId: string): Promise<Profile | null> {
     if (this.isDemoMode()) {
-      return this.getDemoProfile(userId)
+      return this.getDemoProfile(userId);
     }
 
     const { data, error } = await supabase
       .from('profiles')
       .select('*')
       .eq('id', userId)
-      .single()
+      .single();
 
     if (error) {
-      console.error('Error fetching profile:', error)
-      throw error
+      console.error('Error fetching profile:', error);
+      throw error;
     }
 
-    return data
+    return data;
   }
 
   static async updateProfile(userId: string, updates: Partial<Profile>): Promise<Profile | null> {
     if (this.isDemoMode()) {
-      console.log('Demo mode: Profile update simulated')
-      return { ...this.getDemoProfile(userId), ...updates }
+      console.log('Demo mode: Profile update simulated');
+      return { ...this.getDemoProfile(userId), ...updates };
     }
 
     const { data, error } = await supabase
@@ -56,14 +56,14 @@ export class DatabaseService {
       .update(updates)
       .eq('id', userId)
       .select()
-      .single()
+      .single();
 
     if (error) {
-      console.error('Error updating profile:', error)
-      throw error
+      console.error('Error updating profile:', error);
+      throw error;
     }
 
-    return data
+    return data;
   }
 
   static async getUserSettings(userId: string): Promise<any> {
@@ -72,67 +72,67 @@ export class DatabaseService {
         twilio_phone_number: '+18553947135',
         twilio_account_sid: 'demo_sid',
         gemini_api_key: 'demo_key'
-      }
+      };
     }
 
-    const profile = await this.getProfile(userId)
+    const profile = await this.getProfile(userId);
     return {
       twilio_phone_number: profile?.twilio_phone_number,
       twilio_account_sid: profile?.twilio_account_sid,
       gemini_api_key: profile?.gemini_api_key
-    }
+    };
   }
 
   // AI Agents operations
   static async getAIAgents(profileId: string): Promise<AIAgent[]> {
     if (this.isDemoMode()) {
-      return this.getDemoAgents()
+      return this.getDemoAgents();
     }
 
     const { data, error } = await supabase
       .from('ai_agents')
       .select('*')
       .eq('profile_id', profileId)
-      .order('created_at', { ascending: false })
+      .order('created_at', { ascending: false });
 
     if (error) {
-      console.error('Error fetching AI agents:', error)
+      console.error('Error fetching AI agents:', error);
       // In live mode, return empty array instead of demo data
-      return []
+      return [];
     }
 
-    return data || []
+    return data || [];
   }
 
   static async createAIAgent(agent: Omit<AIAgent, 'id' | 'created_at' | 'updated_at'>): Promise<AIAgent | null> {
     if (this.isDemoMode()) {
-      console.log('Demo mode: AI agent creation simulated')
+      console.log('Demo mode: AI agent creation simulated');
       return {
         ...agent,
         id: 'demo-agent-' + Date.now(),
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString()
-      }
+      };
     }
 
     const { data, error } = await supabase
       .from('ai_agents')
       .insert(agent)
       .select()
-      .single()
+      .single();
 
     if (error) {
-      console.error('Error creating AI agent:', error)
-      throw error
+      console.error('Error creating AI agent:', error);
+      throw error;
     }
 
-    return data
+    return data;
   }
 
   static async updateAIAgent(id: string, updates: Partial<AIAgent>): Promise<AIAgent | null> {
     if (this.isDemoMode()) {
-      console.log('Demo mode: AI agent update simulated')
-      return null
+      console.log('Demo mode: AI agent update simulated');
+      return null;
     }
 
     const { data, error } = await supabase
@@ -140,39 +140,39 @@ export class DatabaseService {
       .update(updates)
       .eq('id', id)
       .select()
-      .single()
+      .single();
 
     if (error) {
-      console.error('Error updating AI agent:', error)
-      throw error
+      console.error('Error updating AI agent:', error);
+      throw error;
     }
 
-    return data
+    return data;
   }
 
   static async deleteAIAgent(id: string): Promise<boolean> {
     if (this.isDemoMode()) {
-      console.log('Demo mode: AI agent deletion simulated')
-      return true
+      console.log('Demo mode: AI agent deletion simulated');
+      return true;
     }
 
     const { error } = await supabase
       .from('ai_agents')
       .delete()
-      .eq('id', id)
+      .eq('id', id);
 
     if (error) {
-      console.error('Error deleting AI agent:', error)
-      throw error
+      console.error('Error deleting AI agent:', error);
+      throw error;
     }
 
-    return true
+    return true;
   }
 
   // Call logs operations
   static async getCallLogs(profileId: string, limit = 50, offset = 0): Promise<CallLog[]> {
     if (this.isDemoMode()) {
-      return this.getDemoCallLogs()
+      return this.getDemoCallLogs();
     }
 
     const { data, error } = await supabase
@@ -183,20 +183,20 @@ export class DatabaseService {
       `)
       .eq('profile_id', profileId)
       .order('started_at', { ascending: false })
-      .range(offset, offset + limit - 1)
+      .range(offset, offset + limit - 1);
 
     if (error) {
-      console.error('Error fetching call logs:', error)
+      console.error('Error fetching call logs:', error);
       // In live mode, return empty array instead of demo data
-      return []
+      return [];
     }
 
-    return data || []
+    return data || [];
   }
 
   static async getActiveCallLogs(profileId: string): Promise<CallLog[]> {
     if (this.isDemoMode()) {
-      return this.getDemoCallLogs().filter(call => call.status === 'in_progress')
+      return this.getDemoCallLogs().filter(call => call.status === 'in_progress');
     }
 
     const { data, error } = await supabase
@@ -204,40 +204,40 @@ export class DatabaseService {
       .select('*')
       .eq('profile_id', profileId)
       .eq('status', 'in_progress')
-      .order('started_at', { ascending: false })
+      .order('started_at', { ascending: false });
 
     if (error) {
-      console.error('Error fetching active calls:', error)
-      return []
+      console.error('Error fetching active calls:', error);
+      return [];
     }
 
-    return data || []
+    return data || [];
   }
 
   static async createCallLog(callLog: Omit<CallLog, 'id' | 'created_at'>): Promise<CallLog | null> {
     if (this.isDemoMode()) {
-      console.log('Demo mode: Call log creation simulated')
-      return null
+      console.log('Demo mode: Call log creation simulated');
+      return null;
     }
 
     const { data, error } = await supabase
       .from('call_logs')
       .insert(callLog)
       .select()
-      .single()
+      .single();
 
     if (error) {
-      console.error('Error creating call log:', error)
-      throw error
+      console.error('Error creating call log:', error);
+      throw error;
     }
 
-    return data
+    return data;
   }
 
   static async updateCallLog(id: string, updates: Partial<CallLog>): Promise<CallLog | null> {
     if (this.isDemoMode()) {
-      console.log('Demo mode: Call log update simulated')
-      return null
+      console.log('Demo mode: Call log update simulated');
+      return null;
     }
 
     const { data, error } = await supabase
@@ -245,86 +245,86 @@ export class DatabaseService {
       .update(updates)
       .eq('id', id)
       .select()
-      .single()
+      .single();
 
     if (error) {
-      console.error('Error updating call log:', error)
-      throw error
+      console.error('Error updating call log:', error);
+      throw error;
     }
 
-    return data
+    return data;
   }
 
   // Campaign operations
   static async getCampaigns(profileId: string): Promise<Campaign[]> {
     if (this.isDemoMode()) {
-      return this.getDemoCampaigns()
+      return this.getDemoCampaigns();
     }
 
     const { data, error } = await supabase
       .from('outbound_campaigns')
       .select('*')
       .eq('profile_id', profileId)
-      .order('created_at', { ascending: false })
+      .order('created_at', { ascending: false });
 
     if (error) {
-      console.error('Error fetching campaigns:', error)
-      return []
+      console.error('Error fetching campaigns:', error);
+      return [];
     }
 
-    return data || []
+    return data || [];
   }
 
   static async getCampaign(campaignId: string): Promise<Campaign | null> {
     if (this.isDemoMode()) {
-      const campaigns = this.getDemoCampaigns()
-      return campaigns.find(c => c.id === campaignId) || null
+      const campaigns = this.getDemoCampaigns();
+      return campaigns.find(c => c.id === campaignId) || null;
     }
 
     const { data, error } = await supabase
       .from('outbound_campaigns')
       .select('*')
       .eq('id', campaignId)
-      .single()
+      .single();
 
     if (error) {
-      console.error('Error fetching campaign:', error)
-      return null
+      console.error('Error fetching campaign:', error);
+      return null;
     }
 
-    return data
+    return data;
   }
 
   static async createCampaign(campaign: Omit<Campaign, 'id' | 'created_at' | 'updated_at'>): Promise<Campaign | null> {
     if (this.isDemoMode()) {
-      console.log('Demo mode: Campaign creation simulated')
+      console.log('Demo mode: Campaign creation simulated');
       // Return a mock campaign object instead of null to prevent frontend errors
       return {
         ...campaign,
         id: 'demo-campaign-' + Date.now(),
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString()
-      } as Campaign
+      } as Campaign;
     }
 
     const { data, error } = await supabase
       .from('outbound_campaigns')
       .insert(campaign)
       .select()
-      .single()
+      .single();
 
     if (error) {
-      console.error('Error creating campaign:', error)
-      throw error
+      console.error('Error creating campaign:', error);
+      throw error;
     }
 
-    return data
+    return data;
   }
 
   static async updateCampaign(id: string, updates: Partial<Campaign>): Promise<Campaign | null> {
     if (this.isDemoMode()) {
-      console.log('Demo mode: Campaign update simulated')
-      return null
+      console.log('Demo mode: Campaign update simulated');
+      return null;
     }
 
     const { data, error } = await supabase
@@ -332,111 +332,111 @@ export class DatabaseService {
       .update(updates)
       .eq('id', id)
       .select()
-      .single()
+      .single();
 
     if (error) {
-      console.error('Error updating campaign:', error)
-      throw error
+      console.error('Error updating campaign:', error);
+      throw error;
     }
 
-    return data
+    return data;
   }
 
   static async deleteCampaign(id: string): Promise<boolean> {
     if (this.isDemoMode()) {
-      console.log('Demo mode: Campaign deletion simulated')
-      return true
+      console.log('Demo mode: Campaign deletion simulated');
+      return true;
     }
 
     const { error } = await supabase
       .from('outbound_campaigns')
       .delete()
-      .eq('id', id)
+      .eq('id', id);
 
     if (error) {
-      console.error('Error deleting campaign:', error)
-      throw error
+      console.error('Error deleting campaign:', error);
+      throw error;
     }
 
-    return true
+    return true;
   }
 
   // Campaign leads operations
   static async getCampaignLeads(campaignId: string, options: { limit?: number; offset?: number; status?: string[]; } = {}): Promise<CampaignLead[]> {
-    const { limit = 100, offset = 0, status } = options
+    const { limit = 100, offset = 0, status } = options;
     
     if (this.isDemoMode()) {
-      return this.getDemoCampaignLeads()
+      return this.getDemoCampaignLeads();
     }
 
     let query = supabase
       .from('campaign_leads')
       .select('*')
-      .eq('campaign_id', campaignId)
+      .eq('campaign_id', campaignId);
 
     if (status && status.length > 0) {
-      query = query.in('status', status)
+      query = query.in('status', status);
     }
 
     query = query
       .order('priority', { ascending: false })
       .order('created_at', { ascending: false })
-      .range(offset, offset + limit - 1)
+      .range(offset, offset + limit - 1);
 
-    const { data, error } = await query
+    const { data, error } = await query;
 
     if (error) {
-      console.error('Error fetching campaign leads:', error)
-      return []
+      console.error('Error fetching campaign leads:', error);
+      return [];
     }
 
-    return data || []
+    return data || [];
   }
 
   // Appointments operations
   static async getAppointments(profileId: string): Promise<Appointment[]> {
     if (this.isDemoMode()) {
-      return this.getDemoAppointments()
+      return this.getDemoAppointments();
     }
 
     const { data, error } = await supabase
       .from('appointments')
       .select('*')
       .eq('profile_id', profileId)
-      .order('scheduled_date', { ascending: true })
+      .order('scheduled_date', { ascending: true });
 
     if (error) {
-      console.error('Error fetching appointments:', error)
-      return []
+      console.error('Error fetching appointments:', error);
+      return [];
     }
 
-    return data || []
+    return data || [];
   }
 
   static async createAppointment(appointment: Omit<Appointment, 'id' | 'created_at' | 'updated_at'>): Promise<Appointment | null> {
     if (this.isDemoMode()) {
-      console.log('Demo mode: Appointment creation simulated')
-      return null
+      console.log('Demo mode: Appointment creation simulated');
+      return null;
     }
 
     const { data, error } = await supabase
       .from('appointments')
       .insert(appointment)
       .select()
-      .single()
+      .single();
 
     if (error) {
-      console.error('Error creating appointment:', error)
-      throw error
+      console.error('Error creating appointment:', error);
+      throw error;
     }
 
-    return data
+    return data;
   }
 
   static async updateAppointment(id: string, updates: Partial<Appointment>): Promise<Appointment | null> {
     if (this.isDemoMode()) {
-      console.log('Demo mode: Appointment update simulated')
-      return null
+      console.log('Demo mode: Appointment update simulated');
+      return null;
     }
 
     const { data, error } = await supabase
@@ -444,33 +444,33 @@ export class DatabaseService {
       .update(updates)
       .eq('id', id)
       .select()
-      .single()
+      .single();
 
     if (error) {
-      console.error('Error updating appointment:', error)
-      throw error
+      console.error('Error updating appointment:', error);
+      throw error;
     }
 
-    return data
+    return data;
   }
 
   static async deleteAppointment(id: string): Promise<boolean> {
     if (this.isDemoMode()) {
-      console.log('Demo mode: Appointment deletion simulated')
-      return true
+      console.log('Demo mode: Appointment deletion simulated');
+      return true;
     }
 
     const { error } = await supabase
       .from('appointments')
       .delete()
-      .eq('id', id)
+      .eq('id', id);
 
     if (error) {
-      console.error('Error deleting appointment:', error)
-      throw error
+      console.error('Error deleting appointment:', error);
+      throw error;
     }
 
-    return true
+    return true;
   }
 
 
@@ -478,27 +478,27 @@ export class DatabaseService {
 
   static async toggleAgent(agentId: string, isActive: boolean): Promise<boolean> {
     if (this.isDemoMode()) {
-      console.log('Demo mode: Agent toggle simulated')
-      return true
+      console.log('Demo mode: Agent toggle simulated');
+      return true;
     }
 
     const { error } = await supabase
       .from('ai_agents')
       .update({ is_active: isActive })
-      .eq('id', agentId)
+      .eq('id', agentId);
 
     if (error) {
-      console.error('Error toggling agent:', error)
-      throw error
+      console.error('Error toggling agent:', error);
+      throw error;
     }
 
-    return true
+    return true;
   }
 
   // Analytics operations
   static async getAnalytics(profileId: string): Promise<AnalyticsData> {
     if (this.isDemoMode()) {
-      return this.getDemoAnalytics()
+      return this.getDemoAnalytics();
     }
 
     try {
@@ -506,101 +506,101 @@ export class DatabaseService {
       const { data, error } = await supabase.rpc('get_user_analytics', {
         user_id: profileId,
         days_back: 30
-      })
+      });
 
       if (error) {
-        console.error('Error fetching analytics:', error)
+        console.error('Error fetching analytics:', error);
         // Return empty analytics in live mode
-        return this.getEmptyAnalytics()
+        return this.getEmptyAnalytics();
       }
 
-      return data || this.getEmptyAnalytics()
+      return data || this.getEmptyAnalytics();
     } catch (error) {
-      console.error('Error fetching analytics:', error)
-      return this.getEmptyAnalytics()
+      console.error('Error fetching analytics:', error);
+      return this.getEmptyAnalytics();
     }
   }
 
   // DNC operations
   static async getDNCEntries(profileId: string): Promise<DNCEntry[]> {
     if (this.isDemoMode()) {
-      return []
+      return [];
     }
 
     const { data, error } = await supabase
       .from('dnc_lists')
       .select('*')
       .eq('profile_id', profileId)
-      .order('created_at', { ascending: false })
+      .order('created_at', { ascending: false });
 
     if (error) {
-      console.error('Error fetching DNC entries:', error)
-      return []
+      console.error('Error fetching DNC entries:', error);
+      return [];
     }
 
-    return data || []
+    return data || [];
   }
 
   static async addDNCEntry(entry: Omit<DNCEntry, 'id' | 'created_at'>): Promise<DNCEntry> {
     if (this.isDemoMode()) {
-      throw new Error('DNC management not available in demo mode')
+      throw new Error('DNC management not available in demo mode');
     }
 
     const { data, error } = await supabase
       .from('dnc_lists')
       .insert(entry)
       .select()
-      .single()
+      .single();
 
     if (error) {
-      console.error('Error adding DNC entry:', error)
-      throw error
+      console.error('Error adding DNC entry:', error);
+      throw error;
     }
 
-    return data
+    return data;
   }
 
   static async deleteDNCEntry(id: string): Promise<boolean> {
     if (this.isDemoMode()) {
-      throw new Error('DNC management not available in demo mode')
+      throw new Error('DNC management not available in demo mode');
     }
 
     const { error } = await supabase
       .from('dnc_lists')
       .delete()
-      .eq('id', id)
+      .eq('id', id);
 
     if (error) {
-      console.error('Error deleting DNC entry:', error)
-      throw error
+      console.error('Error deleting DNC entry:', error);
+      throw error;
     }
 
-    return true
+    return true;
   }
 
   // Webhook operations
   static async getWebhookEndpoints(profileId: string): Promise<WebhookEndpoint[]> {
     if (this.isDemoMode()) {
-      return []
+      return [];
     }
 
     const { data, error } = await supabase
       .from('webhook_endpoints')
       .select('*')
       .eq('profile_id', profileId)
-      .order('created_at', { ascending: false })
+      .order('created_at', { ascending: false });
 
     if (error) {
-      console.error('Error fetching webhook endpoints:', error)
-      return []
+      console.error('Error fetching webhook endpoints:', error);
+      return [];
     }
 
-    return data || []
+    return data || [];
   }
 
   static async getWebhookDeliveries(profileId: string): Promise<WebhookDelivery[]> {
     if (this.isDemoMode()) {
-      return []
+      return [];
     }
 
     const { data, error } = await supabase
@@ -611,34 +611,34 @@ export class DatabaseService {
       `)
       .eq('webhook_endpoints.profile_id', profileId)
       .order('delivered_at', { ascending: false })
-      .limit(100)
+      .limit(100);
 
     if (error) {
-      console.error('Error fetching webhook deliveries:', error)
-      return []
+      console.error('Error fetching webhook deliveries:', error);
+      return [];
     }
 
-    return data || []
+    return data || [];
   }
 
   // System status
   static async getSystemStatus(): Promise<SystemStatus[]> {
     if (this.isDemoMode()) {
-      return this.getDemoSystemStatus()
+      return this.getDemoSystemStatus();
     }
 
     const { data, error } = await supabase
       .from('system_status')
       .select('*')
       .is('resolved_at', null)
-      .order('started_at', { ascending: false })
+      .order('started_at', { ascending: false });
 
     if (error) {
-      console.error('Error fetching system status:', error)
-      return []
+      console.error('Error fetching system status:', error);
+      return [];
     }
 
-    return data || []
+    return data || [];
   }
 
   // Demo data methods
@@ -660,7 +660,7 @@ export class DatabaseService {
         max_concurrent_calls: 50,
         created_at: '2024-01-01T00:00:00Z',
         updated_at: '2024-06-14T00:00:00Z'
-      }
+      };
     }
     
     // Default demo user profile
@@ -679,7 +679,7 @@ export class DatabaseService {
       max_concurrent_calls: 3,
       created_at: '2024-01-01T00:00:00Z',
       updated_at: '2024-06-10T00:00:00Z'
-    }
+    };
   }
 
   private static getDemoAgents(): AIAgent[] {
@@ -725,7 +725,7 @@ export class DatabaseService {
         created_at: '2024-01-01T00:00:00Z',
         updated_at: '2024-01-01T00:00:00Z'
       }
-    ]
+    ];
   }
 
   private static getDemoCallLogs(): CallLog[] {
@@ -765,7 +765,7 @@ export class DatabaseService {
         follow_up_required: false,
         created_at: '2024-01-15T11:00:00Z'
       }
-    ]
+    ];
   }
 
   private static getDemoCampaigns(): Campaign[] {
@@ -794,7 +794,7 @@ export class DatabaseService {
         created_at: '2024-01-01T00:00:00Z',
         updated_at: '2024-01-15T00:00:00Z'
       }
-    ]
+    ];
   }
 
   private static getDemoCampaignLeads(): CampaignLead[] {
@@ -816,7 +816,7 @@ export class DatabaseService {
         created_at: '2024-01-01T00:00:00Z',
         updated_at: '2024-01-15T10:00:00Z'
       }
-    ]
+    ];
   }
 
   private static getDemoAppointments(): Appointment[] {
@@ -838,7 +838,7 @@ export class DatabaseService {
         created_at: '2024-01-15T00:00:00Z',
         updated_at: '2024-01-15T00:00:00Z'
       }
-    ]
+    ];
   }
 
   private static getDemoAnalytics(): AnalyticsData {
@@ -897,7 +897,7 @@ export class DatabaseService {
         { name: 'Sales Script A', success_rate: 82.5, total_calls: 125 },
         { name: 'Support Script B', success_rate: 78.2, total_calls: 89 }
       ]
-    }
+    };
   }
 
   private static getEmptyAnalytics(): AnalyticsData {
@@ -924,7 +924,7 @@ export class DatabaseService {
       performanceData: [],
       callOutcomeData: [],
       topScripts: []
-    }
+    };
   }
 
   private static getDemoSystemStatus(): SystemStatus[] {
@@ -943,7 +943,7 @@ export class DatabaseService {
         started_at: '2024-01-15T00:00:00Z',
         created_at: '2024-01-15T00:00:00Z'
       }
-    ]
+    ];
   }
 
   private static getDemoActiveCalls(): any[] {
@@ -974,7 +974,7 @@ export class DatabaseService {
         customer_name: 'Mike Chen',
         call_quality: 'good'
       }
-    ]
+    ];
   }
 
 
@@ -985,31 +985,31 @@ export class DatabaseService {
 
   // Additional helper methods
   static async getAllCallLogs(profileId: string): Promise<CallLog[]> {
-    return this.getCallLogs(profileId, 1000, 0)
+    return this.getCallLogs(profileId, 1000, 0);
   }
 
   static async getSubscription(profileId: string): Promise<Subscription | null> {
     if (this.isDemoMode()) {
-      return null
+      return null;
     }
 
     const { data, error } = await supabase
       .from('subscriptions')
       .select('*')
       .eq('profile_id', profileId)
-      .single()
+      .single();
 
     if (error && error.code !== 'PGRST116') {
-      console.error('Error fetching subscription:', error)
-      return null
+      console.error('Error fetching subscription:', error);
+      return null;
     }
 
-    return data
+    return data;
   }
 
   static async getUsageRecords(profileId: string): Promise<UsageRecord[]> {
     if (this.isDemoMode()) {
-      return []
+      return [];
     }
 
     const { data, error } = await supabase
@@ -1017,24 +1017,24 @@ export class DatabaseService {
       .select('*')
       .eq('profile_id', profileId)
       .order('created_at', { ascending: false })
-      .limit(50)
+      .limit(50);
 
     if (error) {
-      console.error('Error fetching usage records:', error)
-      return []
+      console.error('Error fetching usage records:', error);
+      return [];
     }
 
-    return data || []
+    return data || [];
   }
 
   static async createCheckoutSession(profileId: string, planId: string): Promise<string> {
     // In a real implementation, this would call Stripe API
-    return `https://checkout.stripe.com/pay/cs_test_${planId}_${profileId}`
+    return `https://checkout.stripe.com/pay/cs_test_${planId}_${profileId}`;
   }
 
   static async cancelSubscription(subscriptionId: string): Promise<boolean> {
     if (this.isDemoMode()) {
-      return true
+      return true;
     }
 
     const { error } = await supabase
@@ -1043,19 +1043,19 @@ export class DatabaseService {
         cancel_at_period_end: true,
         updated_at: new Date().toISOString()
       })
-      .eq('id', subscriptionId)
+      .eq('id', subscriptionId);
 
     if (error) {
-      console.error('Error cancelling subscription:', error)
-      throw error
+      console.error('Error cancelling subscription:', error);
+      throw error;
     }
 
-    return true
+    return true;
   }
 
   static async createWebhookEndpoint(webhook: Omit<WebhookEndpoint, 'id' | 'created_at' | 'updated_at' | 'success_count' | 'failure_count'>): Promise<WebhookEndpoint> {
     if (this.isDemoMode()) {
-      throw new Error('Webhook management not available in demo mode')
+      throw new Error('Webhook management not available in demo mode');
     }
 
     const { data, error } = await supabase
@@ -1066,19 +1066,19 @@ export class DatabaseService {
         failure_count: 0
       })
       .select()
-      .single()
+      .single();
 
     if (error) {
-      console.error('Error creating webhook endpoint:', error)
-      throw error
+      console.error('Error creating webhook endpoint:', error);
+      throw error;
     }
 
-    return data
+    return data;
   }
 
   static async updateWebhookEndpoint(id: string, updates: Partial<WebhookEndpoint>): Promise<WebhookEndpoint> {
     if (this.isDemoMode()) {
-      throw new Error('Webhook management not available in demo mode')
+      throw new Error('Webhook management not available in demo mode');
     }
 
     const { data, error } = await supabase
@@ -1089,65 +1089,65 @@ export class DatabaseService {
       })
       .eq('id', id)
       .select()
-      .single()
+      .single();
 
     if (error) {
-      console.error('Error updating webhook endpoint:', error)
-      throw error
+      console.error('Error updating webhook endpoint:', error);
+      throw error;
     }
 
-    return data
+    return data;
   }
 
   static async deleteWebhookEndpoint(id: string): Promise<boolean> {
     if (this.isDemoMode()) {
-      throw new Error('Webhook management not available in demo mode')
+      throw new Error('Webhook management not available in demo mode');
     }
 
     const { error } = await supabase
       .from('webhook_endpoints')
       .delete()
-      .eq('id', id)
+      .eq('id', id);
 
     if (error) {
-      console.error('Error deleting webhook endpoint:', error)
-      throw error
+      console.error('Error deleting webhook endpoint:', error);
+      throw error;
     }
 
-    return true
+    return true;
   }
 
   static async testWebhookEndpoint(id: string): Promise<boolean> {
     if (this.isDemoMode()) {
-      throw new Error('Webhook testing not available in demo mode')
+      throw new Error('Webhook testing not available in demo mode');
     }
 
     // In a real implementation, this would trigger a test webhook
-    console.log('Testing webhook endpoint:', id)
-    return true
+    console.log('Testing webhook endpoint:', id);
+    return true;
   }
 
   static async bulkAddDNCEntries(entries: Omit<DNCEntry, 'id' | 'created_at'>[]): Promise<DNCEntry[]> {
     if (this.isDemoMode()) {
-      throw new Error('DNC management not available in demo mode')
+      throw new Error('DNC management not available in demo mode');
     }
 
     const { data, error } = await supabase
       .from('dnc_lists')
       .insert(entries)
-      .select()
+      .select();
 
     if (error) {
-      console.error('Error bulk adding DNC entries:', error)
-      throw error
+      console.error('Error bulk adding DNC entries:', error);
+      throw error;
     }
 
-    return data || []
+    return data || [];
   }
 
   static async checkDNCStatus(phoneNumber: string, profileId: string): Promise<boolean> {
     if (this.isDemoMode()) {
-      return false
+      return false;
     }
 
     const { data, error } = await supabase
@@ -1156,63 +1156,63 @@ export class DatabaseService {
       .eq('profile_id', profileId)
       .eq('phone_number', phoneNumber)
       .eq('is_active', true)
-      .single()
+      .single();
 
     if (error && error.code !== 'PGRST116') {
-      console.error('Error checking DNC status:', error)
-      return false
+      console.error('Error checking DNC status:', error);
+      return false;
     }
 
-    return !!data
+    return !!data;
   }
 
   static async bulkCreateCampaignLeads(leads: Omit<CampaignLead, 'id' | 'created_at' | 'updated_at'>[]): Promise<CampaignLead[]> {
     if (this.isDemoMode()) {
-      throw new Error('Campaign lead management not available in demo mode')
+      throw new Error('Campaign lead management not available in demo mode');
     }
 
     const { data, error } = await supabase
       .from('campaign_leads')
       .insert(leads)
-      .select()
+      .select();
 
     if (error) {
-      console.error('Error bulk creating campaign leads:', error)
-      throw error
+      console.error('Error bulk creating campaign leads:', error);
+      throw error;
     }
 
-    return data || []
+    return data || [];
   }
 
   static async createCampaignLead(lead: Omit<CampaignLead, 'id' | 'created_at' | 'updated_at'>): Promise<CampaignLead | null> {
     if (this.isDemoMode()) {
-      console.log('Demo mode: Campaign lead creation simulated')
+      console.log('Demo mode: Campaign lead creation simulated');
       // Return a mock lead object instead of throwing error
       return {
         ...lead,
         id: 'demo-lead-' + Date.now(),
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString()
-      } as CampaignLead
+      } as CampaignLead;
     }
 
     const { data, error } = await supabase
       .from('campaign_leads')
       .insert(lead)
       .select()
-      .single()
+      .single();
 
     if (error) {
-      console.error('Error creating campaign lead:', error)
-      throw error
+      console.error('Error creating campaign lead:', error);
+      throw error;
     }
 
-    return data
+    return data;
   }
 
   static async updateCampaignLead(id: string, updates: Partial<CampaignLead>): Promise<CampaignLead | null> {
     if (this.isDemoMode()) {
-      throw new Error('Campaign lead management not available in demo mode')
+      throw new Error('Campaign lead management not available in demo mode');
     }
 
     const { data, error } = await supabase
@@ -1220,32 +1220,32 @@ export class DatabaseService {
       .update(updates)
       .eq('id', id)
       .select()
-      .single()
+      .single();
 
     if (error) {
-      console.error('Error updating campaign lead:', error)
-      throw error
+      console.error('Error updating campaign lead:', error);
+      throw error;
     }
 
-    return data
+    return data;
   }
 
   static async deleteCampaignLead(id: string): Promise<boolean> {
     if (this.isDemoMode()) {
-      throw new Error('Campaign lead management not available in demo mode')
+      throw new Error('Campaign lead management not available in demo mode');
     }
 
     const { error } = await supabase
       .from('campaign_leads')
       .delete()
-      .eq('id', id)
+      .eq('id', id);
 
     if (error) {
-      console.error('Error deleting campaign lead:', error)
-      throw error
+      console.error('Error deleting campaign lead:', error);
+      throw error;
     }
 
-    return true
+    return true;
   }
 
   // New methods for the 5 enhanced features
@@ -1253,7 +1253,7 @@ export class DatabaseService {
   // Live call monitoring methods
   static async getLiveCalls(profileId: string): Promise<any[]> {
     if (this.isDemoMode()) {
-      return this.getDemoActiveCalls()
+      return this.getDemoActiveCalls();
     }
 
     const { data, error } = await supabase
@@ -1263,19 +1263,19 @@ export class DatabaseService {
         ai_agents!inner(name, agent_type, voice_name)
       `)
       .eq('profile_id', profileId)
-      .order('started_at', { ascending: false })
+      .order('started_at', { ascending: false });
 
     if (error) {
-      console.error('Error fetching live calls:', error)
-      return []
+      console.error('Error fetching live calls:', error);
+      return [];
     }
 
-    return data || []
+    return data || [];
   }
 
   static async updateLiveCallStatus(callId: string, status: string, metadata: any = {}): Promise<boolean> {
     if (this.isDemoMode()) {
-      return true
+      return true;
     }
 
     const { error } = await supabase
@@ -1285,14 +1285,14 @@ export class DatabaseService {
         last_updated: new Date().toISOString(),
         metadata
       })
-      .eq('id', callId)
+      .eq('id', callId);
 
     if (error) {
-      console.error('Error updating live call status:', error)
-      return false
+      console.error('Error updating live call status:', error);
+      return false;
     }
 
-    return true
+    return true;
   }
 
   // Webhook event methods
@@ -1304,24 +1304,24 @@ export class DatabaseService {
     event_data: any
   }): Promise<boolean> {
     if (this.isDemoMode()) {
-      return true
+      return true;
     }
 
     const { error } = await supabase
       .from('webhook_events')
-      .insert(event)
+      .insert(event);
 
     if (error) {
-      console.error('Error logging webhook event:', error)
-      return false
+      console.error('Error logging webhook event:', error);
+      return false;
     }
 
-    return true
+    return true;
   }
 
   static async getWebhookEvents(profileId: string, limit = 50): Promise<any[]> {
     if (this.isDemoMode()) {
-      return []
+      return [];
     }
 
     const { data, error } = await supabase
@@ -1329,14 +1329,14 @@ export class DatabaseService {
       .select('*')
       .eq('profile_id', profileId)
       .order('created_at', { ascending: false })
-      .limit(limit)
+      .limit(limit);
 
     if (error) {
-      console.error('Error fetching webhook events:', error)
-      return []
+      console.error('Error fetching webhook events:', error);
+      return [];
     }
 
-    return data || []
+    return data || [];
   }
 
   // Auto-dialer queue methods
@@ -1349,24 +1349,24 @@ export class DatabaseService {
     scheduled_at?: string
   }): Promise<boolean> {
     if (this.isDemoMode()) {
-      return true
+      return true;
     }
 
     const { error } = await supabase
       .from('dialer_queue')
-      .insert(entry)
+      .insert(entry);
 
     if (error) {
-      console.error('Error adding to dialer queue:', error)
-      return false
+      console.error('Error adding to dialer queue:', error);
+      return false;
     }
 
-    return true
+    return true;
   }
 
   static async getDialerQueue(profileId: string, campaignId?: string): Promise<any[]> {
     if (this.isDemoMode()) {
-      return []
+      return [];
     }
 
     let query = supabase
@@ -1377,61 +1377,61 @@ export class DatabaseService {
         ai_agents(name)
       `)
       .eq('profile_id', profileId)
-      .in('status', ['queued', 'dialing'])
+      .in('status', ['queued', 'dialing']);
 
     if (campaignId) {
-      query = query.eq('campaign_id', campaignId)
+      query = query.eq('campaign_id', campaignId);
     }
 
     const { data, error } = await query
       .order('priority', { ascending: false })
-      .order('scheduled_at', { ascending: true })
+      .order('scheduled_at', { ascending: true });
 
     if (error) {
-      console.error('Error fetching dialer queue:', error)
-      return []
+      console.error('Error fetching dialer queue:', error);
+      return [];
     }
 
-    return data || []
+    return data || [];
   }
 
   static async updateDialerQueueStatus(queueId: string, status: string, metadata: any = {}): Promise<boolean> {
     if (this.isDemoMode()) {
-      return true
+      return true;
     }
 
     const updateData: any = { 
       status,
       updated_at: new Date().toISOString()
-    }
+    };
 
     if (status === 'dialing') {
-      updateData.started_at = new Date().toISOString()
+      updateData.started_at = new Date().toISOString();
     } else if (status === 'completed' || status === 'failed') {
-      updateData.completed_at = new Date().toISOString()
+      updateData.completed_at = new Date().toISOString();
     }
 
     if (Object.keys(metadata).length > 0) {
-      updateData.metadata = metadata
+      updateData.metadata = metadata;
     }
 
     const { error } = await supabase
       .from('dialer_queue')
       .update(updateData)
-      .eq('id', queueId)
+      .eq('id', queueId);
 
     if (error) {
-      console.error('Error updating dialer queue status:', error)
-      return false
+      console.error('Error updating dialer queue status:', error);
+      return false;
     }
 
-    return true
+    return true;
   }
 
   // Campaign metrics methods
   static async getCampaignMetrics(profileId: string, campaignId?: string, days = 30): Promise<any[]> {
     if (this.isDemoMode()) {
-      return this.getDemoCampaignMetrics()
+      return this.getDemoCampaignMetrics();
     }
 
     let query = supabase
@@ -1441,25 +1441,25 @@ export class DatabaseService {
         outbound_campaigns!inner(name)
       `)
       .eq('profile_id', profileId)
-      .gte('date', new Date(Date.now() - days * 24 * 60 * 60 * 1000).toISOString().split('T')[0])
+      .gte('date', new Date(Date.now() - days * 24 * 60 * 60 * 1000).toISOString().split('T')[0]);
 
     if (campaignId) {
-      query = query.eq('campaign_id', campaignId)
+      query = query.eq('campaign_id', campaignId);
     }
 
-    const { data, error } = await query.order('date', { ascending: false })
+    const { data, error } = await query.order('date', { ascending: false });
 
     if (error) {
-      console.error('Error fetching campaign metrics:', error)
-      return []
+      console.error('Error fetching campaign metrics:', error);
+      return [];
     }
 
-    return data || []
+    return data || [];
   }
 
   static async updateCampaignMetrics(profileId: string, campaignId: string, date: string, metrics: any): Promise<boolean> {
     if (this.isDemoMode()) {
-      return true
+      return true;
     }
 
     const { error } = await supabase
@@ -1470,39 +1470,39 @@ export class DatabaseService {
         date,
         ...metrics,
         updated_at: new Date().toISOString()
-      })
+      });
 
     if (error) {
-      console.error('Error updating campaign metrics:', error)
-      return false
+      console.error('Error updating campaign metrics:', error);
+      return false;
     }
 
-    return true
+    return true;
   }
 
   // System metrics methods
   static async getSystemMetrics(profileId?: string): Promise<any[]> {
     if (this.isDemoMode()) {
-      return this.getDemoSystemMetrics()
+      return this.getDemoSystemMetrics();
     }
 
     let query = supabase
       .from('system_metrics')
       .select('*')
-      .gte('recorded_at', new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString()) // Last 24 hours
+      .gte('recorded_at', new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString()); // Last 24 hours
 
     if (profileId) {
-      query = query.eq('profile_id', profileId)
+      query = query.eq('profile_id', profileId);
     }
 
-    const { data, error } = await query.order('recorded_at', { ascending: false })
+    const { data, error } = await query.order('recorded_at', { ascending: false });
 
     if (error) {
-      console.error('Error fetching system metrics:', error)
-      return []
+      console.error('Error fetching system metrics:', error);
+      return [];
     }
 
-    return data || []
+    return data || [];
   }
 
   static async recordSystemMetric(metric: {
@@ -1514,19 +1514,19 @@ export class DatabaseService {
     metadata?: any
   }): Promise<boolean> {
     if (this.isDemoMode()) {
-      return true
+      return true;
     }
 
     const { error } = await supabase
       .from('system_metrics')
-      .insert(metric)
+      .insert(metric);
 
     if (error) {
-      console.error('Error recording system metric:', error)
-      return false
+      console.error('Error recording system metric:', error);
+      return false;
     }
 
-    return true
+    return true;
   }
 
   // Function call logging methods
@@ -1541,19 +1541,19 @@ export class DatabaseService {
     error_message?: string
   }): Promise<boolean> {
     if (this.isDemoMode()) {
-      return true
+      return true;
     }
 
     const { error } = await supabase
       .from('function_call_logs')
-      .insert(log)
+      .insert(log);
 
     if (error) {
-      console.error('Error logging function call:', error)
-      return false
+      console.error('Error logging function call:', error);
+      return false;
     }
 
-    return true
+    return true;
   }
 
   // Demo data methods for new features
@@ -1583,7 +1583,7 @@ export class DatabaseService {
         revenue_generated: 3200.00,
         outbound_campaigns: { name: 'Demo Sales Campaign' }
       }
-    ]
+    ];
   }
 
   private static getDemoSystemMetrics(): any[] {
@@ -1609,7 +1609,7 @@ export class DatabaseService {
         metric_unit: 'percentage',
         recorded_at: new Date().toISOString()
       }
-    ]
+    ];
   }
 
   // Live calls operations
@@ -1621,7 +1621,7 @@ export class DatabaseService {
           ...call,
           agent_name: 'Demo Agent',
           call_quality: 'good' as const
-        }))
+        }));
     }
 
     const { data, error } = await supabase
@@ -1631,41 +1631,41 @@ export class DatabaseService {
         ai_agents(name)
       `)
       .eq('profile_id', profileId)
-      .eq('status', 'in_progress')
+      .eq('status', 'in_progress');
 
     if (error) {
-      console.error('Error fetching active calls:', error)
-      return []
+      console.error('Error fetching active calls:', error);
+      return [];
     }
 
     return (data || []).map(call => ({
       ...call,
       agent_name: call.ai_agents?.name || 'Unknown Agent',
       call_quality: 'good' as const
-    }))
+    }));
   }
 
   static async getAgentStatuses(profileId: string): Promise<AIAgent[]> {
     if (this.isDemoMode()) {
-      return this.getDemoAgents()
+      return this.getDemoAgents();
     }
 
     const { data, error } = await supabase
       .from('ai_agents')
       .select('*')
-      .eq('profile_id', profileId)
+      .eq('profile_id', profileId);
 
     if (error) {
-      console.error('Error fetching agent statuses:', error)
-      return []
+      console.error('Error fetching agent statuses:', error);
+      return [];
     }
 
-    return data || []
+    return data || [];
   }
 
   static async getCallQueue(profileId: string): Promise<CallLog[]> {
     if (this.isDemoMode()) {
-      return []
+      return [];
     }
 
     const { data, error } = await supabase
@@ -1673,31 +1673,31 @@ export class DatabaseService {
       .select('*')
       .eq('profile_id', profileId)
       .eq('status', 'pending')
-      .order('created_at', { ascending: true })
+      .order('created_at', { ascending: true });
 
     if (error) {
-      console.error('Error fetching call queue:', error)
-      return []
+      console.error('Error fetching call queue:', error);
+      return [];
     }
 
-    return data || []
+    return data || [];
   }
 
   static async emergencyStopAllCalls(profileId: string): Promise<void> {
     if (this.isDemoMode()) {
-      console.log('Demo mode: Emergency stop simulated')
-      return
+      console.log('Demo mode: Emergency stop simulated');
+      return;
     }
 
     const { error } = await supabase
       .from('call_logs')
       .update({ status: 'failed' })
       .eq('profile_id', profileId)
-      .eq('status', 'in_progress')
+      .eq('status', 'in_progress');
 
     if (error) {
-      console.error('Error stopping calls:', error)
-      throw error
+      console.error('Error stopping calls:', error);
+      throw error;
     }
   }
 }

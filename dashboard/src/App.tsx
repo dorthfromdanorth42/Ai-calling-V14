@@ -1,47 +1,47 @@
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom'
-import { Toaster } from 'react-hot-toast'
-import { AppProvider } from './contexts/AppContext'
-import { UserProvider } from './contexts/UserContext'
-import { useAuth } from './hooks/useAuth'
-import AuthPage from './pages/AuthPage'
-import VerifyPage from './pages/VerifyPage'
-import DashboardPage from './pages/DashboardPage'
-import AgentsPage from './pages/AgentsPage'
-import CallsPage from './pages/CallsPage'
-import LiveCallsPage from './pages/LiveCallsPage'
-import AppointmentsPage from './pages/AppointmentsPage'
-import CampaignsPage from './pages/CampaignsPage'
-import EnhancedCampaignsPage from './pages/EnhancedCampaignsPage'
-import EnhancedDashboardPage from './pages/EnhancedDashboardPage'
-import AnalyticsPage from './pages/AnalyticsPage'
-import DNCPage from './pages/DNCPage'
-import WebhooksPage from './pages/WebhooksPage'
-import BillingPage from './pages/BillingPage'
-import StatusPage from './pages/StatusPage'
-import SettingsPage from './pages/SettingsPage'
-import AdminUsersPage from './pages/AdminUsersPage'
-import Layout from './components/Layout'
-import LoadingSpinner from './components/LoadingSpinner'
-import ProtectedRoute from './components/ProtectedRoute'
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { Toaster } from 'react-hot-toast';
+import { AppProvider } from './contexts/AppContext';
+import { UserProvider } from './contexts/UserContext';
+import { useAuth } from './hooks/useAuth';
+import AuthPage from './pages/AuthPage';
+import VerifyPage from './pages/VerifyPage';
+import DashboardPage from './pages/DashboardPage';
+import AgentsPage from './pages/AgentsPage';
+import CallsPage from './pages/CallsPage';
+import LiveCallsPage from './pages/LiveCallsPage';
+import AppointmentsPage from './pages/AppointmentsPage';
+import CampaignsPage from './pages/CampaignsPage';
+import EnhancedCampaignsPage from './pages/EnhancedCampaignsPage';
+import EnhancedDashboardPage from './pages/EnhancedDashboardPage';
+import AnalyticsPage from './pages/AnalyticsPage';
+import DNCPage from './pages/DNCPage';
+import WebhooksPage from './pages/WebhooksPage';
+import BillingPage from './pages/BillingPage';
+import StatusPage from './pages/StatusPage';
+import SettingsPage from './pages/SettingsPage';
+import AdminUsersPage from './pages/AdminUsersPage';
+import Layout from './components/Layout';
+import LoadingSpinner from './components/LoadingSpinner';
+import ProtectedRoute from './components/ProtectedRoute';
 
 function AppContent() {
-  const { user, loading } = useAuth()
+  const { user, loading } = useAuth();
 
   if (loading) {
-    return <LoadingSpinner />
+    return <LoadingSpinner />;
   }
 
   // Check if this is a verification page
-  const currentPath = window.location.pathname
-  const currentSearch = window.location.search
-  const isVerificationPage = currentPath === '/verify' || currentSearch.includes('token=') || currentSearch.includes('type=signup')
+  const currentPath = window.location.pathname;
+  const currentSearch = window.location.search;
+  const isVerificationPage = currentPath === '/verify' || currentSearch.includes('token=') || currentSearch.includes('type=signup');
   
   if (isVerificationPage) {
-    return <VerifyPage />
+    return <VerifyPage />;
   }
 
   if (!user) {
-    return <AuthPage />
+    return <AuthPage />;
   }
 
   return (
@@ -127,7 +127,7 @@ function AppContent() {
         <Route path="*" element={<Navigate to="/dashboard" replace />} />
       </Routes>
     </Layout>
-  )
+  );
 }
 
 function App() {
@@ -163,7 +163,7 @@ function App() {
         </UserProvider>
       </AppProvider>
     </Router>
-  )
+  );
 }
 
-export default App
+export default App;

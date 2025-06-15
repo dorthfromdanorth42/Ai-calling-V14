@@ -1,4 +1,4 @@
-import { PhoneIcon, MicrophoneIcon } from '@heroicons/react/24/outline'
+import { PhoneIcon, MicrophoneIcon } from '@heroicons/react/24/outline';
 
 export default function LoadingSpinner() {
   return (
@@ -17,5 +17,5 @@ export default function LoadingSpinner() {
         <p className="text-slate-600">Loading your dashboard...</p>
       </div>
     </div>
-  )
+  );
 }

@@ -29,7 +29,7 @@ const server = new Tw2GemServer({
                 },
             },
             systemInstruction: {
-                parts: [{ text: 'You are a professional AI assistant for customer service calls. Be helpful, polite, and efficient.' }]
+                parts: [{ text: 'You are a professional AI assistant for customer service calls. IMPORTANT: You MUST speak first immediately when the call connects. Start with a warm greeting like "Hello! Thank you for calling. How can I help you today?" Be helpful, polite, and efficient. Always initiate the conversation.' }]
             },
             tools: []
         }
@@ -42,6 +42,23 @@ server.onNewCall = (socket) => {
 
 server.geminiLive.onReady = (socket) => {
     console.log('Gemini Live connection is ready for call:', socket.twilioStreamSid);
+    
+    // Send initial greeting to ensure Gemini speaks first
+    setTimeout(() => {
+        if (socket.geminiLive && socket.geminiLive.readyState === 1) {
+            const initialMessage = {
+                client_content: {
+                    turns: [{
+                        role: 'user',
+                        parts: [{ text: 'Please greet the caller now. Say hello and ask how you can help them today.' }]
+                    }],
+                    turn_complete: true
+                }
+            };
+            socket.geminiLive.send(JSON.stringify(initialMessage));
+            console.log('Sent initial greeting prompt to Gemini for call:', socket.twilioStreamSid);
+        }
+    }, 500); // Small delay to ensure connection is stable
 };
 
 server.geminiLive.onClose = (socket) => {

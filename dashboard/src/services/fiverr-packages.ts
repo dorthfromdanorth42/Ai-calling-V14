@@ -193,12 +193,12 @@ export class FiverrPackageService {
           }
         ]
       }
-    ]
+    ];
   }
 
   // Get package by ID
   static getPackageById(packageId: string): FiverrPackage | null {
-    return this.getPackages().find(pkg => pkg.id === packageId) || null
+    return this.getPackages().find(pkg => pkg.id === packageId) || null;
   }
 
   // Calculate total price with extras
@@ -208,28 +208,28 @@ export class FiverrPackageService {
     total_price: number
     delivery_time: number
   } {
-    const package_ = this.getPackageById(packageId)
+    const package_ = this.getPackageById(packageId);
     if (!package_) {
-      return { package_price: 0, extras_price: 0, total_price: 0, delivery_time: 0 }
+      return { package_price: 0, extras_price: 0, total_price: 0, delivery_time: 0 };
     }
 
-    let extras_price = 0
-    let additional_delivery_time = 0
+    let extras_price = 0;
+    let additional_delivery_time = 0;
 
     extraIds.forEach(extraId => {
-      const extra = package_.extras?.find(e => e.id === extraId)
+      const extra = package_.extras?.find(e => e.id === extraId);
       if (extra) {
-        extras_price += extra.price
-        additional_delivery_time = Math.max(additional_delivery_time, extra.delivery_time_addition)
+        extras_price += extra.price;
+        additional_delivery_time = Math.max(additional_delivery_time, extra.delivery_time_addition);
       }
-    })
+    });
 
     return {
       package_price: package_.price,
       extras_price,
       total_price: package_.price + extras_price,
       delivery_time: package_.delivery_time + additional_delivery_time
-    }
+    };
   }
 
   // Create a new order
@@ -239,9 +239,9 @@ export class FiverrPackageService {
     client_info: FiverrOrder['client_info']
     project_details: Record<string, any>
   }): FiverrOrder {
-    const pricing = this.calculateTotalPrice(orderData.package_id, orderData.extras)
-    const deliveryDate = new Date()
-    deliveryDate.setDate(deliveryDate.getDate() + pricing.delivery_time)
+    const pricing = this.calculateTotalPrice(orderData.package_id, orderData.extras);
+    const deliveryDate = new Date();
+    deliveryDate.setDate(deliveryDate.getDate() + pricing.delivery_time);
 
     return {
       id: `order_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
@@ -255,7 +255,7 @@ export class FiverrPackageService {
       project_details: orderData.project_details,
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString()
-    }
+    };
   }
 
   // Get order requirements checklist
@@ -266,8 +266,8 @@ export class FiverrPackageService {
     options?: string[]
     required: boolean
   }[] {
-    const package_ = this.getPackageById(packageId)
-    if (!package_) return []
+    const package_ = this.getPackageById(packageId);
+    if (!package_) return [];
 
     const baseRequirements = [
       {
@@ -322,7 +322,7 @@ export class FiverrPackageService {
         ],
         required: true
       }
-    ]
+    ];
 
     // Add package-specific requirements
     if (package_.category === 'standard' || package_.category === 'premium') {
@@ -339,7 +339,7 @@ export class FiverrPackageService {
           type: 'text' as const,
           required: false
         }
-      )
+      );
     }
 
     if (package_.category === 'premium') {
@@ -362,10 +362,10 @@ export class FiverrPackageService {
           type: 'text' as const,
           required: true
         }
-      )
+      );
     }
 
-    return baseRequirements
+    return baseRequirements;
   }
 
   // Get delivery milestones
@@ -375,8 +375,8 @@ export class FiverrPackageService {
     day: number
     deliverables: string[]
   }[] {
-    const package_ = this.getPackageById(packageId)
-    if (!package_) return []
+    const package_ = this.getPackageById(packageId);
+    if (!package_) return [];
 
     const baseMilestones = [
       {
@@ -389,7 +389,7 @@ export class FiverrPackageService {
           'Timeline overview'
         ]
       }
-    ]
+    ];
 
     if (package_.category === 'basic') {
       baseMilestones.push(
@@ -414,7 +414,7 @@ export class FiverrPackageService {
             'Support documentation'
           ]
         }
-      )
+      );
     } else if (package_.category === 'standard') {
       baseMilestones.push(
         {
@@ -449,7 +449,7 @@ export class FiverrPackageService {
             'Support setup'
           ]
         }
-      )
+      );
     } else if (package_.category === 'premium') {
       baseMilestones.push(
         {
@@ -496,10 +496,10 @@ export class FiverrPackageService {
             'Dedicated support setup'
           ]
         }
-      )
+      );
     }
 
-    return baseMilestones
+    return baseMilestones;
   }
 
   // Get package comparison
@@ -582,7 +582,7 @@ export class FiverrPackageService {
         standard: '7 days',
         premium: '14 days'
       }
-    ]
+    ];
   }
 
   // Validate order requirements
@@ -592,19 +592,19 @@ export class FiverrPackageService {
   } {
     const requiredFields = this.getOrderRequirements(packageId)
       .filter(req => req.required)
-      .map(req => req.requirement)
+      .map(req => req.requirement);
 
-    const errors: string[] = []
+    const errors: string[] = [];
 
     requiredFields.forEach(field => {
       if (!requirements[field] || requirements[field].trim() === '') {
-        errors.push(`${field} is required`)
+        errors.push(`${field} is required`);
       }
-    })
+    });
 
     return {
       valid: errors.length === 0,
       errors
-    }
+    };
   }
 }

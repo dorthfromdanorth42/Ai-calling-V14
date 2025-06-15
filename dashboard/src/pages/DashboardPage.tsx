@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect } from 'react';
 import { 
   PhoneIcon, 
   UserGroupIcon,
@@ -8,61 +8,61 @@ import {
   StopIcon,
   ChartBarIcon,
   ExclamationTriangleIcon
-} from '@heroicons/react/24/outline'
-import { useUser, usePermissions } from '../contexts/UserContext'
-import { DatabaseService } from '../services/database'
-import { RealtimeService } from '../services/realtime'
-import UsageTracker from '../components/UsageTracker'
-import type { CallLog, AnalyticsData } from '../lib/supabase'
-import toast from 'react-hot-toast'
+} from '@heroicons/react/24/outline';
+import { useUser, usePermissions } from '../contexts/UserContext';
+import { DatabaseService } from '../services/database';
+import { RealtimeService } from '../services/realtime';
+import UsageTracker from '../components/UsageTracker';
+import type { CallLog, AnalyticsData } from '../lib/supabase';
+import toast from 'react-hot-toast';
 
 export default function DashboardPage() {
-  const { user } = useUser()
-  const { canUseInbound } = usePermissions()
-  const [recentCalls, setRecentCalls] = useState<CallLog[]>([])
-  const [activeCalls, setActiveCalls] = useState<CallLog[]>([])
-  const [analytics, setAnalytics] = useState<AnalyticsData | null>(null)
-  const [loading, setLoading] = useState(true)
-  const [serverStatus, setServerStatus] = useState<'running' | 'stopped'>('stopped')
+  const { user } = useUser();
+  const { canUseInbound } = usePermissions();
+  const [recentCalls, setRecentCalls] = useState<CallLog[]>([]);
+  const [activeCalls, setActiveCalls] = useState<CallLog[]>([]);
+  const [analytics, setAnalytics] = useState<AnalyticsData | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [serverStatus, setServerStatus] = useState<'running' | 'stopped'>('stopped');
 
   useEffect(() => {
     if (user) {
-      loadDashboardData()
-      setupRealtimeSubscriptions()
+      loadDashboardData();
+      setupRealtimeSubscriptions();
     }
-  }, [user])
+  }, [user]);
 
   const loadDashboardData = async () => {
-    if (!user) return
+    if (!user) return;
 
     try {
-      setLoading(true)
+      setLoading(true);
       
       // Load recent calls
-      const calls = await DatabaseService.getCallLogs(user.id, 10)
-      setRecentCalls(calls)
+      const calls = await DatabaseService.getCallLogs(user.id, 10);
+      setRecentCalls(calls);
 
       // Load active calls
-      const active = await DatabaseService.getActiveCallLogs(user.id)
-      setActiveCalls(active)
+      const active = await DatabaseService.getActiveCallLogs(user.id);
+      setActiveCalls(active);
 
       // Load analytics
-      const analyticsData = await DatabaseService.getAnalytics(user.id)
-      setAnalytics(analyticsData)
+      const analyticsData = await DatabaseService.getAnalytics(user.id);
+      setAnalytics(analyticsData);
 
       // Simulate server status based on active calls
-      setServerStatus(active.length > 0 ? 'running' : 'stopped')
+      setServerStatus(active.length > 0 ? 'running' : 'stopped');
 
     } catch (error) {
-      console.error('Error loading dashboard data:', error)
-      toast.error('Failed to load dashboard data')
+      console.error('Error loading dashboard data:', error);
+      toast.error('Failed to load dashboard data');
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   const setupRealtimeSubscriptions = () => {
-    if (!user) return
+    if (!user) return;
 
     // Subscribe to call updates
     const callSubscription = RealtimeService.subscribeToCallUpdates(
@@ -71,111 +71,111 @@ export default function DashboardPage() {
         // Update recent calls
         setRecentCalls(prev => 
           prev.map(call => call.id === updatedCall.id ? updatedCall : call)
-        )
+        );
         
         // Update active calls
         if (updatedCall.status === 'in_progress') {
           setActiveCalls(prev => {
-            const exists = prev.find(call => call.id === updatedCall.id)
+            const exists = prev.find(call => call.id === updatedCall.id);
             if (exists) {
-              return prev.map(call => call.id === updatedCall.id ? updatedCall : call)
+              return prev.map(call => call.id === updatedCall.id ? updatedCall : call);
             } else {
-              return [...prev, updatedCall]
+              return [...prev, updatedCall];
             }
-          })
+          });
         } else {
-          setActiveCalls(prev => prev.filter(call => call.id !== updatedCall.id))
+          setActiveCalls(prev => prev.filter(call => call.id !== updatedCall.id));
         }
       },
       (newCall) => {
         // Add new call to recent calls
-        setRecentCalls(prev => [newCall, ...prev.slice(0, 9)])
+        setRecentCalls(prev => [newCall, ...prev.slice(0, 9)]);
         
         // Add to active calls if in progress
         if (newCall.status === 'in_progress') {
-          setActiveCalls(prev => [newCall, ...prev])
+          setActiveCalls(prev => [newCall, ...prev]);
         }
       },
       (callId) => {
         // Remove deleted call
-        setRecentCalls(prev => prev.filter(call => call.id !== callId))
-        setActiveCalls(prev => prev.filter(call => call.id !== callId))
+        setRecentCalls(prev => prev.filter(call => call.id !== callId));
+        setActiveCalls(prev => prev.filter(call => call.id !== callId));
       }
-    )
+    );
 
     // Cleanup on unmount
     return () => {
-      callSubscription.unsubscribe()
-    }
-  }
+      callSubscription.unsubscribe();
+    };
+  };
 
   const toggleServer = () => {
     // This would typically make an API call to start/stop the server
-    const newStatus = serverStatus === 'running' ? 'stopped' : 'running'
-    setServerStatus(newStatus)
+    const newStatus = serverStatus === 'running' ? 'stopped' : 'running';
+    setServerStatus(newStatus);
     
     if (newStatus === 'running') {
-      toast.success('AI server started successfully')
+      toast.success('AI server started successfully');
     } else {
-      toast.success('AI server stopped')
+      toast.success('AI server stopped');
     }
-  }
+  };
 
   const formatDuration = (seconds: number) => {
-    const minutes = Math.floor(seconds / 60)
-    const remainingSeconds = seconds % 60
-    return `${minutes}m ${remainingSeconds}s`
-  }
+    const minutes = Math.floor(seconds / 60);
+    const remainingSeconds = seconds % 60;
+    return `${minutes}m ${remainingSeconds}s`;
+  };
 
   const formatTimeAgo = (dateString: string) => {
-    const date = new Date(dateString)
-    const now = new Date()
-    const diffInMinutes = Math.floor((now.getTime() - date.getTime()) / (1000 * 60))
+    const date = new Date(dateString);
+    const now = new Date();
+    const diffInMinutes = Math.floor((now.getTime() - date.getTime()) / (1000 * 60));
     
-    if (diffInMinutes < 1) return 'Just now'
-    if (diffInMinutes < 60) return `${diffInMinutes}m ago`
+    if (diffInMinutes < 1) return 'Just now';
+    if (diffInMinutes < 60) return `${diffInMinutes}m ago`;
     
-    const diffInHours = Math.floor(diffInMinutes / 60)
-    if (diffInHours < 24) return `${diffInHours}h ago`
+    const diffInHours = Math.floor(diffInMinutes / 60);
+    if (diffInHours < 24) return `${diffInHours}h ago`;
     
-    const diffInDays = Math.floor(diffInHours / 24)
-    return `${diffInDays}d ago`
-  }
+    const diffInDays = Math.floor(diffInHours / 24);
+    return `${diffInDays}d ago`;
+  };
 
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'completed':
-        return 'bg-green-100 text-green-800'
+        return 'bg-green-100 text-green-800';
       case 'in_progress':
-        return 'bg-blue-100 text-blue-800'
+        return 'bg-blue-100 text-blue-800';
       case 'failed':
-        return 'bg-red-100 text-red-800'
+        return 'bg-red-100 text-red-800';
       case 'abandoned':
-        return 'bg-yellow-100 text-yellow-800'
+        return 'bg-yellow-100 text-yellow-800';
       default:
-        return 'bg-gray-100 text-gray-800'
+        return 'bg-gray-100 text-gray-800';
     }
-  }
+  };
 
   const getStatusIcon = (status: string) => {
     switch (status) {
       case 'completed':
-        return <CheckCircleIcon className="h-3 w-3 mr-1" />
+        return <CheckCircleIcon className="h-3 w-3 mr-1" />;
       case 'in_progress':
-        return <PlayIcon className="h-3 w-3 mr-1" />
+        return <PlayIcon className="h-3 w-3 mr-1" />;
       case 'failed':
-        return <ExclamationTriangleIcon className="h-3 w-3 mr-1" />
+        return <ExclamationTriangleIcon className="h-3 w-3 mr-1" />;
       default:
-        return null
+        return null;
     }
-  }
+  };
 
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
       </div>
-    )
+    );
   }
 
   const stats = [
@@ -203,7 +203,7 @@ export default function DashboardPage() {
       icon: ClockIcon, 
       color: 'text-purple-500' 
     },
-  ]
+  ];
 
   return (
     <div className="space-y-8">
@@ -366,5 +366,5 @@ export default function DashboardPage() {
         </div>
       </div>
     </div>
-  )
+  );
 }

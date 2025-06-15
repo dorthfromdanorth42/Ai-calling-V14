@@ -1,32 +1,32 @@
-import { useState } from 'react'
-import { PhoneIcon, MicrophoneIcon } from '@heroicons/react/24/outline'
+import { useState } from 'react';
+import { PhoneIcon, MicrophoneIcon } from '@heroicons/react/24/outline';
 
 interface AuthPageProps {
   onLogin: () => void
 }
 
 export default function AuthPage({ onLogin }: AuthPageProps) {
-  const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
-  const [loading, setLoading] = useState(false)
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [loading, setLoading] = useState(false);
 
   const handleLogin = () => {
     if (email === 'demo@callcenter.ai' && password === 'demo123') {
-      setLoading(true)
+      setLoading(true);
       setTimeout(() => {
-        onLogin()
-        setLoading(false)
-      }, 1000)
+        onLogin();
+        setLoading(false);
+      }, 1000);
     } else {
-      alert('Invalid credentials. Use demo@callcenter.ai / demo123')
+      alert('Invalid credentials. Use demo@callcenter.ai / demo123');
     }
-  }
+  };
 
   const handleDemoLogin = () => {
-    setEmail('demo@callcenter.ai')
-    setPassword('demo123')
-    setTimeout(() => handleLogin(), 100)
-  }
+    setEmail('demo@callcenter.ai');
+    setPassword('demo123');
+    setTimeout(() => handleLogin(), 100);
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900 flex items-center justify-center p-4">
@@ -127,5 +127,5 @@ export default function AuthPage({ onLogin }: AuthPageProps) {
         </div>
       </div>
     </div>
-  )
+  );
 }

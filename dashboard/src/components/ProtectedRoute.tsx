@@ -1,7 +1,7 @@
-import type { ReactNode } from 'react'
-import { useLocation } from 'react-router-dom'
-import { usePermissions } from '../hooks/usePermissions'
-import LoadingSpinner from './LoadingSpinner'
+import type { ReactNode } from 'react';
+import { useLocation } from 'react-router-dom';
+import { usePermissions } from '../hooks/usePermissions';
+import LoadingSpinner from './LoadingSpinner';
 
 interface ProtectedRouteProps {
   children: ReactNode
@@ -14,11 +14,11 @@ export default function ProtectedRoute({
   requiredPermission, 
   adminOnly = false 
 }: ProtectedRouteProps) {
-  const { canAccess, isAdmin, loading, profile } = usePermissions()
-  const location = useLocation()
+  const { canAccess, isAdmin, loading, profile } = usePermissions();
+  const location = useLocation();
 
   if (loading) {
-    return <LoadingSpinner />
+    return <LoadingSpinner />;
   }
 
   // Check if admin only route
@@ -47,7 +47,7 @@ export default function ProtectedRoute({
           </div>
         </div>
       </div>
-    )
+    );
   }
 
   // Check if user has required permission for the route
@@ -79,7 +79,7 @@ export default function ProtectedRoute({
           </div>
         </div>
       </div>
-    )
+    );
   }
 
   // Check if user account is active
@@ -108,8 +108,8 @@ export default function ProtectedRoute({
           </div>
         </div>
       </div>
-    )
+    );
   }
 
-  return <>{children}</>
+  return <>{children}</>;
 }
