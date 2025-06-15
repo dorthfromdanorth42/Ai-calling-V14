@@ -1,5 +1,5 @@
-import CryptoJS from 'crypto-js'
-import { supabase } from '../lib/supabase'
+import CryptoJS from 'crypto-js';
+import { supabase } from '../lib/supabase';
 
 export interface PIIField {
   field_name: string
@@ -68,60 +68,60 @@ export interface SecurityAuditLog {
 }
 
 export class PrivacySecurityService {
-  private static encryptionKey = import.meta.env.VITE_ENCRYPTION_KEY || 'default-key-change-in-production'
+  private static encryptionKey = import.meta.env.VITE_ENCRYPTION_KEY || 'default-key-change-in-production';
 
   // PII Encryption/Decryption
   static encryptPII(data: string, level: 'standard' | 'high' = 'standard'): string {
     try {
       if (level === 'high') {
         // Use AES-256 for high-level encryption
-        return CryptoJS.AES.encrypt(data, this.encryptionKey).toString()
+        return CryptoJS.AES.encrypt(data, this.encryptionKey).toString();
       } else {
         // Use Base64 encoding for standard level (for demo purposes)
-        return CryptoJS.enc.Base64.stringify(CryptoJS.enc.Utf8.parse(data))
+        return CryptoJS.enc.Base64.stringify(CryptoJS.enc.Utf8.parse(data));
       }
     } catch (error) {
-      console.error('Error encrypting PII:', error)
-      return data
+      console.error('Error encrypting PII:', error);
+      return data;
     }
   }
 
   static decryptPII(encryptedData: string, level: 'standard' | 'high' = 'standard'): string {
     try {
       if (level === 'high') {
-        const bytes = CryptoJS.AES.decrypt(encryptedData, this.encryptionKey)
-        return bytes.toString(CryptoJS.enc.Utf8)
+        const bytes = CryptoJS.AES.decrypt(encryptedData, this.encryptionKey);
+        return bytes.toString(CryptoJS.enc.Utf8);
       } else {
-        return CryptoJS.enc.Base64.parse(encryptedData).toString(CryptoJS.enc.Utf8)
+        return CryptoJS.enc.Base64.parse(encryptedData).toString(CryptoJS.enc.Utf8);
       }
     } catch (error) {
-      console.error('Error decrypting PII:', error)
-      return encryptedData
+      console.error('Error decrypting PII:', error);
+      return encryptedData;
     }
   }
 
   // Mask sensitive data for display
   static maskPII(data: string, type: PIIField['field_type']): string {
-    if (!data) return ''
+    if (!data) return '';
 
     switch (type) {
       case 'phone':
-        return data.replace(/(\d{3})\d{3}(\d{4})/, '$1***$2')
+        return data.replace(/(\d{3})\d{3}(\d{4})/, '$1***$2');
       case 'email':
-        const [username, domain] = data.split('@')
-        if (username.length <= 2) return data
-        return `${username.substring(0, 2)}***@${domain}`
+        const [username, domain] = data.split('@');
+        if (username.length <= 2) return data;
+        return `${username.substring(0, 2)}***@${domain}`;
       case 'name':
-        const parts = data.split(' ')
-        return parts.map(part => part.length > 1 ? `${part[0]}***` : part).join(' ')
+        const parts = data.split(' ');
+        return parts.map(part => part.length > 1 ? `${part[0]}***` : part).join(' ');
       case 'ssn':
-        return data.replace(/\d{3}-?\d{2}-?(\d{4})/, '***-**-$1')
+        return data.replace(/\d{3}-?\d{2}-?(\d{4})/, '***-**-$1');
       case 'credit_card':
-        return data.replace(/\d{4}\s?\d{4}\s?\d{4}\s?(\d{4})/, '**** **** **** $1')
+        return data.replace(/\d{4}\s?\d{4}\s?\d{4}\s?(\d{4})/, '**** **** **** $1');
       case 'address':
-        return data.replace(/\d+/, '***')
+        return data.replace(/\d+/, '***');
       default:
-        return data.length > 4 ? `${data.substring(0, 2)}***${data.slice(-2)}` : '***'
+        return data.length > 4 ? `${data.substring(0, 2)}***${data.slice(-2)}` : '***';
     }
   }
 
@@ -135,17 +135,17 @@ export class PrivacySecurityService {
           updated_at: new Date().toISOString()
         })
         .select()
-        .single()
+        .single();
 
       if (error) {
-        console.error('Error creating retention policy:', error)
-        return null
+        console.error('Error creating retention policy:', error);
+        return null;
       }
 
-      return data
+      return data;
     } catch (error) {
-      console.error('Error creating retention policy:', error)
-      return null
+      console.error('Error creating retention policy:', error);
+      return null;
     }
   }
 
@@ -155,17 +155,17 @@ export class PrivacySecurityService {
         .from('data_retention_policies')
         .select('*')
         .eq('profile_id', profileId)
-        .order('created_at', { ascending: false })
+        .order('created_at', { ascending: false });
 
       if (error) {
-        console.error('Error fetching retention policies:', error)
-        return []
+        console.error('Error fetching retention policies:', error);
+        return [];
       }
 
-      return data || []
+      return data || [];
     } catch (error) {
-      console.error('Error fetching retention policies:', error)
-      return []
+      console.error('Error fetching retention policies:', error);
+      return [];
     }
   }
 
@@ -177,12 +177,12 @@ export class PrivacySecurityService {
           ...updates,
           updated_at: new Date().toISOString()
         })
-        .eq('id', policyId)
+        .eq('id', policyId);
 
-      return !error
+      return !error;
     } catch (error) {
-      console.error('Error updating retention policy:', error)
-      return false
+      console.error('Error updating retention policy:', error);
+      return false;
     }
   }
 
@@ -196,17 +196,17 @@ export class PrivacySecurityService {
           updated_at: new Date().toISOString()
         })
         .select()
-        .single()
+        .single();
 
       if (error) {
-        console.error('Error recording consent:', error)
-        return null
+        console.error('Error recording consent:', error);
+        return null;
       }
 
-      return data
+      return data;
     } catch (error) {
-      console.error('Error recording consent:', error)
-      return null
+      console.error('Error recording consent:', error);
+      return null;
     }
   }
 
@@ -216,23 +216,23 @@ export class PrivacySecurityService {
         .from('data_processing_consents')
         .select('*')
         .eq('profile_id', profileId)
-        .order('created_at', { ascending: false })
+        .order('created_at', { ascending: false });
 
       if (contactId) {
-        query = query.eq('contact_id', contactId)
+        query = query.eq('contact_id', contactId);
       }
 
-      const { data, error } = await query
+      const { data, error } = await query;
 
       if (error) {
-        console.error('Error fetching consents:', error)
-        return []
+        console.error('Error fetching consents:', error);
+        return [];
       }
 
-      return data || []
+      return data || [];
     } catch (error) {
-      console.error('Error fetching consents:', error)
-      return []
+      console.error('Error fetching consents:', error);
+      return [];
     }
   }
 
@@ -245,12 +245,12 @@ export class PrivacySecurityService {
           withdrawal_date: new Date().toISOString(),
           updated_at: new Date().toISOString()
         })
-        .eq('id', consentId)
+        .eq('id', consentId);
 
-      return !error
+      return !error;
     } catch (error) {
-      console.error('Error withdrawing consent:', error)
-      return false
+      console.error('Error withdrawing consent:', error);
+      return false;
     }
   }
 
@@ -258,8 +258,8 @@ export class PrivacySecurityService {
   static async createDataSubjectRequest(request: Omit<DataSubjectRequest, 'id' | 'created_at' | 'updated_at' | 'response_due_date'>): Promise<DataSubjectRequest | null> {
     try {
       // Calculate response due date (30 days for GDPR)
-      const dueDate = new Date()
-      dueDate.setDate(dueDate.getDate() + 30)
+      const dueDate = new Date();
+      dueDate.setDate(dueDate.getDate() + 30);
 
       const { data, error } = await supabase
         .from('data_subject_requests')
@@ -269,17 +269,17 @@ export class PrivacySecurityService {
           updated_at: new Date().toISOString()
         })
         .select()
-        .single()
+        .single();
 
       if (error) {
-        console.error('Error creating data subject request:', error)
-        return null
+        console.error('Error creating data subject request:', error);
+        return null;
       }
 
-      return data
+      return data;
     } catch (error) {
-      console.error('Error creating data subject request:', error)
-      return null
+      console.error('Error creating data subject request:', error);
+      return null;
     }
   }
 
@@ -289,23 +289,23 @@ export class PrivacySecurityService {
         .from('data_subject_requests')
         .select('*')
         .eq('profile_id', profileId)
-        .order('created_at', { ascending: false })
+        .order('created_at', { ascending: false });
 
       if (status) {
-        query = query.eq('status', status)
+        query = query.eq('status', status);
       }
 
-      const { data, error } = await query
+      const { data, error } = await query;
 
       if (error) {
-        console.error('Error fetching data subject requests:', error)
-        return []
+        console.error('Error fetching data subject requests:', error);
+        return [];
       }
 
-      return data || []
+      return data || [];
     } catch (error) {
-      console.error('Error fetching data subject requests:', error)
-      return []
+      console.error('Error fetching data subject requests:', error);
+      return [];
     }
   }
 
@@ -317,12 +317,12 @@ export class PrivacySecurityService {
           ...updates,
           updated_at: new Date().toISOString()
         })
-        .eq('id', requestId)
+        .eq('id', requestId);
 
-      return !error
+      return !error;
     } catch (error) {
-      console.error('Error updating data subject request:', error)
-      return false
+      console.error('Error updating data subject request:', error);
+      return false;
     }
   }
 
@@ -338,51 +338,51 @@ export class PrivacySecurityService {
       let personalDataQuery = supabase
         .from('campaign_leads')
         .select('*')
-        .eq('profile_id', profileId)
+        .eq('profile_id', profileId);
 
       if (contactId) {
-        personalDataQuery = personalDataQuery.eq('id', contactId)
+        personalDataQuery = personalDataQuery.eq('id', contactId);
       }
 
-      const { data: personalData } = await personalDataQuery
+      const { data: personalData } = await personalDataQuery;
 
       // Get call history
       let callHistoryQuery = supabase
         .from('call_logs')
         .select('*')
-        .eq('profile_id', profileId)
+        .eq('profile_id', profileId);
 
       if (contactId) {
         // Assuming we can link calls to contacts via phone number
-        const contact = personalData?.[0]
+        const contact = personalData?.[0];
         if (contact?.phone_number) {
-          callHistoryQuery = callHistoryQuery.eq('phone_number_to', contact.phone_number)
+          callHistoryQuery = callHistoryQuery.eq('phone_number_to', contact.phone_number);
         }
       }
 
-      const { data: callHistory } = await callHistoryQuery
+      const { data: callHistory } = await callHistoryQuery;
 
       // Get consents
       let consentsQuery = supabase
         .from('data_processing_consents')
         .select('*')
-        .eq('profile_id', profileId)
+        .eq('profile_id', profileId);
 
       if (contactId) {
-        consentsQuery = consentsQuery.eq('contact_id', contactId)
+        consentsQuery = consentsQuery.eq('contact_id', contactId);
       }
 
-      const { data: consents } = await consentsQuery
+      const { data: consents } = await consentsQuery;
 
       return {
         personal_data: personalData || [],
         call_history: callHistory || [],
         consents: consents || [],
         export_date: new Date().toISOString()
-      }
+      };
     } catch (error) {
-      console.error('Error generating data export:', error)
-      return null
+      console.error('Error generating data export:', error);
+      return null;
     }
   }
 
@@ -391,15 +391,15 @@ export class PrivacySecurityService {
     try {
       await supabase
         .from('security_audit_logs')
-        .insert(event)
+        .insert(event);
 
       // Alert on high-risk events
       if (event.risk_level === 'high' || event.risk_level === 'critical') {
         // Send security alert notification
-        console.warn('High-risk security event:', event)
+        console.warn('High-risk security event:', event);
       }
     } catch (error) {
-      console.error('Error logging security event:', error)
+      console.error('Error logging security event:', error);
     }
   }
 
@@ -410,52 +410,52 @@ export class PrivacySecurityService {
         .select('*')
         .eq('profile_id', profileId)
         .order('created_at', { ascending: false })
-        .limit(limit)
+        .limit(limit);
 
       if (riskLevel) {
-        query = query.eq('risk_level', riskLevel)
+        query = query.eq('risk_level', riskLevel);
       }
 
-      const { data, error } = await query
+      const { data, error } = await query;
 
       if (error) {
-        console.error('Error fetching security audit logs:', error)
-        return []
+        console.error('Error fetching security audit logs:', error);
+        return [];
       }
 
-      return data || []
+      return data || [];
     } catch (error) {
-      console.error('Error fetching security audit logs:', error)
-      return []
+      console.error('Error fetching security audit logs:', error);
+      return [];
     }
   }
 
   // Data anonymization
   static anonymizeData(data: Record<string, any>, piiFields: PIIField[]): Record<string, any> {
-    const anonymized = { ...data }
+    const anonymized = { ...data };
 
     piiFields.forEach(field => {
       if (anonymized[field.field_name]) {
         switch (field.field_type) {
           case 'name':
-            anonymized[field.field_name] = 'Anonymous User'
-            break
+            anonymized[field.field_name] = 'Anonymous User';
+            break;
           case 'email':
-            anonymized[field.field_name] = 'anonymous@example.com'
-            break
+            anonymized[field.field_name] = 'anonymous@example.com';
+            break;
           case 'phone':
-            anonymized[field.field_name] = '+1-XXX-XXX-XXXX'
-            break
+            anonymized[field.field_name] = '+1-XXX-XXX-XXXX';
+            break;
           case 'address':
-            anonymized[field.field_name] = 'Anonymous Address'
-            break
+            anonymized[field.field_name] = 'Anonymous Address';
+            break;
           default:
-            anonymized[field.field_name] = '[REDACTED]'
+            anonymized[field.field_name] = '[REDACTED]';
         }
       }
-    })
+    });
 
-    return anonymized
+    return anonymized;
   }
 
   // Data deletion (right to erasure)
@@ -464,8 +464,8 @@ export class PrivacySecurityService {
     deletedRecords: number
     errors: string[]
   }> {
-    const errors: string[] = []
-    let deletedRecords = 0
+    const errors: string[] = [];
+    let deletedRecords = 0;
 
     try {
       // Delete from campaign_leads
@@ -473,12 +473,12 @@ export class PrivacySecurityService {
         .from('campaign_leads')
         .delete({ count: 'exact' })
         .eq('profile_id', profileId)
-        .eq('id', contactId)
+        .eq('id', contactId);
 
       if (leadsError) {
-        errors.push(`Error deleting leads: ${leadsError.message}`)
+        errors.push(`Error deleting leads: ${leadsError.message}`);
       } else {
-        deletedRecords += leadsCount || 0
+        deletedRecords += leadsCount || 0;
       }
 
       // Delete consents
@@ -486,12 +486,12 @@ export class PrivacySecurityService {
         .from('data_processing_consents')
         .delete({ count: 'exact' })
         .eq('profile_id', profileId)
-        .eq('contact_id', contactId)
+        .eq('contact_id', contactId);
 
       if (consentsError) {
-        errors.push(`Error deleting consents: ${consentsError.message}`)
+        errors.push(`Error deleting consents: ${consentsError.message}`);
       } else {
-        deletedRecords += consentsCount || 0
+        deletedRecords += consentsCount || 0;
       }
 
       // Anonymize call logs instead of deleting (for compliance)
@@ -499,34 +499,34 @@ export class PrivacySecurityService {
         .from('call_logs')
         .select('*')
         .eq('profile_id', profileId)
-        .eq('phone_number_to', contactId) // Assuming contactId could be phone number
+        .eq('phone_number_to', contactId); // Assuming contactId could be phone number
 
       if (callLogs) {
         for (const log of callLogs) {
           const anonymizedLog = this.anonymizeData(log, [
             { field_name: 'phone_number_to', field_type: 'phone', encryption_level: 'none' },
             { field_name: 'transcript', field_type: 'custom', encryption_level: 'none' }
-          ])
+          ]);
 
           await supabase
             .from('call_logs')
             .update(anonymizedLog)
-            .eq('id', log.id)
+            .eq('id', log.id);
         }
-        deletedRecords += callLogs.length
+        deletedRecords += callLogs.length;
       }
 
       return {
         success: errors.length === 0,
         deletedRecords,
         errors
-      }
+      };
     } catch (error) {
       return {
         success: false,
         deletedRecords,
         errors: [`Unexpected error: ${error instanceof Error ? error.message : 'Unknown error'}`]
-      }
+      };
     }
   }
 
@@ -537,68 +537,68 @@ export class PrivacySecurityService {
     recommendations: string[]
     score: number
   }> {
-    const issues: string[] = []
-    const recommendations: string[] = []
+    const issues: string[] = [];
+    const recommendations: string[] = [];
 
     try {
       // Check if retention policies are set
-      const retentionPolicies = await this.getRetentionPolicies(profileId)
+      const retentionPolicies = await this.getRetentionPolicies(profileId);
       if (retentionPolicies.length === 0) {
-        issues.push('No data retention policies configured')
-        recommendations.push('Set up data retention policies for different data types')
+        issues.push('No data retention policies configured');
+        recommendations.push('Set up data retention policies for different data types');
       }
 
       // Check for expired data
-      const thirtyDaysAgo = new Date()
-      thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30)
+      const thirtyDaysAgo = new Date();
+      thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
 
       const { data: oldData } = await supabase
         .from('call_logs')
         .select('id')
         .eq('profile_id', profileId)
         .lt('created_at', thirtyDaysAgo.toISOString())
-        .limit(1)
+        .limit(1);
 
       if (oldData && oldData.length > 0) {
-        issues.push('Old data found that may need review for retention compliance')
-        recommendations.push('Review and clean up old data according to retention policies')
+        issues.push('Old data found that may need review for retention compliance');
+        recommendations.push('Review and clean up old data according to retention policies');
       }
 
       // Check for pending data subject requests
-      const pendingRequests = await this.getDataSubjectRequests(profileId, 'pending')
+      const pendingRequests = await this.getDataSubjectRequests(profileId, 'pending');
       if (pendingRequests.length > 0) {
-        issues.push(`${pendingRequests.length} pending data subject requests`)
-        recommendations.push('Process pending data subject requests within required timeframes')
+        issues.push(`${pendingRequests.length} pending data subject requests`);
+        recommendations.push('Process pending data subject requests within required timeframes');
       }
 
       // Check for overdue requests
       const overdueRequests = pendingRequests.filter(req => 
         new Date(req.response_due_date) < new Date()
-      )
+      );
       if (overdueRequests.length > 0) {
-        issues.push(`${overdueRequests.length} overdue data subject requests`)
-        recommendations.push('Immediately address overdue data subject requests')
+        issues.push(`${overdueRequests.length} overdue data subject requests`);
+        recommendations.push('Immediately address overdue data subject requests');
       }
 
       // Calculate compliance score
-      const totalChecks = 4
-      const passedChecks = totalChecks - issues.length
-      const score = Math.round((passedChecks / totalChecks) * 100)
+      const totalChecks = 4;
+      const passedChecks = totalChecks - issues.length;
+      const score = Math.round((passedChecks / totalChecks) * 100);
 
       return {
         compliant: issues.length === 0,
         issues,
         recommendations,
         score
-      }
+      };
     } catch (error) {
-      console.error('Error checking privacy compliance:', error)
+      console.error('Error checking privacy compliance:', error);
       return {
         compliant: false,
         issues: ['Error checking compliance'],
         recommendations: ['Review system configuration'],
         score: 0
-      }
+      };
     }
   }
 
@@ -645,7 +645,7 @@ export class PrivacySecurityService {
         encryption_required: false,
         backup_required: false
       }
-    ]
+    ];
 
     try {
       await supabase
@@ -653,9 +653,9 @@ export class PrivacySecurityService {
         .insert(defaultPolicies.map(policy => ({
           ...policy,
           updated_at: new Date().toISOString()
-        })))
+        })));
     } catch (error) {
-      console.error('Error creating default retention policies:', error)
+      console.error('Error creating default retention policies:', error);
     }
   }
 }

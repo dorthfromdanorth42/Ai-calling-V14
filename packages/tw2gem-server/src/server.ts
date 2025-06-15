@@ -33,9 +33,9 @@ export class Tw2GemServer extends TwilioWebSocketServer {
                 this.onNewCall?.(socket);
 
                 // Generate call ID and store call metadata
-                const callId = `call_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
-                socket.callId = callId
-                socket.callStartTime = new Date().toISOString()
+                const callId = `call_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+                socket.callId = callId;
+                socket.callStartTime = new Date().toISOString();
 
                 // Send call started webhook
                 this.webhookService.processCallEvent('call.started', {
@@ -46,7 +46,7 @@ export class Tw2GemServer extends TwilioWebSocketServer {
                     direction: socket.direction,
                     status: 'in_progress',
                     timestamp: socket.callStartTime
-                }, socket.userId)
+                }, socket.userId);
 
                 const geminiClient = new GeminiLiveClient(options.geminiOptions);
                 socket.twilioStreamSid = event.streamSid;
@@ -57,13 +57,13 @@ export class Tw2GemServer extends TwilioWebSocketServer {
                 };
 
                 geminiClient.onClose = () => {
-                    this.handleCallEnd(socket, 'completed')
+                    this.handleCallEnd(socket, 'completed');
                     socket.close();
                     this.geminiLive.onClose?.(socket);
                 };
 
                 geminiClient.onError = (error) => {
-                    this.handleCallEnd(socket, 'failed')
+                    this.handleCallEnd(socket, 'failed');
                     this.onError?.(socket, error);
                 };
 
@@ -73,7 +73,7 @@ export class Tw2GemServer extends TwilioWebSocketServer {
                 };
 
                 socket.onclose = (event) => {
-                    this.handleCallEnd(socket, 'completed')
+                    this.handleCallEnd(socket, 'completed');
                     if (socket?.geminiClient) {
                         socket.geminiClient.close();
                         delete socket.geminiClient;
@@ -121,12 +121,12 @@ export class Tw2GemServer extends TwilioWebSocketServer {
     }
 
     private handleCallEnd(socket: Tw2GemSocket, outcome: string) {
-        if (!socket.callId || socket.callEnded) return
+        if (!socket.callId || socket.callEnded) return;
         
-        socket.callEnded = true
-        const endTime = new Date().toISOString()
+        socket.callEnded = true;
+        const endTime = new Date().toISOString();
         const durationSeconds = socket.callStartTime ? 
-            Math.floor((new Date(endTime).getTime() - new Date(socket.callStartTime).getTime()) / 1000) : 0
+            Math.floor((new Date(endTime).getTime() - new Date(socket.callStartTime).getTime()) / 1000) : 0;
 
         this.webhookService.processCallEvent(
             outcome === 'failed' ? 'call.failed' : 'call.completed',
@@ -140,26 +140,26 @@ export class Tw2GemServer extends TwilioWebSocketServer {
                 timestamp: endTime
             },
             socket.userId
-        )
+        );
     }
 
     // Get function definitions for Gemini setup
     public getFunctionDefinitions(): object[] {
-        return this.functionHandler.getFunctionDefinitions()
+        return this.functionHandler.getFunctionDefinitions();
     }
 
     private async handleFunctionCalls(socket: Tw2GemSocket, serverContent: BidiGenerateContentServerContent) {
-        if (!serverContent.modelTurn?.parts) return
+        if (!serverContent.modelTurn?.parts) return;
 
         const functionCalls = serverContent.modelTurn.parts
             .filter(part => part.functionCall)
-            .map(part => part.functionCall)
+            .map(part => part.functionCall);
 
         for (const functionCall of functionCalls) {
             if (functionCall?.name && functionCall?.args) {
                 // Store function call on socket
-                if (!socket.functionCalls) socket.functionCalls = []
-                socket.functionCalls.push(functionCall)
+                if (!socket.functionCalls) socket.functionCalls = [];
+                socket.functionCalls.push(functionCall);
 
                 try {
                     // Execute the function call
@@ -169,7 +169,7 @@ export class Tw2GemServer extends TwilioWebSocketServer {
                         callId: socket.callId!,
                         userId: socket.userId,
                         agentId: socket.agentId
-                    })
+                    });
 
                     // Send function call webhook with result
                     this.webhookService.processFunctionCall({
@@ -178,22 +178,22 @@ export class Tw2GemServer extends TwilioWebSocketServer {
                         parameters: functionCall.args,
                         result: result.result,
                         timestamp: new Date().toISOString()
-                    }, socket.userId)
+                    }, socket.userId);
 
                     // Send function result back to Gemini
                     if (socket.geminiClient) {
                         if (result.success) {
-                            socket.geminiClient.sendFunctionResponse(functionCall.name, result.result)
+                            socket.geminiClient.sendFunctionResponse(functionCall.name, result.result);
                         } else {
                             socket.geminiClient.sendFunctionResponse(functionCall.name, {
                                 error: result.error,
                                 success: false
-                            })
+                            });
                         }
                     }
 
                 } catch (error) {
-                    console.error('Error executing function call:', error)
+                    console.error('Error executing function call:', error);
                     
                     // Send error webhook
                     this.webhookService.processFunctionCall({
@@ -202,7 +202,7 @@ export class Tw2GemServer extends TwilioWebSocketServer {
                         parameters: functionCall.args,
                         result: { error: error instanceof Error ? error.message : 'Unknown error' },
                         timestamp: new Date().toISOString()
-                    }, socket.userId)
+                    }, socket.userId);
                 }
             }
         }

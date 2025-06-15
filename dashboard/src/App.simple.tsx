@@ -10,7 +10,7 @@ function App() {
         <p>✅ Environment: Configured</p>
       </div>
     </div>
-  )
+  );
 }
 
-export default App
+export default App;

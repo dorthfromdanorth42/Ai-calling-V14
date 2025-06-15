@@ -1,4 +1,4 @@
-import { createClient } from '@supabase/supabase-js'
+import { createClient } from '@supabase/supabase-js';
 
 interface CallEventData {
   call_id: string
@@ -24,11 +24,11 @@ interface FunctionCallData {
 }
 
 export class WebhookService {
-  private supabase: any
+  private supabase: any;
   
   constructor(supabaseUrl?: string, supabaseKey?: string) {
     if (supabaseUrl && supabaseKey) {
-      this.supabase = createClient(supabaseUrl, supabaseKey)
+      this.supabase = createClient(supabaseUrl, supabaseKey);
     }
   }
 
@@ -36,15 +36,15 @@ export class WebhookService {
     try {
       // Log the call event to database
       if (this.supabase && userId) {
-        await this.logCallEvent(eventType, data, userId)
+        await this.logCallEvent(eventType, data, userId);
       }
 
       // Send webhook notifications
-      await this.sendWebhookNotifications(eventType, data, userId)
+      await this.sendWebhookNotifications(eventType, data, userId);
       
-      console.log(`Webhook event processed: ${eventType}`, data)
+      console.log(`Webhook event processed: ${eventType}`, data);
     } catch (error) {
-      console.error('Error processing webhook event:', error)
+      console.error('Error processing webhook event:', error);
     }
   }
 
@@ -63,8 +63,8 @@ export class WebhookService {
               direction: data.direction,
               status: 'in_progress',
               started_at: data.timestamp
-            })
-          break
+            });
+          break;
 
         case 'call.completed':
           await this.supabase
@@ -77,8 +77,8 @@ export class WebhookService {
               transcript: data.transcript,
               customer_satisfaction_score: data.customer_satisfaction
             })
-            .eq('id', data.call_id)
-          break
+            .eq('id', data.call_id);
+          break;
 
         case 'call.failed':
           await this.supabase
@@ -88,16 +88,16 @@ export class WebhookService {
               ended_at: data.timestamp,
               outcome: data.outcome || 'failed'
             })
-            .eq('id', data.call_id)
-          break
+            .eq('id', data.call_id);
+          break;
       }
     } catch (error) {
-      console.error('Error logging call event to database:', error)
+      console.error('Error logging call event to database:', error);
     }
   }
 
   private async sendWebhookNotifications(eventType: string, data: CallEventData, userId?: string) {
-    if (!this.supabase || !userId) return
+    if (!this.supabase || !userId) return;
 
     try {
       // Get user's webhook endpoints
@@ -106,19 +106,19 @@ export class WebhookService {
         .select('*')
         .eq('profile_id', userId)
         .eq('is_active', true)
-        .contains('events', [eventType])
+        .contains('events', [eventType]);
 
       if (error) {
-        console.error('Error fetching webhooks:', error)
-        return
+        console.error('Error fetching webhooks:', error);
+        return;
       }
 
       // Send to each webhook endpoint
       for (const webhook of webhooks || []) {
-        await this.sendWebhook(webhook, eventType, data)
+        await this.sendWebhook(webhook, eventType, data);
       }
     } catch (error) {
-      console.error('Error sending webhook notifications:', error)
+      console.error('Error sending webhook notifications:', error);
     }
   }
 
@@ -129,9 +129,9 @@ export class WebhookService {
         data: data,
         timestamp: new Date().toISOString(),
         webhook_id: webhook.id
-      }
+      };
 
-      const signature = this.generateSignature(JSON.stringify(payload), webhook.secret)
+      const signature = this.generateSignature(JSON.stringify(payload), webhook.secret);
 
       const response = await fetch(webhook.url, {
         method: 'POST',
@@ -141,23 +141,23 @@ export class WebhookService {
           'User-Agent': 'AI-Call-Center-Webhook/1.0'
         },
         body: JSON.stringify(payload)
-      })
+      });
 
       // Log delivery attempt
-      await this.logWebhookDelivery(webhook.id, eventType, response.status, response.ok)
+      await this.logWebhookDelivery(webhook.id, eventType, response.status, response.ok);
 
       if (!response.ok) {
-        console.error(`Webhook delivery failed: ${response.status} ${response.statusText}`)
+        console.error(`Webhook delivery failed: ${response.status} ${response.statusText}`);
       }
     } catch (error) {
-      console.error('Error sending webhook:', error)
+      console.error('Error sending webhook:', error);
       // Log failed delivery
-      await this.logWebhookDelivery(webhook.id, eventType, 0, false, error instanceof Error ? error.message : String(error))
+      await this.logWebhookDelivery(webhook.id, eventType, 0, false, error instanceof Error ? error.message : String(error));
     }
   }
 
   private async logWebhookDelivery(webhookId: string, eventType: string, statusCode: number, success: boolean, errorMessage?: string) {
-    if (!this.supabase) return
+    if (!this.supabase) return;
 
     try {
       await this.supabase
@@ -169,36 +169,36 @@ export class WebhookService {
           success: success,
           error_message: errorMessage,
           delivered_at: new Date().toISOString()
-        })
+        });
     } catch (error) {
-      console.error('Error logging webhook delivery:', error)
+      console.error('Error logging webhook delivery:', error);
     }
   }
 
   private generateSignature(payload: string, secret: string): string {
-    const crypto = require('crypto')
+    const crypto = require('crypto');
     return crypto
       .createHmac('sha256', secret)
       .update(payload)
-      .digest('hex')
+      .digest('hex');
   }
 
   async processFunctionCall(data: FunctionCallData, userId?: string) {
     try {
       // Log function call event
       if (this.supabase && userId) {
-        await this.logFunctionCall(data, userId)
+        await this.logFunctionCall(data, userId);
       }
 
       // Send function call webhook
       await this.sendWebhookNotifications('function.called', {
         call_id: data.call_id,
         timestamp: data.timestamp
-      } as CallEventData, userId)
+      } as CallEventData, userId);
 
-      console.log('Function call processed:', data)
+      console.log('Function call processed:', data);
     } catch (error) {
-      console.error('Error processing function call:', error)
+      console.error('Error processing function call:', error);
     }
   }
 
@@ -209,22 +209,22 @@ export class WebhookService {
         .from('call_logs')
         .select('function_calls')
         .eq('id', data.call_id)
-        .single()
+        .single();
 
-      const existingCalls = callLog?.function_calls || []
+      const existingCalls = callLog?.function_calls || [];
       const updatedCalls = [...existingCalls, {
         function_name: data.function_name,
         parameters: data.parameters,
         result: data.result,
         timestamp: data.timestamp
-      }]
+      }];
 
       await this.supabase
         .from('call_logs')
         .update({ function_calls: updatedCalls })
-        .eq('id', data.call_id)
+        .eq('id', data.call_id);
     } catch (error) {
-      console.error('Error logging function call:', error)
+      console.error('Error logging function call:', error);
     }
   }
 }

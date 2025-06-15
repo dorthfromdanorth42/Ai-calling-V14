@@ -1,8 +1,8 @@
-import { useState, useEffect } from 'react'
-import { usePermissions, useUser } from '../contexts/UserContext'
-import { DatabaseService } from '../services/database'
-import type { Campaign } from '../lib/supabase'
-import toast from 'react-hot-toast'
+import { useState, useEffect } from 'react';
+import { usePermissions, useUser } from '../contexts/UserContext';
+import { DatabaseService } from '../services/database';
+import type { Campaign } from '../lib/supabase';
+import toast from 'react-hot-toast';
 import { 
   PlusIcon, 
   PlayIcon, 
@@ -13,67 +13,67 @@ import {
   ChartBarIcon,
   ExclamationTriangleIcon,
   MegaphoneIcon
-} from '@heroicons/react/24/outline'
+} from '@heroicons/react/24/outline';
 
 export default function OutboundCampaigns() {
-  const { canUseOutboundDialer, maxAgentConfigurations, hasReachedAgentLimit } = usePermissions()
-  const { user } = useUser()
-  const [campaigns, setCampaigns] = useState<Campaign[]>([])
-  const [loading, setLoading] = useState(true)
+  const { canUseOutboundDialer, maxAgentConfigurations, hasReachedAgentLimit } = usePermissions();
+  const { user } = useUser();
+  const [campaigns, setCampaigns] = useState<Campaign[]>([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     if (user && canUseOutboundDialer) {
-      loadCampaigns()
+      loadCampaigns();
     }
-  }, [user, canUseOutboundDialer])
+  }, [user, canUseOutboundDialer]);
 
   const loadCampaigns = async () => {
-    if (!user) return
+    if (!user) return;
 
     try {
-      setLoading(true)
-      const campaignsData = await DatabaseService.getCampaigns(user.id)
-      setCampaigns(campaignsData)
+      setLoading(true);
+      const campaignsData = await DatabaseService.getCampaigns(user.id);
+      setCampaigns(campaignsData);
     } catch (error) {
-      console.error('Error loading campaigns:', error)
-      toast.error('Failed to load campaigns')
+      console.error('Error loading campaigns:', error);
+      toast.error('Failed to load campaigns');
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   // Mock current agent configurations count
-  const currentAgentConfigs = campaigns.length
+  const currentAgentConfigs = campaigns.length;
 
   const calculateStats = () => {
-    const activeCampaigns = campaigns.filter(c => c.status === 'active').length
-    const totalLeads = campaigns.reduce((sum, c) => sum + c.total_leads, 0)
-    const totalCalled = campaigns.reduce((sum, c) => sum + c.leads_called, 0)
-    const totalCompleted = campaigns.reduce((sum, c) => sum + c.leads_completed, 0)
-    const successRate = totalCalled > 0 ? ((totalCompleted / totalCalled) * 100).toFixed(1) : '0.0'
+    const activeCampaigns = campaigns.filter(c => c.status === 'active').length;
+    const totalLeads = campaigns.reduce((sum, c) => sum + c.total_leads, 0);
+    const totalCalled = campaigns.reduce((sum, c) => sum + c.leads_called, 0);
+    const totalCompleted = campaigns.reduce((sum, c) => sum + c.leads_completed, 0);
+    const successRate = totalCalled > 0 ? ((totalCompleted / totalCalled) * 100).toFixed(1) : '0.0';
 
     return {
       activeCampaigns,
       totalLeads: totalLeads.toLocaleString(),
       totalCalled: totalCalled.toLocaleString(),
       successRate: `${successRate}%`
-    }
-  }
+    };
+  };
 
-  const stats = calculateStats()
+  const stats = calculateStats();
 
   const formatLastActivity = (updatedAt: string) => {
-    const now = new Date()
-    const updated = new Date(updatedAt)
-    const diffMs = now.getTime() - updated.getTime()
-    const diffMins = Math.floor(diffMs / (1000 * 60))
-    const diffHours = Math.floor(diffMs / (1000 * 60 * 60))
-    const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24))
+    const now = new Date();
+    const updated = new Date(updatedAt);
+    const diffMs = now.getTime() - updated.getTime();
+    const diffMins = Math.floor(diffMs / (1000 * 60));
+    const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
+    const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
 
-    if (diffMins < 60) return `${diffMins} min ago`
-    if (diffHours < 24) return `${diffHours} hour${diffHours > 1 ? 's' : ''} ago`
-    return `${diffDays} day${diffDays > 1 ? 's' : ''} ago`
-  }
+    if (diffMins < 60) return `${diffMins} min ago`;
+    if (diffHours < 24) return `${diffHours} hour${diffHours > 1 ? 's' : ''} ago`;
+    return `${diffDays} day${diffDays > 1 ? 's' : ''} ago`;
+  };
 
   if (!canUseOutboundDialer) {
     return (
@@ -90,7 +90,7 @@ export default function OutboundCampaigns() {
           Upgrade Plan
         </button>
       </div>
-    )
+    );
   }
 
   if (loading) {
@@ -98,26 +98,26 @@ export default function OutboundCampaigns() {
       <div className="flex items-center justify-center h-64">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
       </div>
-    )
+    );
   }
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'active': return 'text-green-600 bg-green-100'
-      case 'paused': return 'text-yellow-600 bg-yellow-100'
-      case 'completed': return 'text-blue-600 bg-blue-100'
-      default: return 'text-slate-600 bg-slate-100'
+      case 'active': return 'text-green-600 bg-green-100';
+      case 'paused': return 'text-yellow-600 bg-yellow-100';
+      case 'completed': return 'text-blue-600 bg-blue-100';
+      default: return 'text-slate-600 bg-slate-100';
     }
-  }
+  };
 
   const getStatusIcon = (status: string) => {
     switch (status) {
-      case 'active': return <PlayIcon className="h-4 w-4" />
-      case 'paused': return <PauseIcon className="h-4 w-4" />
-      case 'completed': return <StopIcon className="h-4 w-4" />
-      default: return null
+      case 'active': return <PlayIcon className="h-4 w-4" />;
+      case 'paused': return <PauseIcon className="h-4 w-4" />;
+      case 'completed': return <StopIcon className="h-4 w-4" />;
+      default: return null;
     }
-  }
+  };
 
   return (
     <div className="space-y-6">
@@ -290,5 +290,5 @@ export default function OutboundCampaigns() {
         </div>
       </div>
     </div>
-  )
+  );
 }

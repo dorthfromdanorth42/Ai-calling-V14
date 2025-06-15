@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect } from 'react';
 import { 
   PlusIcon, 
   PlayIcon, 
@@ -8,12 +8,12 @@ import {
   ClockIcon,
   UserIcon,
   ExclamationTriangleIcon
-} from '@heroicons/react/24/outline'
-import { useUser, usePermissions } from '../contexts/UserContext'
-import { DatabaseService } from '../services/database'
-import { RealtimeService } from '../services/realtime'
-import type { AIAgent } from '../lib/supabase'
-import toast from 'react-hot-toast'
+} from '@heroicons/react/24/outline';
+import { useUser, usePermissions } from '../contexts/UserContext';
+import { DatabaseService } from '../services/database';
+import { RealtimeService } from '../services/realtime';
+import type { AIAgent } from '../lib/supabase';
+import toast from 'react-hot-toast';
 
 const VOICE_OPTIONS = [
   { value: 'Puck', label: 'Puck (Default)', description: 'Friendly and professional' },
@@ -24,7 +24,7 @@ const VOICE_OPTIONS = [
   { value: 'Leda', label: 'Leda', description: 'Clear and articulate' },
   { value: 'Orus', label: 'Orus', description: 'Calm and reassuring' },
   { value: 'Zephyr', label: 'Zephyr', description: 'Light and energetic' }
-]
+];
 
 const AGENT_TYPES = [
   { value: 'customer_service', label: 'Customer Service', description: 'General customer support and inquiries' },
@@ -34,7 +34,7 @@ const AGENT_TYPES = [
   { value: 'survey', label: 'Survey', description: 'Conduct customer surveys and feedback collection' },
   { value: 'after_hours', label: 'After Hours', description: '24/7 support for urgent issues' },
   { value: 'general', label: 'General Assistant', description: 'Multi-purpose AI assistant' }
-]
+];
 
 const LANGUAGES = [
   { value: 'en-US', label: 'English (US)' },
@@ -48,47 +48,47 @@ const LANGUAGES = [
   { value: 'ja-JP', label: 'Japanese' },
   { value: 'ko-KR', label: 'Korean' },
   { value: 'zh-CN', label: 'Chinese (Simplified)' }
-]
+];
 
 const TIMEZONES = [
   'UTC', 'America/New_York', 'America/Chicago', 'America/Denver', 'America/Los_Angeles',
   'Europe/London', 'Europe/Paris', 'Europe/Berlin', 'Asia/Tokyo', 'Asia/Shanghai',
   'Australia/Sydney', 'America/Toronto', 'America/Mexico_City'
-]
+];
 
 export default function AgentsPage() {
-  const { user } = useUser()
-  const { } = usePermissions()
-  const [agents, setAgents] = useState<AIAgent[]>([])
-  const [loading, setLoading] = useState(true)
-  const [showCreateModal, setShowCreateModal] = useState(false)
-  const [showEditModal, setShowEditModal] = useState(false)
-  const [selectedAgent, setSelectedAgent] = useState<AIAgent | null>(null)
+  const { user } = useUser();
+  const { } = usePermissions();
+  const [agents, setAgents] = useState<AIAgent[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [showCreateModal, setShowCreateModal] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [selectedAgent, setSelectedAgent] = useState<AIAgent | null>(null);
 
   useEffect(() => {
     if (user) {
-      loadAgents()
-      setupRealtimeSubscriptions()
+      loadAgents();
+      setupRealtimeSubscriptions();
     }
-  }, [user])
+  }, [user]);
 
   const loadAgents = async () => {
-    if (!user) return
+    if (!user) return;
 
     try {
-      setLoading(true)
-      const agentsData = await DatabaseService.getAIAgents(user.id)
-      setAgents(agentsData)
+      setLoading(true);
+      const agentsData = await DatabaseService.getAIAgents(user.id);
+      setAgents(agentsData);
     } catch (error) {
-      console.error('Error loading agents:', error)
-      toast.error('Failed to load AI agents')
+      console.error('Error loading agents:', error);
+      toast.error('Failed to load AI agents');
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   const setupRealtimeSubscriptions = () => {
-    if (!user) return
+    if (!user) return;
 
     const subscription = RealtimeService.subscribeToAgentUpdates(
       user.id,
@@ -97,69 +97,69 @@ export default function AgentsPage() {
           prev.map(agent => 
             agent.id === updatedAgent.id ? updatedAgent : agent
           )
-        )
+        );
       },
       (newAgent) => {
-        setAgents(prev => [newAgent, ...prev])
+        setAgents(prev => [newAgent, ...prev]);
       },
       (agentId) => {
-        setAgents(prev => prev.filter(agent => agent.id !== agentId))
+        setAgents(prev => prev.filter(agent => agent.id !== agentId));
       }
-    )
+    );
 
     return () => {
-      RealtimeService.unsubscribe(subscription)
-    }
-  }
+      RealtimeService.unsubscribe(subscription);
+    };
+  };
 
   const handleToggleAgent = async (agentId: string, isActive: boolean) => {
     try {
-      await DatabaseService.updateAIAgent(agentId, { is_active: !isActive })
-      toast.success(`Agent ${!isActive ? 'activated' : 'deactivated'}`)
+      await DatabaseService.updateAIAgent(agentId, { is_active: !isActive });
+      toast.success(`Agent ${!isActive ? 'activated' : 'deactivated'}`);
     } catch (error) {
-      console.error('Error toggling agent:', error)
-      toast.error('Failed to update agent status')
+      console.error('Error toggling agent:', error);
+      toast.error('Failed to update agent status');
     }
-  }
+  };
 
   const handleDeleteAgent = async (agentId: string) => {
     if (!confirm('Are you sure you want to delete this agent? This action cannot be undone.')) {
-      return
+      return;
     }
 
     try {
-      await DatabaseService.deleteAIAgent(agentId)
-      toast.success('Agent deleted successfully')
+      await DatabaseService.deleteAIAgent(agentId);
+      toast.success('Agent deleted successfully');
     } catch (error) {
-      console.error('Error deleting agent:', error)
-      toast.error('Failed to delete agent')
+      console.error('Error deleting agent:', error);
+      toast.error('Failed to delete agent');
     }
-  }
+  };
 
   const handleEditAgent = (agent: AIAgent) => {
-    setSelectedAgent(agent)
-    setShowEditModal(true)
-  }
+    setSelectedAgent(agent);
+    setShowEditModal(true);
+  };
 
   const getAgentTypeInfo = (type: string) => {
-    return AGENT_TYPES.find(t => t.value === type) || AGENT_TYPES[0]
-  }
+    return AGENT_TYPES.find(t => t.value === type) || AGENT_TYPES[0];
+  };
 
   const getVoiceInfo = (voice: string) => {
-    return VOICE_OPTIONS.find(v => v.value === voice) || VOICE_OPTIONS[0]
-  }
+    return VOICE_OPTIONS.find(v => v.value === voice) || VOICE_OPTIONS[0];
+  };
 
   const formatBusinessHours = (start?: string, end?: string) => {
-    if (!start || !end) return '24/7'
-    return `${start} - ${end}`
-  }
+    if (!start || !end) return '24/7';
+    return `${start} - ${end}`;
+  };
 
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
       </div>
-    )
+    );
   }
 
   return (
@@ -330,20 +330,20 @@ export default function AgentsPage() {
         <EditAgentModal
           agent={selectedAgent}
           onClose={() => {
-            setShowEditModal(false)
-            setSelectedAgent(null)
+            setShowEditModal(false);
+            setSelectedAgent(null);
           }}
           onSuccess={loadAgents}
         />
       )}
     </div>
-  )
+  );
 }
 
 // Create Agent Modal Component
 function CreateAgentModal({ onClose, onSuccess }: { onClose: () => void; onSuccess: () => void }) {
-  const { user } = useUser()
-  const [loading, setLoading] = useState(false)
+  const { user } = useUser();
+  const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
     name: '',
     description: '',
@@ -362,13 +362,13 @@ function CreateAgentModal({ onClose, onSuccess }: { onClose: () => void; onSucce
     escalation_type: 'voicemail',
     escalation_phone_number: '',
     escalation_email: ''
-  })
+  });
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    if (!user) return
+    e.preventDefault();
+    if (!user) return;
 
-    setLoading(true)
+    setLoading(true);
     try {
       await DatabaseService.createAIAgent({
         ...formData,
@@ -377,18 +377,18 @@ function CreateAgentModal({ onClose, onSuccess }: { onClose: () => void; onSucce
         agent_type: formData.agent_type as AIAgent['agent_type'],
         voice_name: formData.voice_name as AIAgent['voice_name'],
         escalation_type: formData.escalation_type as AIAgent['escalation_type']
-      })
+      });
       
-      toast.success('AI agent created successfully')
-      onSuccess()
-      onClose()
+      toast.success('AI agent created successfully');
+      onSuccess();
+      onClose();
     } catch (error) {
-      console.error('Error creating agent:', error)
-      toast.error('Failed to create AI agent')
+      console.error('Error creating agent:', error);
+      toast.error('Failed to create AI agent');
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   return (
     <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
@@ -628,7 +628,7 @@ function CreateAgentModal({ onClose, onSuccess }: { onClose: () => void; onSucce
         </div>
       </div>
     </div>
-  )
+  );
 }
 
 // Edit Agent Modal Component (similar structure to Create, but with existing data)
@@ -641,7 +641,7 @@ function EditAgentModal({
   onClose: () => void; 
   onSuccess: () => void 
 }) {
-  const [loading, setLoading] = useState(false)
+  const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
     name: agent.name,
     description: agent.description || '',
@@ -660,25 +660,25 @@ function EditAgentModal({
     escalation_type: agent.escalation_type || 'voicemail',
     escalation_phone_number: agent.escalation_phone_number || '',
     escalation_email: agent.escalation_email || ''
-  })
+  });
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
+    e.preventDefault();
 
-    setLoading(true)
+    setLoading(true);
     try {
-      await DatabaseService.updateAIAgent(agent.id, formData)
+      await DatabaseService.updateAIAgent(agent.id, formData);
       
-      toast.success('AI agent updated successfully')
-      onSuccess()
-      onClose()
+      toast.success('AI agent updated successfully');
+      onSuccess();
+      onClose();
     } catch (error) {
-      console.error('Error updating agent:', error)
-      toast.error('Failed to update AI agent')
+      console.error('Error updating agent:', error);
+      toast.error('Failed to update AI agent');
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   // Similar form structure as CreateAgentModal but with update functionality
   return (
@@ -831,5 +831,5 @@ function EditAgentModal({
         </div>
       </div>
     </div>
-  )
+  );
 }

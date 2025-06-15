@@ -1,6 +1,6 @@
-import { useAuth } from './useAuth'
-import { useEffect, useState } from 'react'
-import { supabase } from '../lib/supabase'
+import { useAuth } from './useAuth';
+import { useEffect, useState } from 'react';
+import { supabase } from '../lib/supabase';
 
 export interface UserPermissions {
   dashboard: boolean
@@ -30,32 +30,32 @@ export interface UserProfile {
 }
 
 export function usePermissions() {
-  const { user } = useAuth()
-  const [permissions, setPermissions] = useState<UserPermissions | null>(null)
-  const [profile, setProfile] = useState<UserProfile | null>(null)
-  const [loading, setLoading] = useState(true)
-  const [isAdmin, setIsAdmin] = useState(false)
+  const { user } = useAuth();
+  const [permissions, setPermissions] = useState<UserPermissions | null>(null);
+  const [profile, setProfile] = useState<UserProfile | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [isAdmin, setIsAdmin] = useState(false);
 
   useEffect(() => {
     if (user) {
-      loadUserProfile()
+      loadUserProfile();
     } else {
-      setPermissions(null)
-      setProfile(null)
-      setIsAdmin(false)
-      setLoading(false)
+      setPermissions(null);
+      setProfile(null);
+      setIsAdmin(false);
+      setLoading(false);
     }
-  }, [user])
+  }, [user]);
 
   const loadUserProfile = async () => {
-    if (!user) return
+    if (!user) return;
 
     try {
       // Check if user is admin
-      const adminEmail = 'gamblerspassion@gmail.com'
-      const userIsAdmin = user.email === adminEmail
+      const adminEmail = 'gamblerspassion@gmail.com';
+      const userIsAdmin = user.email === adminEmail;
 
-      setIsAdmin(userIsAdmin)
+      setIsAdmin(userIsAdmin);
 
       if (userIsAdmin) {
         // Admin has all permissions
@@ -71,8 +71,8 @@ export function usePermissions() {
           webhooks: true,
           dnc: true,
           status: true
-        }
-        setPermissions(adminPermissions)
+        };
+        setPermissions(adminPermissions);
         setProfile({
           id: user.id,
           email: user.email || '',
@@ -82,17 +82,17 @@ export function usePermissions() {
           used_minutes: 0,
           is_active: true,
           created_at: new Date().toISOString()
-        })
+        });
       } else {
         // Load regular user profile from database
         const { data, error } = await supabase
           .from('profiles')
           .select('*')
           .eq('id', user.id)
-          .single()
+          .single();
 
         if (error) {
-          console.error('Error loading user profile:', error)
+          console.error('Error loading user profile:', error);
           // Set default permissions if profile not found
           const defaultPermissions: UserPermissions = {
             dashboard: true,
@@ -106,8 +106,8 @@ export function usePermissions() {
             webhooks: false,
             dnc: false,
             status: false
-          }
-          setPermissions(defaultPermissions)
+          };
+          setPermissions(defaultPermissions);
         } else {
           const userPermissions = data.permissions || {
             dashboard: true,
@@ -121,9 +121,9 @@ export function usePermissions() {
             webhooks: false,
             dnc: false,
             status: false
-          }
+          };
           
-          setPermissions(userPermissions)
+          setPermissions(userPermissions);
           setProfile({
             id: data.id,
             email: data.email,
@@ -135,23 +135,23 @@ export function usePermissions() {
             used_minutes: data.used_minutes || 0,
             is_active: data.is_active,
             created_at: data.created_at
-          })
+          });
         }
       }
     } catch (error) {
-      console.error('Error in loadUserProfile:', error)
+      console.error('Error in loadUserProfile:', error);
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   const hasPermission = (permission: keyof UserPermissions): boolean => {
-    if (isAdmin) return true
-    return permissions?.[permission] || false
-  }
+    if (isAdmin) return true;
+    return permissions?.[permission] || false;
+  };
 
   const canAccess = (route: string): boolean => {
-    if (isAdmin) return true
+    if (isAdmin) return true;
     
     const routePermissionMap: Record<string, keyof UserPermissions> = {
       '/dashboard': 'dashboard',
@@ -168,29 +168,29 @@ export function usePermissions() {
       '/webhooks': 'webhooks',
       '/dnc': 'dnc',
       '/status': 'status'
-    }
+    };
 
-    const requiredPermission = routePermissionMap[route]
-    return requiredPermission ? hasPermission(requiredPermission) : false
-  }
+    const requiredPermission = routePermissionMap[route];
+    return requiredPermission ? hasPermission(requiredPermission) : false;
+  };
 
   const isUsageExceeded = (): boolean => {
-    if (isAdmin || !profile) return false
-    if (profile.usage_cap === 0) return false // unlimited
-    return profile.used_minutes >= profile.usage_cap
-  }
+    if (isAdmin || !profile) return false;
+    if (profile.usage_cap === 0) return false; // unlimited
+    return profile.used_minutes >= profile.usage_cap;
+  };
 
   const getUsagePercentage = (): number => {
-    if (isAdmin || !profile) return 0
-    if (profile.usage_cap === 0) return 0 // unlimited
-    return Math.min((profile.used_minutes / profile.usage_cap) * 100, 100)
-  }
+    if (isAdmin || !profile) return 0;
+    if (profile.usage_cap === 0) return 0; // unlimited
+    return Math.min((profile.used_minutes / profile.usage_cap) * 100, 100);
+  };
 
   const getRemainingMinutes = (): number => {
-    if (isAdmin || !profile) return Infinity
-    if (profile.usage_cap === 0) return Infinity // unlimited
-    return Math.max(profile.usage_cap - profile.used_minutes, 0)
-  }
+    if (isAdmin || !profile) return Infinity;
+    if (profile.usage_cap === 0) return Infinity; // unlimited
+    return Math.max(profile.usage_cap - profile.used_minutes, 0);
+  };
 
   return {
     permissions,
@@ -203,5 +203,5 @@ export function usePermissions() {
     getUsagePercentage,
     getRemainingMinutes,
     refreshProfile: loadUserProfile
-  }
+  };
 }

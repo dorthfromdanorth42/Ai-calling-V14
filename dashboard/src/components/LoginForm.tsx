@@ -1,19 +1,19 @@
-import { useState } from 'react'
-import { EyeIcon, EyeSlashIcon } from '@heroicons/react/24/outline'
-import { supabase } from '../lib/supabase'
-import { mockAuth } from '../lib/mockAuth'
-import toast from 'react-hot-toast'
+import { useState } from 'react';
+import { EyeIcon, EyeSlashIcon } from '@heroicons/react/24/outline';
+import { supabase } from '../lib/supabase';
+import { mockAuth } from '../lib/mockAuth';
+import toast from 'react-hot-toast';
 
 export default function LoginForm() {
-  const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
-  const [showPassword, setShowPassword] = useState(false)
-  const [loading, setLoading] = useState(false)
-  const [isSignUp, setIsSignUp] = useState(false)
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [isSignUp, setIsSignUp] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setLoading(true)
+    e.preventDefault();
+    setLoading(true);
 
     try {
       if (isSignUp) {
@@ -22,13 +22,13 @@ export default function LoginForm() {
           const { error } = await supabase.auth.signUp({
             email,
             password,
-          })
-          if (error) throw error
-          toast.success('Check your email for the confirmation link!')
+          });
+          if (error) throw error;
+          toast.success('Check your email for the confirmation link!');
         } catch (supabaseError) {
-          const { error } = await mockAuth.signUp({ email, password })
-          if (error) throw error
-          toast.success('Account created! (Demo mode)')
+          const { error } = await mockAuth.signUp({ email, password });
+          if (error) throw error;
+          toast.success('Account created! (Demo mode)');
         }
       } else {
         // Try Supabase first, fallback to mock
@@ -36,70 +36,70 @@ export default function LoginForm() {
           const { error } = await supabase.auth.signInWithPassword({
             email,
             password,
-          })
-          if (error) throw error
-          toast.success('Welcome back!')
+          });
+          if (error) throw error;
+          toast.success('Welcome back!');
         } catch (supabaseError) {
-          const { data, error } = await mockAuth.signInWithPassword({ email, password })
-          if (error) throw error
+          const { data, error } = await mockAuth.signInWithPassword({ email, password });
+          if (error) throw error;
           if (data.user) {
-            toast.success('Welcome back! (Demo mode)')
+            toast.success('Welcome back! (Demo mode)');
             // Trigger a page reload to update auth state
-            window.location.reload()
+            window.location.reload();
           }
         }
       }
     } catch (error: any) {
-      toast.error(error.message || 'Authentication failed')
+      toast.error(error.message || 'Authentication failed');
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   const handleForgotPassword = async () => {
     if (!email) {
-      toast.error('Please enter your email address first')
-      return
+      toast.error('Please enter your email address first');
+      return;
     }
 
     try {
-      const { error } = await supabase.auth.resetPasswordForEmail(email)
-      if (error) throw error
-      toast.success('Password reset email sent!')
+      const { error } = await supabase.auth.resetPasswordForEmail(email);
+      if (error) throw error;
+      toast.success('Password reset email sent!');
     } catch (error: any) {
-      toast.error(error.message || 'Failed to send reset email')
+      toast.error(error.message || 'Failed to send reset email');
     }
-  }
+  };
 
   const handleDemoLogin = async () => {
-    setLoading(true)
+    setLoading(true);
     try {
       // Try Supabase first, fallback to mock
       try {
         const { error } = await supabase.auth.signInWithPassword({
           email: 'demo@example.com',
           password: 'demo123',
-        })
-        if (error) throw error
-        toast.success('Demo login successful!')
+        });
+        if (error) throw error;
+        toast.success('Demo login successful!');
       } catch (supabaseError) {
         const { data, error } = await mockAuth.signInWithPassword({
           email: 'demo@example.com',
           password: 'demo123',
-        })
-        if (error) throw error
+        });
+        if (error) throw error;
         if (data.user) {
-          toast.success('Demo login successful! (Demo mode)')
+          toast.success('Demo login successful! (Demo mode)');
           // Trigger a page reload to update auth state
-          window.location.reload()
+          window.location.reload();
         }
       }
     } catch (error: any) {
-      toast.error(error.message || 'Demo login failed')
+      toast.error(error.message || 'Demo login failed');
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-blue-900 to-gray-900 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
@@ -209,7 +209,7 @@ export default function LoginForm() {
                 onClick={() => setIsSignUp(!isSignUp)}
                 className="text-sm text-gray-300 hover:text-white transition-colors duration-200"
               >
-                {isSignUp ? 'Already have an account? Sign in' : "Don't have an account? Sign up"}
+                {isSignUp ? 'Already have an account? Sign in' : 'Don\'t have an account? Sign up'}
               </button>
             </div>
 
@@ -238,5 +238,5 @@ export default function LoginForm() {
         </div>
       </div>
     </div>
-  )
+  );
 }

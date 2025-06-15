@@ -1,26 +1,26 @@
-import { useUser } from '../contexts/UserContext'
-import { ClockIcon, ExclamationTriangleIcon } from '@heroicons/react/24/outline'
+import { useUser } from '../contexts/UserContext';
+import { ClockIcon, ExclamationTriangleIcon } from '@heroicons/react/24/outline';
 
 export default function UsageTracker() {
-  const { user } = useUser()
+  const { user } = useUser();
 
-  if (!user) return null
+  if (!user) return null;
 
-  const usagePercentage = (user.minutes_used / user.monthly_minute_limit) * 100
-  const isNearLimit = usagePercentage >= 80
-  const isOverLimit = usagePercentage >= 100
+  const usagePercentage = (user.minutes_used / user.monthly_minute_limit) * 100;
+  const isNearLimit = usagePercentage >= 80;
+  const isOverLimit = usagePercentage >= 100;
 
   const getProgressBarColor = () => {
-    if (isOverLimit) return 'bg-red-500'
-    if (isNearLimit) return 'bg-yellow-500'
-    return 'bg-green-500'
-  }
+    if (isOverLimit) return 'bg-red-500';
+    if (isNearLimit) return 'bg-yellow-500';
+    return 'bg-green-500';
+  };
 
   const getTextColor = () => {
-    if (isOverLimit) return 'text-red-600'
-    if (isNearLimit) return 'text-yellow-600'
-    return 'text-green-600'
-  }
+    if (isOverLimit) return 'text-red-600';
+    if (isNearLimit) return 'text-yellow-600';
+    return 'text-green-600';
+  };
 
   return (
     <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
@@ -92,5 +92,5 @@ export default function UsageTracker() {
         </div>
       </div>
     </div>
-  )
+  );
 }

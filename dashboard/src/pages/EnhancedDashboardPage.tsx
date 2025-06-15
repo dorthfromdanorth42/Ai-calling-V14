@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect } from 'react';
 import { 
   PhoneIcon, 
   UserGroupIcon,
@@ -7,13 +7,13 @@ import {
   ArrowTrendingDownIcon,
   CalendarIcon,
   SignalIcon
-} from '@heroicons/react/24/outline'
-import { useUser } from '../contexts/UserContext'
-import { DatabaseService } from '../services/database'
-import { RealtimeService } from '../services/realtime'
-import UsageTracker from '../components/UsageTracker'
-import type { CallLog } from '../lib/supabase'
-import toast from 'react-hot-toast'
+} from '@heroicons/react/24/outline';
+import { useUser } from '../contexts/UserContext';
+import { DatabaseService } from '../services/database';
+import { RealtimeService } from '../services/realtime';
+import UsageTracker from '../components/UsageTracker';
+import type { CallLog } from '../lib/supabase';
+import toast from 'react-hot-toast';
 
 interface BusinessMetrics {
   revenue: {
@@ -64,68 +64,68 @@ interface RealtimeStats {
 }
 
 export default function EnhancedDashboardPage() {
-  const { user } = useUser()
+  const { user } = useUser();
   // Removed unused variable
-  const [recentCalls, setRecentCalls] = useState<CallLog[]>([])
-  const [businessMetrics, setBusinessMetrics] = useState<BusinessMetrics | null>(null)
+  const [recentCalls, setRecentCalls] = useState<CallLog[]>([]);
+  const [businessMetrics, setBusinessMetrics] = useState<BusinessMetrics | null>(null);
   const [realtimeStats, setRealtimeStats] = useState<RealtimeStats>({
     activeCalls: 0,
     queuedCalls: 0,
     availableAgents: 0,
     systemHealth: 'healthy'
-  })
-  const [loading, setLoading] = useState(true)
-  const [timeRange, setTimeRange] = useState<'7d' | '30d' | '90d'>('30d')
+  });
+  const [loading, setLoading] = useState(true);
+  const [timeRange, setTimeRange] = useState<'7d' | '30d' | '90d'>('30d');
 
   useEffect(() => {
     if (user) {
-      loadDashboardData()
-      setupRealtimeSubscriptions()
+      loadDashboardData();
+      setupRealtimeSubscriptions();
       
       // Refresh data every 30 seconds
-      const interval = setInterval(loadDashboardData, 30000)
-      return () => clearInterval(interval)
+      const interval = setInterval(loadDashboardData, 30000);
+      return () => clearInterval(interval);
     }
-  }, [user, timeRange])
+  }, [user, timeRange]);
 
   const loadDashboardData = async () => {
-    if (!user) return
+    if (!user) return;
 
     try {
-      setLoading(true)
+      setLoading(true);
       
       // Load recent calls
-      const calls = await DatabaseService.getCallLogs(user!.id, 10)
-      setRecentCalls(calls)
+      const calls = await DatabaseService.getCallLogs(user!.id, 10);
+      setRecentCalls(calls);
 
       // Load business metrics
-      const metrics = await loadBusinessMetrics()
-      setBusinessMetrics(metrics)
+      const metrics = await loadBusinessMetrics();
+      setBusinessMetrics(metrics);
 
       // Load realtime stats
-      const stats = await loadRealtimeStats()
-      setRealtimeStats(stats)
+      const stats = await loadRealtimeStats();
+      setRealtimeStats(stats);
 
     } catch (error) {
-      console.error('Error loading dashboard data:', error)
-      toast.error('Failed to load dashboard data')
+      console.error('Error loading dashboard data:', error);
+      toast.error('Failed to load dashboard data');
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   const loadBusinessMetrics = async (): Promise<BusinessMetrics> => {
     // Load real analytics data from database - NO MOCK DATA
-    const analytics = await DatabaseService.getAnalytics(user!.id)
+    const analytics = await DatabaseService.getAnalytics(user!.id);
     
     // Calculate metrics from available data
-    const totalCalls = analytics.totalCalls || 0
-    const successfulCalls = analytics.successfulCalls || 0
-    const answerRate = totalCalls > 0 ? (successfulCalls / totalCalls) * 100 : 0
+    const totalCalls = analytics.totalCalls || 0;
+    const successfulCalls = analytics.successfulCalls || 0;
+    const answerRate = totalCalls > 0 ? (successfulCalls / totalCalls) * 100 : 0;
     
     // Estimate revenue based on successful calls (placeholder calculation)
-    const estimatedRevenuePerCall = 50 // $50 average value per successful call
-    const estimatedRevenue = successfulCalls * estimatedRevenuePerCall
+    const estimatedRevenuePerCall = 50; // $50 average value per successful call
+    const estimatedRevenue = successfulCalls * estimatedRevenuePerCall;
     
     return {
       revenue: {
@@ -166,94 +166,94 @@ export default function EnhancedDashboardPage() {
         perCall: 0.85,
         perMinute: 0.12
       }
-    }
-  }
+    };
+  };
 
   const loadRealtimeStats = async (): Promise<RealtimeStats> => {
     try {
-      const activeCalls = await DatabaseService.getActiveCalls(user!.id)
-      const agentStatuses = await DatabaseService.getAgentStatuses(user!.id)
-      const callQueue = await DatabaseService.getCallQueue(user!.id)
+      const activeCalls = await DatabaseService.getActiveCalls(user!.id);
+      const agentStatuses = await DatabaseService.getAgentStatuses(user!.id);
+      const callQueue = await DatabaseService.getCallQueue(user!.id);
 
       const availableAgents = agentStatuses.filter(agent => 
         agent.is_active && agent.status === 'available'
-      ).length
+      ).length;
 
       const systemHealth = activeCalls.length > 10 ? 'warning' : 
-                          activeCalls.length > 20 ? 'critical' : 'healthy'
+                          activeCalls.length > 20 ? 'critical' : 'healthy';
 
       return {
         activeCalls: activeCalls.length,
         queuedCalls: callQueue.length,
         availableAgents,
         systemHealth
-      }
+      };
     } catch (error) {
-      console.error('Error loading realtime stats:', error)
+      console.error('Error loading realtime stats:', error);
       return {
         activeCalls: 0,
         queuedCalls: 0,
         availableAgents: 0,
         systemHealth: 'healthy'
-      }
+      };
     }
-  }
+  };
 
   const setupRealtimeSubscriptions = () => {
-    if (!user) return
+    if (!user) return;
 
     // Subscribe to call updates for realtime stats
     const callSubscription = RealtimeService.subscribeToCallUpdates(
       user!.id,
       () => {
         // Refresh realtime stats when calls update
-        loadRealtimeStats().then(setRealtimeStats)
+        loadRealtimeStats().then(setRealtimeStats);
       }
-    )
+    );
 
     return () => {
-      callSubscription?.unsubscribe()
-    }
-  }
+      callSubscription?.unsubscribe();
+    };
+  };
 
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('en-US', {
       style: 'currency',
       currency: 'USD'
-    }).format(amount)
-  }
+    }).format(amount);
+  };
 
   const formatPercentage = (value: number) => {
-    return `${value.toFixed(1)}%`
-  }
+    return `${value.toFixed(1)}%`;
+  };
 
   const formatDuration = (seconds: number) => {
-    const mins = Math.floor(seconds / 60)
-    const secs = seconds % 60
-    return `${mins}:${secs.toString().padStart(2, '0')}`
-  }
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins}:${secs.toString().padStart(2, '0')}`;
+  };
 
   const getGrowthIcon = (growth: number) => {
     if (growth > 0) {
-      return <ArrowTrendingUpIcon className="h-4 w-4 text-green-500" />
+      return <ArrowTrendingUpIcon className="h-4 w-4 text-green-500" />;
     } else if (growth < 0) {
-      return <ArrowTrendingDownIcon className="h-4 w-4 text-red-500" />
+      return <ArrowTrendingDownIcon className="h-4 w-4 text-red-500" />;
     }
-    return null
-  }
+    return null;
+  };
 
   const getGrowthColor = (growth: number) => {
-    if (growth > 0) return 'text-green-600'
-    if (growth < 0) return 'text-red-600'
-    return 'text-gray-600'
-  }
+    if (growth > 0) return 'text-green-600';
+    if (growth < 0) return 'text-red-600';
+    return 'text-gray-600';
+  };
 
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
         <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-indigo-600"></div>
       </div>
-    )
+    );
   }
 
   return (
@@ -532,5 +532,5 @@ export default function EnhancedDashboardPage() {
       {/* Usage Tracker */}
       <UsageTracker />
     </div>
-  )
+  );
 }

@@ -1,4 +1,4 @@
-import type { CallLog, Campaign, Appointment, DNCEntry } from '../lib/supabase'
+import type { CallLog, Campaign, Appointment, DNCEntry } from '../lib/supabase';
 
 export class ExportService {
   static exportCallsToCSV(calls: CallLog[], filename?: string) {
@@ -16,7 +16,7 @@ export class ExportService {
       'Agent',
       'Campaign',
       'Summary'
-    ]
+    ];
 
     const rows = calls.map(call => [
       new Date(call.started_at).toLocaleDateString(),
@@ -32,9 +32,9 @@ export class ExportService {
       call.agent_id || '',
       call.campaign_id || '',
       call.call_summary || ''
-    ])
+    ]);
 
-    this.downloadCSV([headers, ...rows], filename || `calls-export-${new Date().toISOString().split('T')[0]}.csv`)
+    this.downloadCSV([headers, ...rows], filename || `calls-export-${new Date().toISOString().split('T')[0]}.csv`);
   }
 
   static exportCampaignsToCSV(campaigns: Campaign[], filename?: string) {
@@ -51,7 +51,7 @@ export class ExportService {
       'Success Rate (%)',
       'Caller ID',
       'Max Concurrent Calls'
-    ]
+    ];
 
     const rows = campaigns.map(campaign => [
       campaign.name,
@@ -66,9 +66,9 @@ export class ExportService {
       campaign.total_leads > 0 ? ((campaign.leads_completed / campaign.total_leads) * 100).toFixed(2) : '0',
       campaign.caller_id,
       campaign.max_concurrent_calls.toString()
-    ])
+    ]);
 
-    this.downloadCSV([headers, ...rows], filename || `campaigns-export-${new Date().toISOString().split('T')[0]}.csv`)
+    this.downloadCSV([headers, ...rows], filename || `campaigns-export-${new Date().toISOString().split('T')[0]}.csv`);
   }
 
   static exportAppointmentsToCSV(appointments: Appointment[], filename?: string) {
@@ -83,7 +83,7 @@ export class ExportService {
       'Location',
       'Notes',
       'Created Date'
-    ]
+    ];
 
     const rows = appointments.map(appointment => [
       appointment.customer_name,
@@ -96,9 +96,9 @@ export class ExportService {
       appointment.notes || '',
       appointment.notes || '',
       new Date(appointment.created_at).toLocaleDateString()
-    ])
+    ]);
 
-    this.downloadCSV([headers, ...rows], filename || `appointments-export-${new Date().toISOString().split('T')[0]}.csv`)
+    this.downloadCSV([headers, ...rows], filename || `appointments-export-${new Date().toISOString().split('T')[0]}.csv`);
   }
 
   static exportDNCToCSV(dncEntries: DNCEntry[], filename?: string) {
@@ -109,7 +109,7 @@ export class ExportService {
       'Expiry Date',
       'Notes',
       'Is Active'
-    ]
+    ];
 
     const rows = dncEntries.map(entry => [
       entry.phone_number,
@@ -118,60 +118,60 @@ export class ExportService {
       entry.expiry_date ? new Date(entry.expiry_date).toLocaleDateString() : '',
       entry.notes || '',
       entry.is_active ? 'Yes' : 'No'
-    ])
+    ]);
 
-    this.downloadCSV([headers, ...rows], filename || `dnc-list-${new Date().toISOString().split('T')[0]}.csv`)
+    this.downloadCSV([headers, ...rows], filename || `dnc-list-${new Date().toISOString().split('T')[0]}.csv`);
   }
 
   static exportAnalyticsToCSV(data: any[], filename?: string) {
-    if (data.length === 0) return
+    if (data.length === 0) return;
 
-    const headers = Object.keys(data[0])
+    const headers = Object.keys(data[0]);
     const rows = data.map(item => headers.map(header => {
-      const value = item[header]
+      const value = item[header];
       if (value instanceof Date) {
-        return value.toLocaleDateString()
+        return value.toLocaleDateString();
       }
-      return value?.toString() || ''
-    }))
+      return value?.toString() || '';
+    }));
 
-    this.downloadCSV([headers, ...rows], filename || `analytics-export-${new Date().toISOString().split('T')[0]}.csv`)
+    this.downloadCSV([headers, ...rows], filename || `analytics-export-${new Date().toISOString().split('T')[0]}.csv`);
   }
 
   private static downloadCSV(data: string[][], filename: string) {
     const csvContent = data
       .map(row => row.map(field => `"${field?.toString().replace(/"/g, '""') || ''}"`).join(','))
-      .join('\n')
+      .join('\n');
 
-    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' })
-    const link = document.createElement('a')
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
     
     if (link.download !== undefined) {
-      const url = URL.createObjectURL(blob)
-      link.setAttribute('href', url)
-      link.setAttribute('download', filename)
-      link.style.visibility = 'hidden'
-      document.body.appendChild(link)
-      link.click()
-      document.body.removeChild(link)
-      URL.revokeObjectURL(url)
+      const url = URL.createObjectURL(blob);
+      link.setAttribute('href', url);
+      link.setAttribute('download', filename);
+      link.style.visibility = 'hidden';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
     }
   }
 
   static async exportToJSON(data: any[], filename?: string) {
-    const jsonContent = JSON.stringify(data, null, 2)
-    const blob = new Blob([jsonContent], { type: 'application/json' })
-    const link = document.createElement('a')
+    const jsonContent = JSON.stringify(data, null, 2);
+    const blob = new Blob([jsonContent], { type: 'application/json' });
+    const link = document.createElement('a');
     
     if (link.download !== undefined) {
-      const url = URL.createObjectURL(blob)
-      link.setAttribute('href', url)
-      link.setAttribute('download', filename || `export-${new Date().toISOString().split('T')[0]}.json`)
-      link.style.visibility = 'hidden'
-      document.body.appendChild(link)
-      link.click()
-      document.body.removeChild(link)
-      URL.revokeObjectURL(url)
+      const url = URL.createObjectURL(blob);
+      link.setAttribute('href', url);
+      link.setAttribute('download', filename || `export-${new Date().toISOString().split('T')[0]}.json`);
+      link.style.visibility = 'hidden';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
     }
   }
 
@@ -193,15 +193,15 @@ export class ExportService {
         expiredEntries: dncEntries.filter(e => e.expiry_date && new Date(e.expiry_date) < new Date()).length
       },
       callsBySource: calls.reduce((acc, call) => {
-        const source = call.direction
-        acc[source] = (acc[source] || 0) + 1
-        return acc
+        const source = call.direction;
+        acc[source] = (acc[source] || 0) + 1;
+        return acc;
       }, {} as Record<string, number>),
       violations: [] as any[]
-    }
+    };
 
     // Check for DNC violations
-    const dncNumbers = new Set(dncEntries.filter(e => e.is_active).map(e => e.phone_number))
+    const dncNumbers = new Set(dncEntries.filter(e => e.is_active).map(e => e.phone_number));
     
     calls.forEach(call => {
       if (call.direction === 'outbound' && dncNumbers.has(call.phone_number_to)) {
@@ -210,15 +210,15 @@ export class ExportService {
           phoneNumber: call.phone_number_to,
           callDate: call.started_at,
           violationType: 'DNC_VIOLATION'
-        })
-        report.summary.dncViolations++
+        });
+        report.summary.dncViolations++;
       }
-    })
+    });
 
     report.summary.complianceRate = calls.length > 0 
       ? ((calls.length - report.summary.dncViolations) / calls.length) * 100 
-      : 100
+      : 100;
 
-    return report
+    return report;
   }
 }

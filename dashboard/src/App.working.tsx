@@ -1,9 +1,9 @@
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom'
-import { Toaster } from 'react-hot-toast'
-import { UserProvider } from './contexts/UserContext'
-import { useAuth } from './hooks/useAuth'
-import AuthPage from './pages/AuthPage'
-import DashboardPage from './pages/DashboardPage'
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { Toaster } from 'react-hot-toast';
+import { UserProvider } from './contexts/UserContext';
+import { useAuth } from './hooks/useAuth';
+import AuthPage from './pages/AuthPage';
+import DashboardPage from './pages/DashboardPage';
 // Temporarily comment out imports to test
 // import AgentsPage from './pages/AgentsPage'
 // import CallsPage from './pages/CallsPage'
@@ -15,8 +15,8 @@ import DashboardPage from './pages/DashboardPage'
 // import BillingPage from './pages/BillingPage'
 // import StatusPage from './pages/StatusPage'
 // import SettingsPage from './pages/SettingsPage'
-import Layout from './components/Layout'
-import LoadingSpinner from './components/LoadingSpinner'
+import Layout from './components/Layout';
+import LoadingSpinner from './components/LoadingSpinner';
 
 // Temporary placeholder components
 const PlaceholderPage = ({ title }: { title: string }) => (
@@ -24,17 +24,17 @@ const PlaceholderPage = ({ title }: { title: string }) => (
     <h1 className="text-2xl font-bold text-gray-900 mb-4">{title}</h1>
     <p className="text-gray-600">This page is under development.</p>
   </div>
-)
+);
 
 function AppContent() {
-  const { user, loading } = useAuth()
+  const { user, loading } = useAuth();
 
   if (loading) {
-    return <LoadingSpinner />
+    return <LoadingSpinner />;
   }
 
   if (!user) {
-    return <AuthPage />
+    return <AuthPage />;
   }
 
   return (
@@ -55,7 +55,7 @@ function AppContent() {
         <Route path="*" element={<Navigate to="/dashboard" replace />} />
       </Routes>
     </Layout>
-  )
+  );
 }
 
 function App() {
@@ -75,7 +75,7 @@ function App() {
         />
       </UserProvider>
     </Router>
-  )
+  );
 }
 
-export default App
+export default App;

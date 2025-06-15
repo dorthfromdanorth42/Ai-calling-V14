@@ -1,7 +1,7 @@
-import { useUser } from '../contexts/UserContext'
+import { useUser } from '../contexts/UserContext';
 
 export default function DashboardPage() {
-  const { user } = useUser()
+  const { user } = useUser();
 
   return (
     <div style={{ padding: '20px', fontFamily: 'Arial, sans-serif' }}>
@@ -153,5 +153,5 @@ export default function DashboardPage() {
         </div>
       </div>
     </div>
-  )
+  );
 }

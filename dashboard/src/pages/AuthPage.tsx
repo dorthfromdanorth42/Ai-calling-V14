@@ -1,15 +1,15 @@
-import { useState } from 'react'
-import { PhoneIcon, MicrophoneIcon, EyeIcon, EyeSlashIcon, CogIcon } from '@heroicons/react/24/outline'
-import { AuthService } from '../services/auth'
-import { useApp } from '../contexts/AppContext'
-import toast from 'react-hot-toast'
+import { useState } from 'react';
+import { PhoneIcon, MicrophoneIcon, EyeIcon, EyeSlashIcon, CogIcon } from '@heroicons/react/24/outline';
+import { AuthService } from '../services/auth';
+import { useApp } from '../contexts/AppContext';
+import toast from 'react-hot-toast';
 
 export default function AuthPage() {
-  const { mode, toggleMode, isDemo, isLive } = useApp()
-  const [isAdminSetup, setIsAdminSetup] = useState(false)
-  const [isLoading, setIsLoading] = useState(false)
-  const [showPassword, setShowPassword] = useState(false)
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false)
+  const { mode, toggleMode, isDemo, isLive } = useApp();
+  const [isAdminSetup, setIsAdminSetup] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [formData, setFormData] = useState({
     email: '',
     password: '',
@@ -17,23 +17,23 @@ export default function AuthPage() {
     clientName: '',
     companyName: '',
     phoneNumber: ''
-  })
+  });
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setIsLoading(true)
+    e.preventDefault();
+    setIsLoading(true);
 
     try {
       if (isAdminSetup) {
         // One-time admin setup
         if (formData.password !== formData.confirmPassword) {
-          toast.error('Passwords do not match')
-          return
+          toast.error('Passwords do not match');
+          return;
         }
 
         if (formData.password.length < 6) {
-          toast.error('Password must be at least 6 characters long')
-          return
+          toast.error('Password must be at least 6 characters long');
+          return;
         }
 
         const { user, error } = await AuthService.signUp({
@@ -42,87 +42,87 @@ export default function AuthPage() {
           clientName: formData.clientName,
           companyName: formData.companyName,
           phoneNumber: formData.phoneNumber
-        })
+        });
 
         if (error) {
-          toast.error(error.message)
+          toast.error(error.message);
         } else if (user) {
-          toast.success('Admin account created successfully!')
+          toast.success('Admin account created successfully!');
         }
       } else {
         const { user, error } = await AuthService.signIn({
           email: formData.email,
           password: formData.password
-        })
+        });
 
         if (error) {
-          toast.error(error.message)
+          toast.error(error.message);
         } else if (user) {
-          toast.success('Signed in successfully!')
+          toast.success('Signed in successfully!');
         }
       }
     } catch (error) {
-      console.error('Auth error:', error)
-      toast.error('An unexpected error occurred')
+      console.error('Auth error:', error);
+      toast.error('An unexpected error occurred');
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }
+  };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({
       ...formData,
       [e.target.name]: e.target.value
-    })
-  }
+    });
+  };
 
   const handleDemoLogin = async () => {
-    const demoCredentials = AuthService.getDemoCredentials()
+    const demoCredentials = AuthService.getDemoCredentials();
     setFormData({
       ...formData,
       email: demoCredentials.email,
       password: demoCredentials.password
-    })
+    });
     
-    setIsLoading(true)
+    setIsLoading(true);
     try {
-      const { user, error } = await AuthService.signIn(demoCredentials)
+      const { user, error } = await AuthService.signIn(demoCredentials);
       
       if (error) {
-        toast.error(error.message)
+        toast.error(error.message);
       } else if (user) {
-        toast.success('Demo login successful!')
+        toast.success('Demo login successful!');
       }
     } catch (error) {
-      console.error('Demo login error:', error)
-      toast.error('Demo login failed')
+      console.error('Demo login error:', error);
+      toast.error('Demo login failed');
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }
+  };
 
   const handleForgotPassword = async () => {
     if (!formData.email) {
-      toast.error('Please enter your email address first')
-      return
+      toast.error('Please enter your email address first');
+      return;
     }
 
-    setIsLoading(true)
+    setIsLoading(true);
     try {
-      const { error } = await AuthService.resetPassword({ email: formData.email })
+      const { error } = await AuthService.resetPassword({ email: formData.email });
       
       if (error) {
-        toast.error(error.message)
+        toast.error(error.message);
       } else {
-        toast.success('Password reset email sent! Check your inbox.')
+        toast.success('Password reset email sent! Check your inbox.');
       }
     } catch (error) {
-      console.error('Password reset error:', error)
-      toast.error('Failed to send password reset email')
+      console.error('Password reset error:', error);
+      toast.error('Failed to send password reset email');
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }
+  };
 
   // Removed unused function
 
@@ -232,8 +232,8 @@ export default function AuthPage() {
                 <input
                   id="password"
                   name="password"
-                  type={showPassword ? "text" : "password"}
-                  autoComplete={isAdminSetup ? "new-password" : "current-password"}
+                  type={showPassword ? 'text' : 'password'}
+                  autoComplete={isAdminSetup ? 'new-password' : 'current-password'}
                   required
                   value={formData.password}
                   onChange={handleInputChange}
@@ -268,7 +268,7 @@ export default function AuthPage() {
                   <input
                     id="confirmPassword"
                     name="confirmPassword"
-                    type={showConfirmPassword ? "text" : "password"}
+                    type={showConfirmPassword ? 'text' : 'password'}
                     autoComplete="new-password"
                     required
                     value={formData.confirmPassword}
@@ -367,5 +367,5 @@ export default function AuthPage() {
         </form>
       </div>
     </div>
-  )
+  );
 }

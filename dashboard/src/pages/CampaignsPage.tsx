@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect } from 'react';
 import { 
   PlusIcon, 
   PlayIcon, 
@@ -9,47 +9,47 @@ import {
   EyeIcon,
   PencilIcon,
   MegaphoneIcon
-} from '@heroicons/react/24/outline'
-import { useUser, usePermissions } from '../contexts/UserContext'
-import { DatabaseService } from '../services/database'
-import { RealtimeService } from '../services/realtime'
-import type { Campaign, CampaignLead, AIAgent } from '../lib/supabase'
-import toast from 'react-hot-toast'
+} from '@heroicons/react/24/outline';
+import { useUser, usePermissions } from '../contexts/UserContext';
+import { DatabaseService } from '../services/database';
+import { RealtimeService } from '../services/realtime';
+import type { Campaign, CampaignLead, AIAgent } from '../lib/supabase';
+import toast from 'react-hot-toast';
 
 export default function CampaignsPage() {
-  const { user } = useUser()
-  const { canUseOutboundDialer } = usePermissions()
-  const [campaigns, setCampaigns] = useState<Campaign[]>([])
-  const [loading, setLoading] = useState(true)
-  const [showCreateModal, setShowCreateModal] = useState(false)
-  const [showLeadsModal, setShowLeadsModal] = useState(false)
-  const [selectedCampaign, setSelectedCampaign] = useState<Campaign | null>(null)
-  const [campaignLeads, setCampaignLeads] = useState<CampaignLead[]>([])
+  const { user } = useUser();
+  const { canUseOutboundDialer } = usePermissions();
+  const [campaigns, setCampaigns] = useState<Campaign[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [showCreateModal, setShowCreateModal] = useState(false);
+  const [showLeadsModal, setShowLeadsModal] = useState(false);
+  const [selectedCampaign, setSelectedCampaign] = useState<Campaign | null>(null);
+  const [campaignLeads, setCampaignLeads] = useState<CampaignLead[]>([]);
 
   useEffect(() => {
     if (user && canUseOutboundDialer) {
-      loadCampaigns()
-      setupRealtimeSubscriptions()
+      loadCampaigns();
+      setupRealtimeSubscriptions();
     }
-  }, [user, canUseOutboundDialer])
+  }, [user, canUseOutboundDialer]);
 
   const loadCampaigns = async () => {
-    if (!user) return
+    if (!user) return;
 
     try {
-      setLoading(true)
-      const campaignsData = await DatabaseService.getCampaigns(user.id)
-      setCampaigns(campaignsData)
+      setLoading(true);
+      const campaignsData = await DatabaseService.getCampaigns(user.id);
+      setCampaigns(campaignsData);
     } catch (error) {
-      console.error('Error loading campaigns:', error)
-      toast.error('Failed to load campaigns')
+      console.error('Error loading campaigns:', error);
+      toast.error('Failed to load campaigns');
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   const setupRealtimeSubscriptions = () => {
-    if (!user) return
+    if (!user) return;
 
     const subscription = RealtimeService.subscribeToCampaignUpdates(
       user.id,
@@ -58,90 +58,90 @@ export default function CampaignsPage() {
           prev.map(campaign => 
             campaign.id === updatedCampaign.id ? updatedCampaign : campaign
           )
-        )
+        );
       },
       (newCampaign) => {
-        setCampaigns(prev => [newCampaign, ...prev])
+        setCampaigns(prev => [newCampaign, ...prev]);
       },
       (campaignId) => {
-        setCampaigns(prev => prev.filter(campaign => campaign.id !== campaignId))
+        setCampaigns(prev => prev.filter(campaign => campaign.id !== campaignId));
       }
-    )
+    );
 
     return () => {
-      RealtimeService.unsubscribe(subscription)
-    }
-  }
+      RealtimeService.unsubscribe(subscription);
+    };
+  };
 
   const handleStatusChange = async (campaignId: string, newStatus: Campaign['status']) => {
     try {
-      await DatabaseService.updateCampaign(campaignId, { status: newStatus })
-      toast.success(`Campaign ${newStatus}`)
+      await DatabaseService.updateCampaign(campaignId, { status: newStatus });
+      toast.success(`Campaign ${newStatus}`);
     } catch (error) {
-      console.error('Error updating campaign status:', error)
-      toast.error('Failed to update campaign status')
+      console.error('Error updating campaign status:', error);
+      toast.error('Failed to update campaign status');
     }
-  }
+  };
 
   const handleDeleteCampaign = async (campaignId: string) => {
     if (!confirm('Are you sure you want to delete this campaign? This action cannot be undone.')) {
-      return
+      return;
     }
 
     try {
-      await DatabaseService.deleteCampaign(campaignId)
-      toast.success('Campaign deleted successfully')
+      await DatabaseService.deleteCampaign(campaignId);
+      toast.success('Campaign deleted successfully');
     } catch (error) {
-      console.error('Error deleting campaign:', error)
-      toast.error('Failed to delete campaign')
+      console.error('Error deleting campaign:', error);
+      toast.error('Failed to delete campaign');
     }
-  }
+  };
 
   const handleViewLeads = async (campaign: Campaign) => {
     try {
-      setSelectedCampaign(campaign)
-      const leads = await DatabaseService.getCampaignLeads(campaign.id)
-      setCampaignLeads(leads)
-      setShowLeadsModal(true)
+      setSelectedCampaign(campaign);
+      const leads = await DatabaseService.getCampaignLeads(campaign.id);
+      setCampaignLeads(leads);
+      setShowLeadsModal(true);
     } catch (error) {
-      console.error('Error loading campaign leads:', error)
-      toast.error('Failed to load campaign leads')
+      console.error('Error loading campaign leads:', error);
+      toast.error('Failed to load campaign leads');
     }
-  }
+  };
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'active': return 'text-green-600 bg-green-100'
-      case 'paused': return 'text-yellow-600 bg-yellow-100'
-      case 'completed': return 'text-blue-600 bg-blue-100'
-      case 'cancelled': return 'text-red-600 bg-red-100'
-      case 'draft': return 'text-gray-600 bg-gray-100'
-      default: return 'text-gray-600 bg-gray-100'
+      case 'active': return 'text-green-600 bg-green-100';
+      case 'paused': return 'text-yellow-600 bg-yellow-100';
+      case 'completed': return 'text-blue-600 bg-blue-100';
+      case 'cancelled': return 'text-red-600 bg-red-100';
+      case 'draft': return 'text-gray-600 bg-gray-100';
+      default: return 'text-gray-600 bg-gray-100';
     }
-  }
+  };
 
   const getStatusIcon = (status: string) => {
     switch (status) {
-      case 'active': return <PlayIcon className="h-4 w-4" />
-      case 'paused': return <PauseIcon className="h-4 w-4" />
-      case 'completed': return <StopIcon className="h-4 w-4" />
-      case 'cancelled': return <StopIcon className="h-4 w-4" />
-      default: return null
+      case 'active': return <PlayIcon className="h-4 w-4" />;
+      case 'paused': return <PauseIcon className="h-4 w-4" />;
+      case 'completed': return <StopIcon className="h-4 w-4" />;
+      case 'cancelled': return <StopIcon className="h-4 w-4" />;
+      default: return null;
     }
-  }
+  };
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('en-US', {
       year: 'numeric',
       month: 'short',
       day: 'numeric'
-    })
-  }
+    });
+  };
 
   const calculateSuccessRate = (campaign: Campaign) => {
-    if (campaign.leads_called === 0) return 0
-    return Math.round((campaign.leads_completed / campaign.leads_called) * 100)
-  }
+    if (campaign.leads_called === 0) return 0;
+    return Math.round((campaign.leads_completed / campaign.leads_called) * 100);
+  };
 
   if (!canUseOutboundDialer) {
     return (
@@ -152,7 +152,7 @@ export default function CampaignsPage() {
           Your current plan doesn't include outbound campaign features. Please upgrade your plan to access this functionality.
         </p>
       </div>
-    )
+    );
   }
 
   if (loading) {
@@ -160,7 +160,7 @@ export default function CampaignsPage() {
       <div className="flex items-center justify-center h-64">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
       </div>
-    )
+    );
   }
 
   return (
@@ -328,23 +328,23 @@ export default function CampaignsPage() {
           campaign={selectedCampaign}
           leads={campaignLeads}
           onClose={() => {
-            setShowLeadsModal(false)
-            setSelectedCampaign(null)
-            setCampaignLeads([])
+            setShowLeadsModal(false);
+            setSelectedCampaign(null);
+            setCampaignLeads([]);
           }}
         />
       )}
     </div>
-  )
+  );
 }
 
 // Create Campaign Modal Component
 function CreateCampaignModal({ onClose, onSuccess }: { onClose: () => void; onSuccess: () => void }) {
-  const { user } = useUser()
-  const [loading, setLoading] = useState(false)
-  const [agents, setAgents] = useState<AIAgent[]>([])
-  const [currentStep, setCurrentStep] = useState(1)
-  const [leads, setLeads] = useState<any[]>([])
+  const { user } = useUser();
+  const [loading, setLoading] = useState(false);
+  const [agents, setAgents] = useState<AIAgent[]>([]);
+  const [currentStep, setCurrentStep] = useState(1);
+  const [leads, setLeads] = useState<any[]>([]);
   const [formData, setFormData] = useState({
     name: '',
     description: '',
@@ -362,39 +362,39 @@ function CreateCampaignModal({ onClose, onSuccess }: { onClose: () => void; onSu
     scheduled_end_date: '',
     custom_system_instruction: '',
     custom_voice_name: 'Puck'
-  })
+  });
 
   useEffect(() => {
-    loadAgents()
-    loadDefaultSettings()
-  }, [])
+    loadAgents();
+    loadDefaultSettings();
+  }, []);
 
   const loadAgents = async () => {
-    if (!user) return
+    if (!user) return;
     try {
-      const agentsData = await DatabaseService.getAIAgents(user.id)
-      setAgents(agentsData.filter(agent => agent.is_active))
+      const agentsData = await DatabaseService.getAIAgents(user.id);
+      setAgents(agentsData.filter(agent => agent.is_active));
       
       // Auto-select first agent if only one available
       if (agentsData.length === 1) {
-        setFormData(prev => ({ ...prev, agent_id: agentsData[0].id }))
+        setFormData(prev => ({ ...prev, agent_id: agentsData[0].id }));
       }
     } catch (error) {
-      console.error('Error loading agents:', error)
+      console.error('Error loading agents:', error);
     }
-  }
+  };
 
   const loadDefaultSettings = async () => {
-    if (!user) return
+    if (!user) return;
     try {
-      const settings = await DatabaseService.getUserSettings(user.id)
+      const settings = await DatabaseService.getUserSettings(user.id);
       if (settings?.twilio_phone_number) {
-        setFormData(prev => ({ ...prev, caller_id: settings.twilio_phone_number }))
+        setFormData(prev => ({ ...prev, caller_id: settings.twilio_phone_number }));
       }
     } catch (error) {
-      console.error('Error loading settings:', error)
+      console.error('Error loading settings:', error);
     }
-  }
+  };
 
   const campaignTemplates = [
     {
@@ -429,10 +429,10 @@ function CreateCampaignModal({ onClose, onSuccess }: { onClose: () => void; onSu
       call_timeout_seconds: 90,
       retry_attempts: 1
     }
-  ]
+  ];
 
   const applyTemplate = (template: typeof campaignTemplates[0]) => {
-    const matchingAgent = agents.find(agent => agent.agent_type === template.agent_type)
+    const matchingAgent = agents.find(agent => agent.agent_type === template.agent_type);
     setFormData(prev => ({
       ...prev,
       name: template.name,
@@ -441,28 +441,28 @@ function CreateCampaignModal({ onClose, onSuccess }: { onClose: () => void; onSu
       max_concurrent_calls: template.max_concurrent_calls,
       call_timeout_seconds: template.call_timeout_seconds,
       retry_attempts: template.retry_attempts
-    }))
-  }
+    }));
+  };
 
   const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0]
-    if (!file) return
+    const file = event.target.files?.[0];
+    if (!file) return;
 
-    const reader = new FileReader()
+    const reader = new FileReader();
     reader.onload = (e) => {
       try {
-        const text = e.target?.result as string
-        const lines = text.split('\n').filter(line => line.trim())
-        const headers = lines[0].split(',').map(h => h.trim().toLowerCase())
+        const text = e.target?.result as string;
+        const lines = text.split('\n').filter(line => line.trim());
+        const headers = lines[0].split(',').map(h => h.trim().toLowerCase());
         
-        const phoneIndex = headers.findIndex(h => h.includes('phone') || h.includes('number'))
-        const firstNameIndex = headers.findIndex(h => h.includes('first') || h.includes('fname'))
-        const lastNameIndex = headers.findIndex(h => h.includes('last') || h.includes('lname'))
-        const emailIndex = headers.findIndex(h => h.includes('email'))
-        const companyIndex = headers.findIndex(h => h.includes('company') || h.includes('business'))
+        const phoneIndex = headers.findIndex(h => h.includes('phone') || h.includes('number'));
+        const firstNameIndex = headers.findIndex(h => h.includes('first') || h.includes('fname'));
+        const lastNameIndex = headers.findIndex(h => h.includes('last') || h.includes('lname'));
+        const emailIndex = headers.findIndex(h => h.includes('email'));
+        const companyIndex = headers.findIndex(h => h.includes('company') || h.includes('business'));
 
         const parsedLeads = lines.slice(1).map((line, index) => {
-          const values = line.split(',').map(v => v.trim().replace(/"/g, ''))
+          const values = line.split(',').map(v => v.trim().replace(/"/g, ''));
           return {
             id: `temp-${index}`,
             phone_number: values[phoneIndex] || '',
@@ -471,56 +471,56 @@ function CreateCampaignModal({ onClose, onSuccess }: { onClose: () => void; onSu
             email: values[emailIndex] || '',
             company: values[companyIndex] || '',
             status: 'pending'
-          }
-        }).filter(lead => lead.phone_number)
+          };
+        }).filter(lead => lead.phone_number);
 
-        setLeads(parsedLeads)
-        toast.success(`Loaded ${parsedLeads.length} leads from CSV`)
+        setLeads(parsedLeads);
+        toast.success(`Loaded ${parsedLeads.length} leads from CSV`);
       } catch (error) {
-        console.error('Error parsing CSV:', error)
-        toast.error('Error parsing CSV file. Please check the format.')
+        console.error('Error parsing CSV:', error);
+        toast.error('Error parsing CSV file. Please check the format.');
       }
-    }
-    reader.readAsText(file)
-  }
+    };
+    reader.readAsText(file);
+  };
 
   const validateForm = () => {
     if (!formData.name.trim()) {
-      toast.error('Campaign name is required')
-      return false
+      toast.error('Campaign name is required');
+      return false;
     }
     if (!formData.agent_id) {
-      toast.error('Please select an AI agent')
-      return false
+      toast.error('Please select an AI agent');
+      return false;
     }
     if (!formData.caller_id.trim()) {
-      toast.error('Caller ID is required')
-      return false
+      toast.error('Caller ID is required');
+      return false;
     }
     if (currentStep === 2 && leads.length === 0) {
-      toast.error('Please upload leads or add them manually')
-      return false
+      toast.error('Please upload leads or add them manually');
+      return false;
     }
-    return true
-  }
+    return true;
+  };
 
   const handleNext = () => {
     if (currentStep === 1 && validateForm()) {
-      setCurrentStep(2)
+      setCurrentStep(2);
     } else if (currentStep === 2 && validateForm()) {
-      setCurrentStep(3)
+      setCurrentStep(3);
     }
-  }
+  };
 
   const handleBack = () => {
-    setCurrentStep(Math.max(1, currentStep - 1))
-  }
+    setCurrentStep(Math.max(1, currentStep - 1));
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    if (!user || !validateForm()) return
+    e.preventDefault();
+    if (!user || !validateForm()) return;
 
-    setLoading(true)
+    setLoading(true);
     try {
       // Create campaign
       const campaign = await DatabaseService.createCampaign({
@@ -537,7 +537,7 @@ function CreateCampaignModal({ onClose, onSuccess }: { onClose: () => void; onSu
         leads_called: 0,
         leads_answered: 0,
         leads_completed: 0
-      })
+      });
 
       // Add leads to campaign
       if (campaign && leads.length > 0) {
@@ -553,20 +553,20 @@ function CreateCampaignModal({ onClose, onSuccess }: { onClose: () => void; onSu
             priority: 'normal',
             call_attempts: 0,
             do_not_call: false
-          })
+          });
         }
       }
       
-      toast.success(`Campaign created successfully with ${leads.length} leads`)
-      onSuccess()
-      onClose()
+      toast.success(`Campaign created successfully with ${leads.length} leads`);
+      onSuccess();
+      onClose();
     } catch (error) {
-      console.error('Error creating campaign:', error)
-      toast.error('Failed to create campaign')
+      console.error('Error creating campaign:', error);
+      toast.error('Failed to create campaign');
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   // Removed unused function
 
@@ -576,20 +576,20 @@ function CreateCampaignModal({ onClose, onSuccess }: { onClose: () => void; onSu
       '+1234567890,John,Doe,john.doe@example.com,Acme Corp',
       '+1234567891,Jane,Smith,jane.smith@example.com,Tech Solutions',
       '+1234567892,Bob,Johnson,bob.johnson@example.com,Marketing Inc'
-    ].join('\n')
+    ].join('\n');
     
-    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' })
-    const link = document.createElement('a')
-    const url = URL.createObjectURL(blob)
-    link.setAttribute('href', url)
-    link.setAttribute('download', 'campaign_leads_template.csv')
-    link.style.visibility = 'hidden'
-    document.body.appendChild(link)
-    link.click()
-    document.body.removeChild(link)
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    link.setAttribute('href', url);
+    link.setAttribute('download', 'campaign_leads_template.csv');
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
     
-    toast.success('CSV template downloaded!')
-  }
+    toast.success('CSV template downloaded!');
+  };
 
   // Removed unused function
 
@@ -770,12 +770,12 @@ function CreateCampaignModal({ onClose, onSuccess }: { onClose: () => void; onSu
                               setFormData({
                                 ...formData,
                                 days_of_week: [...formData.days_of_week, index].sort()
-                              })
+                              });
                             } else {
                               setFormData({
                                 ...formData,
                                 days_of_week: formData.days_of_week.filter(d => d !== index)
-                              })
+                              });
                             }
                           }}
                           className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
@@ -1017,7 +1017,7 @@ function CreateCampaignModal({ onClose, onSuccess }: { onClose: () => void; onSu
         </form>
       </div>
     </div>
-  )
+  );
 }
 
 // Campaign Leads Modal Component
@@ -1032,16 +1032,16 @@ function CampaignLeadsModal({
 }) {
   const getLeadStatusColor = (status: string) => {
     switch (status) {
-      case 'completed': return 'text-green-600 bg-green-100'
-      case 'answered': return 'text-blue-600 bg-blue-100'
-      case 'called': return 'text-yellow-600 bg-yellow-100'
-      case 'no_answer': return 'text-orange-600 bg-orange-100'
-      case 'busy': return 'text-purple-600 bg-purple-100'
-      case 'failed': return 'text-red-600 bg-red-100'
-      case 'pending': return 'text-gray-600 bg-gray-100'
-      default: return 'text-gray-600 bg-gray-100'
+      case 'completed': return 'text-green-600 bg-green-100';
+      case 'answered': return 'text-blue-600 bg-blue-100';
+      case 'called': return 'text-yellow-600 bg-yellow-100';
+      case 'no_answer': return 'text-orange-600 bg-orange-100';
+      case 'busy': return 'text-purple-600 bg-purple-100';
+      case 'failed': return 'text-red-600 bg-red-100';
+      case 'pending': return 'text-gray-600 bg-gray-100';
+      default: return 'text-gray-600 bg-gray-100';
     }
-  }
+  };
 
   return (
     <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
@@ -1134,5 +1134,5 @@ function CampaignLeadsModal({
         </div>
       </div>
     </div>
-  )
+  );
 }

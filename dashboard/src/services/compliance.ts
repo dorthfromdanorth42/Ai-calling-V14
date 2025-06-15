@@ -1,4 +1,4 @@
-import { supabase } from '../lib/supabase'
+import { supabase } from '../lib/supabase';
 
 export interface DNCEntry {
   id: string
@@ -89,17 +89,17 @@ export class ComplianceService {
         .select('id')
         .eq('profile_id', profileId)
         .eq('phone_number', phoneNumber)
-        .limit(1)
+        .limit(1);
 
       if (error) {
-        console.error('Error checking DNC list:', error)
-        return false
+        console.error('Error checking DNC list:', error);
+        return false;
       }
 
-      return data && data.length > 0
+      return data && data.length > 0;
     } catch (error) {
-      console.error('Error checking DNC list:', error)
-      return false
+      console.error('Error checking DNC list:', error);
+      return false;
     }
   }
 
@@ -110,17 +110,17 @@ export class ComplianceService {
         .from('dnc_lists')
         .insert(entry)
         .select()
-        .single()
+        .single();
 
       if (error) {
-        console.error('Error adding to DNC list:', error)
-        return null
+        console.error('Error adding to DNC list:', error);
+        return null;
       }
 
-      return data
+      return data;
     } catch (error) {
-      console.error('Error adding to DNC list:', error)
-      return null
+      console.error('Error adding to DNC list:', error);
+      return null;
     }
   }
 
@@ -131,12 +131,12 @@ export class ComplianceService {
         .from('dnc_lists')
         .delete()
         .eq('profile_id', profileId)
-        .eq('phone_number', phoneNumber)
+        .eq('phone_number', phoneNumber);
 
-      return !error
+      return !error;
     } catch (error) {
-      console.error('Error removing from DNC list:', error)
-      return false
+      console.error('Error removing from DNC list:', error);
+      return false;
     }
   }
 
@@ -148,17 +148,17 @@ export class ComplianceService {
         .select('*')
         .eq('profile_id', profileId)
         .order('created_at', { ascending: false })
-        .range(offset, offset + limit - 1)
+        .range(offset, offset + limit - 1);
 
       if (error) {
-        console.error('Error fetching DNC list:', error)
-        return []
+        console.error('Error fetching DNC list:', error);
+        return [];
       }
 
-      return data || []
+      return data || [];
     } catch (error) {
-      console.error('Error fetching DNC list:', error)
-      return []
+      console.error('Error fetching DNC list:', error);
+      return [];
     }
   }
 
@@ -176,28 +176,28 @@ export class ComplianceService {
         .eq('phone_number', phoneNumber)
         .is('revoked_at', null)
         .order('created_at', { ascending: false })
-        .limit(1)
+        .limit(1);
 
       if (error) {
-        console.error('Error checking TCPA consent:', error)
-        return { hasConsent: false, reason: 'Database error' }
+        console.error('Error checking TCPA consent:', error);
+        return { hasConsent: false, reason: 'Database error' };
       }
 
       if (!data || data.length === 0) {
-        return { hasConsent: false, reason: 'No consent record found' }
+        return { hasConsent: false, reason: 'No consent record found' };
       }
 
-      const consent = data[0]
+      const consent = data[0];
 
       // Check if consent has expired
       if (consent.expires_at && new Date(consent.expires_at) < new Date()) {
-        return { hasConsent: false, reason: 'Consent has expired' }
+        return { hasConsent: false, reason: 'Consent has expired' };
       }
 
-      return { hasConsent: true, consent }
+      return { hasConsent: true, consent };
     } catch (error) {
-      console.error('Error checking TCPA consent:', error)
-      return { hasConsent: false, reason: 'Unknown error' }
+      console.error('Error checking TCPA consent:', error);
+      return { hasConsent: false, reason: 'Unknown error' };
     }
   }
 
@@ -211,17 +211,17 @@ export class ComplianceService {
           updated_at: new Date().toISOString()
         })
         .select()
-        .single()
+        .single();
 
       if (error) {
-        console.error('Error recording TCPA consent:', error)
-        return null
+        console.error('Error recording TCPA consent:', error);
+        return null;
       }
 
-      return data
+      return data;
     } catch (error) {
-      console.error('Error recording TCPA consent:', error)
-      return null
+      console.error('Error recording TCPA consent:', error);
+      return null;
     }
   }
 
@@ -237,25 +237,25 @@ export class ComplianceService {
         })
         .eq('profile_id', profileId)
         .eq('phone_number', phoneNumber)
-        .is('revoked_at', null)
+        .is('revoked_at', null);
 
-      return !error
+      return !error;
     } catch (error) {
-      console.error('Error revoking TCPA consent:', error)
-      return false
+      console.error('Error revoking TCPA consent:', error);
+      return false;
     }
   }
 
   // Check calling hours compliance
   static isWithinCallingHours(timezone: string, allowedHours = { start: 8, end: 21 }): boolean {
     try {
-      const now = new Date()
-      const currentHour = new Date(now.toLocaleString('en-US', { timeZone: timezone })).getHours()
+      const now = new Date();
+      const currentHour = new Date(now.toLocaleString('en-US', { timeZone: timezone })).getHours();
       
-      return currentHour >= allowedHours.start && currentHour < allowedHours.end
+      return currentHour >= allowedHours.start && currentHour < allowedHours.end;
     } catch (error) {
-      console.error('Error checking calling hours:', error)
-      return false
+      console.error('Error checking calling hours:', error);
+      return false;
     }
   }
 
@@ -266,8 +266,8 @@ export class ComplianceService {
     nextAllowedTime?: string
   }> {
     try {
-      const cutoffTime = new Date()
-      cutoffTime.setHours(cutoffTime.getHours() - limitPeriod)
+      const cutoffTime = new Date();
+      cutoffTime.setHours(cutoffTime.getHours() - limitPeriod);
 
       const { data, error } = await supabase
         .from('call_logs')
@@ -275,27 +275,27 @@ export class ComplianceService {
         .eq('profile_id', profileId)
         .eq('phone_number_to', phoneNumber)
         .gte('created_at', cutoffTime.toISOString())
-        .order('created_at', { ascending: false })
+        .order('created_at', { ascending: false });
 
       if (error) {
-        console.error('Error checking frequency limit:', error)
-        return { withinLimit: true, callCount: 0 }
+        console.error('Error checking frequency limit:', error);
+        return { withinLimit: true, callCount: 0 };
       }
 
-      const callCount = data?.length || 0
-      const withinLimit = callCount < maxCalls
+      const callCount = data?.length || 0;
+      const withinLimit = callCount < maxCalls;
 
-      let nextAllowedTime: string | undefined
+      let nextAllowedTime: string | undefined;
       if (!withinLimit && data && data.length > 0) {
-        const oldestCall = new Date(data[data.length - 1].created_at)
-        oldestCall.setHours(oldestCall.getHours() + limitPeriod)
-        nextAllowedTime = oldestCall.toISOString()
+        const oldestCall = new Date(data[data.length - 1].created_at);
+        oldestCall.setHours(oldestCall.getHours() + limitPeriod);
+        nextAllowedTime = oldestCall.toISOString();
       }
 
-      return { withinLimit, callCount, nextAllowedTime }
+      return { withinLimit, callCount, nextAllowedTime };
     } catch (error) {
-      console.error('Error checking frequency limit:', error)
-      return { withinLimit: true, callCount: 0 }
+      console.error('Error checking frequency limit:', error);
+      return { withinLimit: true, callCount: 0 };
     }
   }
 
@@ -305,39 +305,39 @@ export class ComplianceService {
     violations: string[]
     warnings: string[]
   }> {
-    const violations: string[] = []
-    const warnings: string[] = []
+    const violations: string[] = [];
+    const warnings: string[] = [];
 
     try {
       // Check DNC list
-      const isDNC = await this.isDNCListed(profileId, phoneNumber)
+      const isDNC = await this.isDNCListed(profileId, phoneNumber);
       if (isDNC) {
-        violations.push('Phone number is on Do Not Call list')
+        violations.push('Phone number is on Do Not Call list');
       }
 
       // Check TCPA consent
-      const consentCheck = await this.hasValidConsent(profileId, phoneNumber)
+      const consentCheck = await this.hasValidConsent(profileId, phoneNumber);
       if (!consentCheck.hasConsent) {
-        violations.push(`TCPA consent required: ${consentCheck.reason}`)
+        violations.push(`TCPA consent required: ${consentCheck.reason}`);
       }
 
       // Check calling hours
       if (!this.isWithinCallingHours(timezone)) {
-        violations.push('Outside allowed calling hours (8 AM - 9 PM local time)')
+        violations.push('Outside allowed calling hours (8 AM - 9 PM local time)');
       }
 
       // Check frequency limits
-      const frequencyCheck = await this.checkFrequencyLimit(profileId, phoneNumber)
+      const frequencyCheck = await this.checkFrequencyLimit(profileId, phoneNumber);
       if (!frequencyCheck.withinLimit) {
-        violations.push(`Frequency limit exceeded (${frequencyCheck.callCount} calls in last 24 hours)`)
+        violations.push(`Frequency limit exceeded (${frequencyCheck.callCount} calls in last 24 hours)`);
       }
 
       // Add warnings for edge cases
       if (consentCheck.consent?.expires_at) {
-        const expiryDate = new Date(consentCheck.consent.expires_at)
-        const daysUntilExpiry = Math.ceil((expiryDate.getTime() - Date.now()) / (1000 * 60 * 60 * 24))
+        const expiryDate = new Date(consentCheck.consent.expires_at);
+        const daysUntilExpiry = Math.ceil((expiryDate.getTime() - Date.now()) / (1000 * 60 * 60 * 24));
         if (daysUntilExpiry <= 30) {
-          warnings.push(`TCPA consent expires in ${daysUntilExpiry} days`)
+          warnings.push(`TCPA consent expires in ${daysUntilExpiry} days`);
         }
       }
 
@@ -345,14 +345,14 @@ export class ComplianceService {
         compliant: violations.length === 0,
         violations,
         warnings
-      }
+      };
     } catch (error) {
-      console.error('Error validating call compliance:', error)
+      console.error('Error validating call compliance:', error);
       return {
         compliant: false,
         violations: ['Error validating compliance'],
         warnings: []
-      }
+      };
     }
   }
 
@@ -363,11 +363,11 @@ export class ComplianceService {
         .from('compliance_violations')
         .insert(violation)
         .select()
-        .single()
+        .single();
 
       if (error) {
-        console.error('Error logging compliance violation:', error)
-        return null
+        console.error('Error logging compliance violation:', error);
+        return null;
       }
 
       // Send notification for high/critical violations
@@ -376,10 +376,10 @@ export class ComplianceService {
         // NotificationService.notifyComplianceWarning(violation.profile_id, ...)
       }
 
-      return data
+      return data;
     } catch (error) {
-      console.error('Error logging compliance violation:', error)
-      return null
+      console.error('Error logging compliance violation:', error);
+      return null;
     }
   }
 
@@ -391,23 +391,23 @@ export class ComplianceService {
         .select('*')
         .eq('profile_id', profileId)
         .order('created_at', { ascending: false })
-        .limit(limit)
+        .limit(limit);
 
       if (severity) {
-        query = query.eq('severity', severity)
+        query = query.eq('severity', severity);
       }
 
-      const { data, error } = await query
+      const { data, error } = await query;
 
       if (error) {
-        console.error('Error fetching compliance violations:', error)
-        return []
+        console.error('Error fetching compliance violations:', error);
+        return [];
       }
 
-      return data || []
+      return data || [];
     } catch (error) {
-      console.error('Error fetching compliance violations:', error)
-      return []
+      console.error('Error fetching compliance violations:', error);
+      return [];
     }
   }
 
@@ -420,14 +420,14 @@ export class ComplianceService {
         .select('id, phone_number_to')
         .eq('profile_id', profileId)
         .gte('created_at', periodStart)
-        .lte('created_at', periodEnd)
+        .lte('created_at', periodEnd);
 
       if (callError) {
-        console.error('Error fetching call logs for report:', callError)
-        return null
+        console.error('Error fetching call logs for report:', callError);
+        return null;
       }
 
-      const totalCalls = callLogs?.length || 0
+      const totalCalls = callLogs?.length || 0;
 
       // Get violations in period
       const { data: violations, error: violationError } = await supabase
@@ -435,11 +435,11 @@ export class ComplianceService {
         .select('violation_type')
         .eq('profile_id', profileId)
         .gte('created_at', periodStart)
-        .lte('created_at', periodEnd)
+        .lte('created_at', periodEnd);
 
       if (violationError) {
-        console.error('Error fetching violations for report:', violationError)
-        return null
+        console.error('Error fetching violations for report:', violationError);
+        return null;
       }
 
       // Count violations by type
@@ -449,34 +449,34 @@ export class ComplianceService {
         frequency_violations: 0,
         consent_violations: 0,
         disclosure_violations: 0
-      }
+      };
 
       violations?.forEach(v => {
         if (v.violation_type in violationCounts) {
-          violationCounts[v.violation_type as keyof typeof violationCounts]++
+          violationCounts[v.violation_type as keyof typeof violationCounts]++;
         }
-      })
+      });
 
-      const totalViolations = Object.values(violationCounts).reduce((sum, count) => sum + count, 0)
-      const compliantCalls = totalCalls - totalViolations
-      const complianceScore = totalCalls > 0 ? Math.round((compliantCalls / totalCalls) * 100) : 100
+      const totalViolations = Object.values(violationCounts).reduce((sum, count) => sum + count, 0);
+      const compliantCalls = totalCalls - totalViolations;
+      const complianceScore = totalCalls > 0 ? Math.round((compliantCalls / totalCalls) * 100) : 100;
 
       // Generate recommendations
-      const recommendations: string[] = []
+      const recommendations: string[] = [];
       if (violationCounts.dnc_violations > 0) {
-        recommendations.push('Review and update DNC list screening procedures')
+        recommendations.push('Review and update DNC list screening procedures');
       }
       if (violationCounts.calling_hours_violations > 0) {
-        recommendations.push('Implement stricter calling hours controls')
+        recommendations.push('Implement stricter calling hours controls');
       }
       if (violationCounts.frequency_violations > 0) {
-        recommendations.push('Review frequency limit settings and enforcement')
+        recommendations.push('Review frequency limit settings and enforcement');
       }
       if (violationCounts.consent_violations > 0) {
-        recommendations.push('Improve TCPA consent collection and verification processes')
+        recommendations.push('Improve TCPA consent collection and verification processes');
       }
       if (complianceScore < 95) {
-        recommendations.push('Consider additional compliance training for staff')
+        recommendations.push('Consider additional compliance training for staff');
       }
 
       const report: Omit<ComplianceReport, 'id'> = {
@@ -490,24 +490,24 @@ export class ComplianceService {
         compliance_score: complianceScore,
         recommendations,
         generated_at: new Date().toISOString()
-      }
+      };
 
       // Save report
       const { data, error } = await supabase
         .from('compliance_reports')
         .insert(report)
         .select()
-        .single()
+        .single();
 
       if (error) {
-        console.error('Error saving compliance report:', error)
-        return null
+        console.error('Error saving compliance report:', error);
+        return null;
       }
 
-      return data
+      return data;
     } catch (error) {
-      console.error('Error generating compliance report:', error)
-      return null
+      console.error('Error generating compliance report:', error);
+      return null;
     }
   }
 
@@ -518,17 +518,17 @@ export class ComplianceService {
         .from('compliance_rules')
         .select('*')
         .eq('profile_id', profileId)
-        .order('priority', { ascending: true })
+        .order('priority', { ascending: true });
 
       if (error) {
-        console.error('Error fetching compliance rules:', error)
-        return []
+        console.error('Error fetching compliance rules:', error);
+        return [];
       }
 
-      return data || []
+      return data || [];
     } catch (error) {
-      console.error('Error fetching compliance rules:', error)
-      return []
+      console.error('Error fetching compliance rules:', error);
+      return [];
     }
   }
 
@@ -580,7 +580,7 @@ export class ComplianceService {
         parameters: { disclosure_text: 'This call may be recorded for quality assurance purposes.' },
         priority: 5
       }
-    ]
+    ];
 
     try {
       const { error } = await supabase
@@ -588,13 +588,13 @@ export class ComplianceService {
         .insert(defaultRules.map(rule => ({
           ...rule,
           updated_at: new Date().toISOString()
-        })))
+        })));
 
       if (error) {
-        console.error('Error creating default compliance rules:', error)
+        console.error('Error creating default compliance rules:', error);
       }
     } catch (error) {
-      console.error('Error creating default compliance rules:', error)
+      console.error('Error creating default compliance rules:', error);
     }
   }
 
@@ -607,12 +607,12 @@ export class ComplianceService {
           ...updates,
           updated_at: new Date().toISOString()
         })
-        .eq('id', ruleId)
+        .eq('id', ruleId);
 
-      return !error
+      return !error;
     } catch (error) {
-      console.error('Error updating compliance rule:', error)
-      return false
+      console.error('Error updating compliance rule:', error);
+      return false;
     }
   }
 
@@ -626,17 +626,17 @@ export class ComplianceService {
     consentRecords: number
   }> {
     try {
-      const thirtyDaysAgo = new Date()
-      thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30)
+      const thirtyDaysAgo = new Date();
+      thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
 
       // Get call stats
       const { data: callLogs } = await supabase
         .from('call_logs')
         .select('id')
         .eq('profile_id', profileId)
-        .gte('created_at', thirtyDaysAgo.toISOString())
+        .gte('created_at', thirtyDaysAgo.toISOString());
 
-      const totalCalls = callLogs?.length || 0
+      const totalCalls = callLogs?.length || 0;
 
       // Get violations
       const { data: violations } = await supabase
@@ -645,24 +645,24 @@ export class ComplianceService {
         .eq('profile_id', profileId)
         .gte('created_at', thirtyDaysAgo.toISOString())
         .order('created_at', { ascending: false })
-        .limit(10)
+        .limit(10);
 
-      const violationCount = violations?.length || 0
-      const compliantCalls = totalCalls - violationCount
-      const complianceScore = totalCalls > 0 ? Math.round((compliantCalls / totalCalls) * 100) : 100
+      const violationCount = violations?.length || 0;
+      const compliantCalls = totalCalls - violationCount;
+      const complianceScore = totalCalls > 0 ? Math.round((compliantCalls / totalCalls) * 100) : 100;
 
       // Get DNC list size
       const { count: dncCount } = await supabase
         .from('dnc_lists')
         .select('*', { count: 'exact', head: true })
-        .eq('profile_id', profileId)
+        .eq('profile_id', profileId);
 
       // Get consent records count
       const { count: consentCount } = await supabase
         .from('tcpa_consents')
         .select('*', { count: 'exact', head: true })
         .eq('profile_id', profileId)
-        .is('revoked_at', null)
+        .is('revoked_at', null);
 
       return {
         totalCalls,
@@ -671,9 +671,9 @@ export class ComplianceService {
         recentViolations: violations || [],
         dncListSize: dncCount || 0,
         consentRecords: consentCount || 0
-      }
+      };
     } catch (error) {
-      console.error('Error fetching compliance dashboard data:', error)
+      console.error('Error fetching compliance dashboard data:', error);
       return {
         totalCalls: 0,
         compliantCalls: 0,
@@ -681,7 +681,7 @@ export class ComplianceService {
         recentViolations: [],
         dncListSize: 0,
         consentRecords: 0
-      }
+      };
     }
   }
 }

@@ -1,11 +1,11 @@
-import { supabase } from '../lib/supabase'
+import { supabase } from '../lib/supabase';
 
 export async function confirmAdminUser() {
   try {
     // This is a workaround to confirm the admin user
     // In production, you would do this through Supabase dashboard or admin API
     
-    const adminEmail = 'gamblerspassion@gmail.com'
+    const adminEmail = 'gamblerspassion@gmail.com';
     
     // Try to sign up the admin user again with a flag to auto-confirm
     const { data, error } = await supabase.auth.signUp({
@@ -20,22 +20,22 @@ export async function confirmAdminUser() {
           auto_confirm: true
         }
       }
-    })
+    });
 
     if (error && error.message.includes('already registered')) {
-      console.log('Admin user already exists')
-      return { success: true, message: 'Admin user already exists' }
+      console.log('Admin user already exists');
+      return { success: true, message: 'Admin user already exists' };
     }
 
     if (error) {
-      console.error('Error confirming admin:', error)
-      return { success: false, error: error.message }
+      console.error('Error confirming admin:', error);
+      return { success: false, error: error.message };
     }
 
-    return { success: true, user: data.user }
+    return { success: true, user: data.user };
   } catch (error) {
-    console.error('Unexpected error:', error)
-    return { success: false, error: 'Unexpected error occurred' }
+    console.error('Unexpected error:', error);
+    return { success: false, error: 'Unexpected error occurred' };
   }
 }
 
@@ -49,9 +49,9 @@ export async function confirmAdminWithServiceKey() {
     // Note: This is not secure for production - service keys should never be exposed to client
     // This is just for development/demo purposes
     
-    console.log('Admin confirmation would require server-side implementation')
-    return { success: false, error: 'Server-side confirmation required' }
+    console.log('Admin confirmation would require server-side implementation');
+    return { success: false, error: 'Server-side confirmation required' };
   } catch (error) {
-    return { success: false, error: 'Service key confirmation failed' }
+    return { success: false, error: 'Service key confirmation failed' };
   }
 }

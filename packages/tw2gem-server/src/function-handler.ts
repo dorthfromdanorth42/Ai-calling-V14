@@ -1,5 +1,5 @@
 // import { DatabaseService } from '../../dashboard/src/services/database'
-import { createClient } from '@supabase/supabase-js'
+import { createClient } from '@supabase/supabase-js';
 
 export interface FunctionCallRequest {
   name: string
@@ -37,20 +37,20 @@ export interface FunctionContext {
 }
 
 export class FunctionCallHandler {
-  private functions: Map<string, FunctionDefinition> = new Map()
-  private supabase: any
+  private functions: Map<string, FunctionDefinition> = new Map();
+  private supabase: any;
 
   constructor(supabaseUrl?: string, supabaseKey?: string) {
     if (supabaseUrl && supabaseKey) {
-      this.supabase = createClient(supabaseUrl, supabaseKey)
+      this.supabase = createClient(supabaseUrl, supabaseKey);
     }
-    this.registerCoreFunctions()
+    this.registerCoreFunctions();
   }
 
   // Register a new function
   registerFunction(definition: FunctionDefinition) {
-    this.functions.set(definition.name, definition)
-    console.log(`Registered function: ${definition.name}`)
+    this.functions.set(definition.name, definition);
+    console.log(`Registered function: ${definition.name}`);
   }
 
   // Get all registered functions for Gemini setup
@@ -61,21 +61,21 @@ export class FunctionCallHandler {
         description: func.description,
         parameters: func.parameters
       }]
-    }))
+    }));
   }
 
   // Execute a function call
   async executeFunction(request: FunctionCallRequest): Promise<FunctionCallResponse> {
-    const startTime = Date.now()
+    const startTime = Date.now();
     
     try {
-      const functionDef = this.functions.get(request.name)
+      const functionDef = this.functions.get(request.name);
       if (!functionDef) {
         return {
           success: false,
           error: `Function '${request.name}' not found`,
           executionTime: Date.now() - startTime
-        }
+        };
       }
 
       // Validate permissions if required
@@ -84,7 +84,7 @@ export class FunctionCallHandler {
           success: false,
           error: 'Authentication required for this function',
           executionTime: Date.now() - startTime
-        }
+        };
       }
 
       // Create function context
@@ -93,12 +93,12 @@ export class FunctionCallHandler {
         userId: request.userId,
         agentId: request.agentId,
         supabase: this.supabase
-      }
+      };
 
       // Execute the function
-      const result = await functionDef.handler(request.args, context)
+      const result = await functionDef.handler(request.args, context);
 
-      const executionTime = Date.now() - startTime
+      const executionTime = Date.now() - startTime;
 
       // Log the function call
       if (this.supabase && request.userId) {
@@ -110,18 +110,18 @@ export class FunctionCallHandler {
           result,
           execution_time_ms: executionTime,
           success: true
-        })
+        });
       }
 
       return {
         success: true,
         result,
         executionTime
-      }
+      };
 
     } catch (error) {
-      const executionTime = Date.now() - startTime
-      const errorMessage = error instanceof Error ? error.message : 'Unknown error'
+      const executionTime = Date.now() - startTime;
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
 
       // Log the failed function call
       if (this.supabase && request.userId) {
@@ -133,14 +133,14 @@ export class FunctionCallHandler {
           execution_time_ms: executionTime,
           success: false,
           error_message: errorMessage
-        })
+        });
       }
 
       return {
         success: false,
         error: errorMessage,
         executionTime
-      }
+      };
     }
   }
 
@@ -165,7 +165,7 @@ export class FunctionCallHandler {
       },
       handler: this.handleScheduleAppointment.bind(this),
       requiresAuth: true
-    })
+    });
 
     // Update lead status function
     this.registerFunction({
@@ -188,7 +188,7 @@ export class FunctionCallHandler {
       },
       handler: this.handleUpdateLeadStatus.bind(this),
       requiresAuth: true
-    })
+    });
 
     // Send follow-up email function
     this.registerFunction({
@@ -210,7 +210,7 @@ export class FunctionCallHandler {
       },
       handler: this.handleSendFollowupEmail.bind(this),
       requiresAuth: true
-    })
+    });
 
     // Add to DNC list function
     this.registerFunction({
@@ -231,7 +231,7 @@ export class FunctionCallHandler {
       },
       handler: this.handleAddToDNC.bind(this),
       requiresAuth: true
-    })
+    });
 
     // Get customer information function
     this.registerFunction({
@@ -247,7 +247,7 @@ export class FunctionCallHandler {
       },
       handler: this.handleGetCustomerInfo.bind(this),
       requiresAuth: true
-    })
+    });
 
     // Calculate pricing function
     this.registerFunction({
@@ -269,7 +269,7 @@ export class FunctionCallHandler {
       },
       handler: this.handleCalculatePricing.bind(this),
       requiresAuth: false
-    })
+    });
 
     // Check availability function
     this.registerFunction({
@@ -287,12 +287,12 @@ export class FunctionCallHandler {
       },
       handler: this.handleCheckAvailability.bind(this),
       requiresAuth: true
-    })
+    });
   }
 
   // Function handlers
   private async handleScheduleAppointment(args: any, context: FunctionContext) {
-    if (!context.userId) throw new Error('User ID required')
+    if (!context.userId) throw new Error('User ID required');
 
     const appointmentData = {
       profile_id: context.userId,
@@ -305,39 +305,39 @@ export class FunctionCallHandler {
       notes: args.notes || '',
       status: 'scheduled',
       call_id: context.callId
-    }
+    };
 
     const { data, error } = await context.supabase
       .from('appointments')
       .insert(appointmentData)
       .select()
-      .single()
+      .single();
 
-    if (error) throw new Error(`Failed to schedule appointment: ${error.message}`)
+    if (error) throw new Error(`Failed to schedule appointment: ${error.message}`);
 
     return {
       appointment_id: data.id,
       confirmation_number: `APT-${data.id.slice(-8).toUpperCase()}`,
       message: `Appointment scheduled for ${args.customer_name} on ${args.appointment_date} at ${args.appointment_time}`
-    }
+    };
   }
 
   private async handleUpdateLeadStatus(args: any, context: FunctionContext) {
-    if (!context.userId) throw new Error('User ID required')
+    if (!context.userId) throw new Error('User ID required');
 
     const updateData: any = {
       status: args.status,
       notes: args.notes,
       last_contact_date: new Date().toISOString(),
       updated_at: new Date().toISOString()
-    }
+    };
 
     if (args.callback_date) {
-      updateData.callback_date = args.callback_date
+      updateData.callback_date = args.callback_date;
     }
 
     if (args.interest_level) {
-      updateData.interest_level = args.interest_level
+      updateData.interest_level = args.interest_level;
     }
 
     const { data, error } = await context.supabase
@@ -346,15 +346,15 @@ export class FunctionCallHandler {
       .eq('id', args.lead_id)
       .eq('profile_id', context.userId)
       .select()
-      .single()
+      .single();
 
-    if (error) throw new Error(`Failed to update lead: ${error.message}`)
+    if (error) throw new Error(`Failed to update lead: ${error.message}`);
 
     return {
       lead_id: args.lead_id,
       new_status: args.status,
       message: `Lead status updated to ${args.status}`
-    }
+    };
   }
 
   private async handleSendFollowupEmail(args: any, context: FunctionContext) {
@@ -370,20 +370,20 @@ export class FunctionCallHandler {
       appointment_details: args.appointment_details,
       sent_at: new Date().toISOString(),
       status: 'queued'
-    }
+    };
 
     // Log the email request (you would implement actual email sending)
-    console.log('Email queued:', emailData)
+    console.log('Email queued:', emailData);
 
     return {
       email_id: `email_${Date.now()}`,
       status: 'queued',
       message: `Follow-up email queued for ${args.customer_email}`
-    }
+    };
   }
 
   private async handleAddToDNC(args: any, context: FunctionContext) {
-    if (!context.userId) throw new Error('User ID required')
+    if (!context.userId) throw new Error('User ID required');
 
     const dncData = {
       profile_id: context.userId,
@@ -392,48 +392,48 @@ export class FunctionCallHandler {
       notes: args.notes || '',
       added_by: 'ai_agent',
       call_id: context.callId
-    }
+    };
 
     const { data, error } = await context.supabase
       .from('dnc_lists')
       .insert(dncData)
       .select()
-      .single()
+      .single();
 
-    if (error) throw new Error(`Failed to add to DNC: ${error.message}`)
+    if (error) throw new Error(`Failed to add to DNC: ${error.message}`);
 
     return {
       dnc_id: data.id,
       phone_number: args.phone_number,
       message: `Phone number ${args.phone_number} added to Do Not Call list`
-    }
+    };
   }
 
   private async handleGetCustomerInfo(args: any, context: FunctionContext) {
-    if (!context.userId) throw new Error('User ID required')
+    if (!context.userId) throw new Error('User ID required');
 
     let query = context.supabase
       .from('campaign_leads')
       .select('*')
-      .eq('profile_id', context.userId)
+      .eq('profile_id', context.userId);
 
     if (args.phone_number) {
-      query = query.eq('phone_number', args.phone_number)
+      query = query.eq('phone_number', args.phone_number);
     } else if (args.email) {
-      query = query.eq('email', args.email)
+      query = query.eq('email', args.email);
     } else if (args.customer_id) {
-      query = query.eq('id', args.customer_id)
+      query = query.eq('id', args.customer_id);
     } else {
-      throw new Error('Phone number, email, or customer ID required')
+      throw new Error('Phone number, email, or customer ID required');
     }
 
-    const { data, error } = await query.single()
+    const { data, error } = await query.single();
 
     if (error) {
       if (error.code === 'PGRST116') {
-        return { message: 'Customer not found' }
+        return { message: 'Customer not found' };
       }
-      throw new Error(`Failed to get customer info: ${error.message}`)
+      throw new Error(`Failed to get customer info: ${error.message}`);
     }
 
     return {
@@ -445,7 +445,7 @@ export class FunctionCallHandler {
       status: data.status,
       last_contact: data.last_contact_date,
       notes: data.notes
-    }
+    };
   }
 
   private async handleCalculatePricing(args: any, context: FunctionContext) {
@@ -457,25 +457,25 @@ export class FunctionCallHandler {
       'basic_service': 200,
       'premium_service': 500,
       'enterprise_service': 1000
-    }
+    };
 
     const tierMultipliers: Record<string, number> = {
       'basic': 1.0,
       'standard': 0.9,
       'premium': 0.8
-    }
+    };
 
-    const basePrice = basePrices[args.service_type] || 100
-    const quantity = args.quantity || 1
-    const tierMultiplier = tierMultipliers[args.customer_tier] || 1.0
+    const basePrice = basePrices[args.service_type] || 100;
+    const quantity = args.quantity || 1;
+    const tierMultiplier = tierMultipliers[args.customer_tier] || 1.0;
 
-    let totalPrice = basePrice * quantity * tierMultiplier
+    let totalPrice = basePrice * quantity * tierMultiplier;
 
     // Apply discount if provided
     if (args.discount_code) {
       // Simple discount logic - in reality, you'd check against a database
-      const discountPercent = args.discount_code === 'SAVE10' ? 0.1 : 0
-      totalPrice = totalPrice * (1 - discountPercent)
+      const discountPercent = args.discount_code === 'SAVE10' ? 0.1 : 0;
+      totalPrice = totalPrice * (1 - discountPercent);
     }
 
     return {
@@ -485,11 +485,11 @@ export class FunctionCallHandler {
       tier_discount: Math.round((1 - tierMultiplier) * 100),
       total_price: Math.round(totalPrice * 100) / 100,
       currency: 'USD'
-    }
+    };
   }
 
   private async handleCheckAvailability(args: any, context: FunctionContext) {
-    if (!context.userId) throw new Error('User ID required')
+    if (!context.userId) throw new Error('User ID required');
 
     // Check existing appointments for the date
     const { data: appointments, error } = await context.supabase
@@ -497,23 +497,23 @@ export class FunctionCallHandler {
       .select('appointment_time, duration')
       .eq('profile_id', context.userId)
       .eq('appointment_date', args.date)
-      .eq('status', 'scheduled')
+      .eq('status', 'scheduled');
 
-    if (error) throw new Error(`Failed to check availability: ${error.message}`)
+    if (error) throw new Error(`Failed to check availability: ${error.message}`);
 
     // Generate available time slots (simplified logic)
     const businessHours = {
       start: 9, // 9 AM
       end: 17   // 5 PM
-    }
+    };
 
-    const availableSlots: string[] = []
-    const bookedTimes = appointments?.map((apt: any) => apt.appointment_time) || []
+    const availableSlots: string[] = [];
+    const bookedTimes = appointments?.map((apt: any) => apt.appointment_time) || [];
 
     for (let hour = businessHours.start; hour < businessHours.end; hour++) {
-      const timeSlot = `${hour.toString().padStart(2, '0')}:00`
+      const timeSlot = `${hour.toString().padStart(2, '0')}:00`;
       if (!bookedTimes.includes(timeSlot)) {
-        availableSlots.push(timeSlot)
+        availableSlots.push(timeSlot);
       }
     }
 
@@ -524,16 +524,16 @@ export class FunctionCallHandler {
       message: availableSlots.length > 0 
         ? `${availableSlots.length} time slots available`
         : 'No availability for this date'
-    }
+    };
   }
 
   private async logFunctionCall(logData: any) {
     try {
       await this.supabase
         .from('function_call_logs')
-        .insert(logData)
+        .insert(logData);
     } catch (error) {
-      console.error('Error logging function call:', error)
+      console.error('Error logging function call:', error);
     }
   }
 }

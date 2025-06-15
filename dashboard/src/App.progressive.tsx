@@ -1,10 +1,10 @@
-import { BrowserRouter as Router } from 'react-router-dom'
-import { Toaster } from 'react-hot-toast'
-import { UserProvider } from './contexts/UserContext'
-import { useAuth } from './hooks/useAuth'
+import { BrowserRouter as Router } from 'react-router-dom';
+import { Toaster } from 'react-hot-toast';
+import { UserProvider } from './contexts/UserContext';
+import { useAuth } from './hooks/useAuth';
 
 function AppContent() {
-  const { user, loading } = useAuth()
+  const { user, loading } = useAuth();
   
   if (loading) {
     return (
@@ -12,7 +12,7 @@ function AppContent() {
         <h1>AI Call Center Dashboard</h1>
         <p>Loading authentication...</p>
       </div>
-    )
+    );
   }
 
   return (
@@ -37,7 +37,7 @@ function AppContent() {
         <p>Password: demo123</p>
       </div>
     </div>
-  )
+  );
 }
 
 function App() {
@@ -58,7 +58,7 @@ function App() {
         />
       </UserProvider>
     </Router>
-  )
+  );
 }
 
-export default App
+export default App;

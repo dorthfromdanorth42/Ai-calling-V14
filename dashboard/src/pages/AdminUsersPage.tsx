@@ -1,7 +1,7 @@
-import { useState, useEffect } from 'react'
-import { PlusIcon, TrashIcon, EyeIcon, EyeSlashIcon } from '@heroicons/react/24/outline'
-import toast from 'react-hot-toast'
-import { AdminAPI, type CreateUserData, type UserData } from '../services/adminApi'
+import { useState, useEffect } from 'react';
+import { PlusIcon, TrashIcon, EyeIcon, EyeSlashIcon } from '@heroicons/react/24/outline';
+import toast from 'react-hot-toast';
+import { AdminAPI, type CreateUserData, type UserData } from '../services/adminApi';
 
 interface UserPermissions {
   dashboard: boolean
@@ -34,59 +34,60 @@ const defaultPermissions: UserPermissions = {
   webhooks: false,
   dnc: false,
   status: false
-}
+};
 
 export default function AdminUsersPage() {
-  const [users, setUsers] = useState<User[]>([])
-  const [isLoading, setIsLoading] = useState(false)
-  const [isLoadingUsers, setIsLoadingUsers] = useState(true)
-  const [showCreateForm, setShowCreateForm] = useState(false)
+  const [users, setUsers] = useState<User[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [isLoadingUsers, setIsLoadingUsers] = useState(true);
+  const [showCreateForm, setShowCreateForm] = useState(false);
   const [formData, setFormData] = useState({
     email: '',
     clientName: '',
     companyName: '',
     phoneNumber: '',
     usageCap: 1000, // default 1000 minutes per month
+    maxAgents: 3, // default 3 agents per user
     permissions: { ...defaultPermissions }
-  })
+  });
 
   // Load users on component mount
   useEffect(() => {
-    loadUsers()
-  }, [])
+    loadUsers();
+  }, []);
 
   const loadUsers = async () => {
-    setIsLoadingUsers(true)
+    setIsLoadingUsers(true);
     try {
-      const { users: fetchedUsers, error } = await AdminAPI.getUsers()
+      const { users: fetchedUsers, error } = await AdminAPI.getUsers();
       if (error) {
-        toast.error(`Failed to load users: ${error}`)
+        toast.error(`Failed to load users: ${error}`);
       } else {
-        setUsers(fetchedUsers)
+        setUsers(fetchedUsers);
       }
     } catch (error) {
-      toast.error('Failed to load users')
+      toast.error('Failed to load users');
     } finally {
-      setIsLoadingUsers(false)
+      setIsLoadingUsers(false);
     }
-  }
+  };
 
   // Generate random password
   const generatePassword = () => {
-    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*'
-    let password = ''
+    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*';
+    let password = '';
     for (let i = 0; i < 12; i++) {
-      password += chars.charAt(Math.floor(Math.random() * chars.length))
+      password += chars.charAt(Math.floor(Math.random() * chars.length));
     }
-    return password
-  }
+    return password;
+  };
 
   const handleCreateUser = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setIsLoading(true)
+    e.preventDefault();
+    setIsLoading(true);
 
     try {
-      const generatedPassword = generatePassword()
+      const generatedPassword = generatePassword();
       
       const createUserData: CreateUserData = {
         email: formData.email,
@@ -95,27 +96,28 @@ export default function AdminUsersPage() {
         companyName: formData.companyName,
         phoneNumber: formData.phoneNumber,
         usageCap: formData.usageCap,
+        maxAgents: formData.maxAgents,
         permissions: formData.permissions
-      }
+      };
 
-      const { user: newUser, error } = await AdminAPI.createUser(createUserData)
+      const { user: newUser, error } = await AdminAPI.createUser(createUserData);
 
       if (error) {
-        toast.error(`Failed to create user: ${error}`)
-        return
+        toast.error(`Failed to create user: ${error}`);
+        return;
       }
 
       if (newUser) {
-        setUsers(prev => [...prev, { ...newUser, generatedPassword }])
+        setUsers(prev => [...prev, { ...newUser, generatedPassword }]);
         
         // Show the generated password to admin with copy functionality
-        const credentials = `Email: ${formData.email}\nPassword: ${generatedPassword}`
-        navigator.clipboard.writeText(credentials)
+        const credentials = `Email: ${formData.email}\nPassword: ${generatedPassword}`;
+        navigator.clipboard.writeText(credentials);
         
         toast.success(
           `✅ User created successfully!\n\n📧 Email: ${formData.email}\n🔑 Password: ${generatedPassword}\n📋 Credentials copied to clipboard!\n\n⚠️ Please save these credentials and share with the customer.`,
           { duration: 15000 }
-        )
+        );
 
         // Reset form
         setFormData({
@@ -124,18 +126,19 @@ export default function AdminUsersPage() {
           companyName: '',
           phoneNumber: '',
           usageCap: 1000,
+          maxAgents: 3,
           permissions: { ...defaultPermissions }
-        })
-        setShowCreateForm(false)
+        });
+        setShowCreateForm(false);
       }
 
     } catch (error) {
-      console.error('Error creating user:', error)
-      toast.error('Failed to create user. Please try again.')
+      console.error('Error creating user:', error);
+      toast.error('Failed to create user. Please try again.');
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }
+  };
 
   const handlePermissionChange = (permission: keyof UserPermissions) => {
     setFormData(prev => ({
@@ -144,45 +147,45 @@ export default function AdminUsersPage() {
         ...prev.permissions,
         [permission]: !prev.permissions[permission]
       }
-    }))
-  }
+    }));
+  };
 
   const handleToggleUserStatus = async (userId: string, currentStatus: boolean) => {
     try {
-      const { error } = await AdminAPI.updateUserStatus(userId, !currentStatus)
+      const { error } = await AdminAPI.updateUserStatus(userId, !currentStatus);
       if (error) {
-        toast.error(`Failed to update user status: ${error}`)
-        return
+        toast.error(`Failed to update user status: ${error}`);
+        return;
       }
 
       setUsers(prev => prev.map(user => 
         user.id === userId ? { ...user, isActive: !currentStatus } : user
-      ))
+      ));
 
-      toast.success(`User ${!currentStatus ? 'activated' : 'deactivated'} successfully`)
+      toast.success(`User ${!currentStatus ? 'activated' : 'deactivated'} successfully`);
     } catch (error) {
-      toast.error('Failed to update user status')
+      toast.error('Failed to update user status');
     }
-  }
+  };
 
   const handleDeleteUser = async (userId: string, userEmail: string) => {
     if (!confirm(`Are you sure you want to delete user ${userEmail}? This action cannot be undone.`)) {
-      return
+      return;
     }
 
     try {
-      const { error } = await AdminAPI.deleteUser(userId)
+      const { error } = await AdminAPI.deleteUser(userId);
       if (error) {
-        toast.error(`Failed to delete user: ${error}`)
-        return
+        toast.error(`Failed to delete user: ${error}`);
+        return;
       }
 
-      setUsers(prev => prev.filter(user => user.id !== userId))
-      toast.success('User deleted successfully')
+      setUsers(prev => prev.filter(user => user.id !== userId));
+      toast.success('User deleted successfully');
     } catch (error) {
-      toast.error('Failed to delete user')
+      toast.error('Failed to delete user');
     }
-  }
+  };
 
 
 
@@ -198,7 +201,7 @@ export default function AdminUsersPage() {
     webhooks: 'Webhooks',
     dnc: 'DNC List',
     status: 'System Status'
-  }
+  };
 
   return (
     <div className="space-y-6">
@@ -272,22 +275,42 @@ export default function AdminUsersPage() {
                 </div>
               </div>
 
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Monthly Usage Cap (Minutes) *
-                </label>
-                <input
-                  type="number"
-                  required
-                  min="0"
-                  value={formData.usageCap}
-                  onChange={(e) => setFormData(prev => ({ ...prev, usageCap: parseInt(e.target.value) || 0 }))}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  placeholder="1000"
-                />
-                <p className="text-xs text-gray-500 mt-1">
-                  Maximum minutes this user can use per month (0 = unlimited)
-                </p>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Monthly Usage Cap (Minutes) *
+                  </label>
+                  <input
+                    type="number"
+                    required
+                    min="0"
+                    value={formData.usageCap}
+                    onChange={(e) => setFormData(prev => ({ ...prev, usageCap: parseInt(e.target.value) || 0 }))}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    placeholder="1000"
+                  />
+                  <p className="text-xs text-gray-500 mt-1">
+                    Maximum minutes this user can use per month (0 = unlimited)
+                  </p>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Maximum AI Agents *
+                  </label>
+                  <input
+                    type="number"
+                    required
+                    min="1"
+                    max="100"
+                    value={formData.maxAgents}
+                    onChange={(e) => setFormData(prev => ({ ...prev, maxAgents: parseInt(e.target.value) || 1 }))}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    placeholder="3"
+                  />
+                  <p className="text-xs text-gray-500 mt-1">
+                    Maximum number of AI agents this user can create
+                  </p>
+                </div>
               </div>
 
               <div>
@@ -473,5 +496,5 @@ export default function AdminUsersPage() {
         </div>
       </div>
     </div>
-  )
+  );
 }

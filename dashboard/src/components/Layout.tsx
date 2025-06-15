@@ -1,5 +1,5 @@
-import { Fragment, useState } from 'react'
-import { Dialog, Transition } from '@headlessui/react'
+import { Fragment, useState } from 'react';
+import { Dialog, Transition } from '@headlessui/react';
 import {
   Bars3Icon,
   ChartBarIcon,
@@ -16,10 +16,10 @@ import {
   CreditCardIcon,
   UsersIcon,
   SignalIcon,
-} from '@heroicons/react/24/outline'
-import { useAuth } from '../hooks/useAuth'
-import { usePermissions } from '../hooks/usePermissions'
-import { Link, useLocation } from 'react-router-dom'
+} from '@heroicons/react/24/outline';
+import { useAuth } from '../hooks/useAuth';
+import { usePermissions } from '../hooks/usePermissions';
+import { Link, useLocation } from 'react-router-dom';
 
 const navigation = [
   { name: 'Dashboard', href: '/dashboard', icon: HomeIcon, permission: 'dashboard' },
@@ -35,14 +35,14 @@ const navigation = [
   { name: 'Webhooks', href: '/webhooks', icon: LinkIcon, permission: 'webhooks' },
   { name: 'Billing', href: '/billing', icon: CreditCardIcon, permission: 'billing' },
   { name: 'Settings', href: '/settings', icon: CogIcon, permission: 'settings' },
-]
+];
 
 const adminNavigation = [
   { name: 'User Management', href: '/admin/users', icon: UsersIcon },
-]
+];
 
 function classNames(...classes: string[]) {
-  return classes.filter(Boolean).join(' ')
+  return classes.filter(Boolean).join(' ');
 }
 
 interface LayoutProps {
@@ -50,15 +50,15 @@ interface LayoutProps {
 }
 
 export default function Layout({ children }: LayoutProps) {
-  const [sidebarOpen, setSidebarOpen] = useState(false)
-  const { user, signOut } = useAuth()
-  const { hasPermission, isAdmin } = usePermissions()
-  const location = useLocation()
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const { user, signOut } = useAuth();
+  const { hasPermission, isAdmin } = usePermissions();
+  const location = useLocation();
   
   // Filter navigation items based on permissions
   const filteredNavigation = navigation.filter(item => 
     hasPermission(item.permission as any)
-  )
+  );
 
   return (
     <>
@@ -292,5 +292,5 @@ export default function Layout({ children }: LayoutProps) {
         </main>
       </div>
     </>
-  )
+  );
 }

@@ -1,16 +1,16 @@
-import { useState, useEffect } from 'react'
-import { EyeIcon, EyeSlashIcon, KeyIcon, UserIcon, PhoneIcon } from '@heroicons/react/24/outline'
-import { useUser } from '../contexts/UserContext'
-import toast from 'react-hot-toast'
+import { useState, useEffect } from 'react';
+import { EyeIcon, EyeSlashIcon, KeyIcon, UserIcon, PhoneIcon } from '@heroicons/react/24/outline';
+import { useUser } from '../contexts/UserContext';
+import toast from 'react-hot-toast';
 
 export default function SettingsPage() {
-  const { user, updateUser } = useUser()
-  const [loading, setLoading] = useState(false)
+  const { user, updateUser } = useUser();
+  const [loading, setLoading] = useState(false);
   const [showApiKeys, setShowApiKeys] = useState({
     gemini: false,
     twilioSid: false,
     twilioToken: false
-  })
+  });
   
   const [formData, setFormData] = useState({
     // Profile Information
@@ -33,7 +33,7 @@ export default function SettingsPage() {
     gemini_api_key: '',
     twilio_account_sid: '',
     twilio_auth_token: ''
-  })
+  });
 
   useEffect(() => {
     if (user) {
@@ -51,40 +51,40 @@ export default function SettingsPage() {
         gemini_api_key: '',
         twilio_account_sid: '',
         twilio_auth_token: ''
-      })
+      });
     }
-  }, [user])
+  }, [user]);
 
   const handleInputChange = (field: string, value: any) => {
-    setFormData(prev => ({ ...prev, [field]: value }))
-  }
+    setFormData(prev => ({ ...prev, [field]: value }));
+  };
 
   const handleSaveProfile = async () => {
-    if (!user) return
+    if (!user) return;
 
-    setLoading(true)
+    setLoading(true);
     try {
       await updateUser({
         client_name: formData.client_name,
         company_name: formData.company_name,
         phone_number: formData.phone_number
-      })
+      });
     } catch (error) {
-      console.error('Error saving profile:', error)
+      console.error('Error saving profile:', error);
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   const handleSaveApiKey = async (keyType: 'gemini' | 'twilio_sid' | 'twilio_token') => {
     // In a real implementation, these would be encrypted and stored securely
     // For now, we'll just show a success message
-    toast.success(`${keyType} API key updated successfully`)
-  }
+    toast.success(`${keyType} API key updated successfully`);
+  };
 
   const toggleApiKeyVisibility = (keyType: 'gemini' | 'twilioSid' | 'twilioToken') => {
-    setShowApiKeys(prev => ({ ...prev, [keyType]: !prev[keyType] }))
-  }
+    setShowApiKeys(prev => ({ ...prev, [keyType]: !prev[keyType] }));
+  };
 
   return (
     <div className="space-y-6">
@@ -312,7 +312,7 @@ export default function SettingsPage() {
               <label className="block text-sm font-medium text-gray-700">Gemini API Key</label>
               <div className="mt-1 flex rounded-md shadow-sm">
                 <input
-                  type={showApiKeys.gemini ? "text" : "password"}
+                  type={showApiKeys.gemini ? 'text' : 'password'}
                   value={formData.gemini_api_key}
                   onChange={(e) => handleInputChange('gemini_api_key', e.target.value)}
                   className="flex-1 rounded-l-md border-gray-300 focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
@@ -343,7 +343,7 @@ export default function SettingsPage() {
               <label className="block text-sm font-medium text-gray-700">Twilio Account SID</label>
               <div className="mt-1 flex rounded-md shadow-sm">
                 <input
-                  type={showApiKeys.twilioSid ? "text" : "password"}
+                  type={showApiKeys.twilioSid ? 'text' : 'password'}
                   value={formData.twilio_account_sid}
                   onChange={(e) => handleInputChange('twilio_account_sid', e.target.value)}
                   className="flex-1 rounded-l-md border-gray-300 focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
@@ -374,7 +374,7 @@ export default function SettingsPage() {
               <label className="block text-sm font-medium text-gray-700">Twilio Auth Token</label>
               <div className="mt-1 flex rounded-md shadow-sm">
                 <input
-                  type={showApiKeys.twilioToken ? "text" : "password"}
+                  type={showApiKeys.twilioToken ? 'text' : 'password'}
                   value={formData.twilio_auth_token}
                   onChange={(e) => handleInputChange('twilio_auth_token', e.target.value)}
                   className="flex-1 rounded-l-md border-gray-300 focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
@@ -474,5 +474,5 @@ export default function SettingsPage() {
         </button>
       </div>
     </div>
-  )
+  );
 }

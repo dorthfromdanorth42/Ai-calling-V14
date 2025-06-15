@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect } from 'react';
 import { 
   CheckCircleIcon,
   ExclamationTriangleIcon,
@@ -10,9 +10,9 @@ import {
   LinkIcon,
   BoltIcon,
   ChartBarIcon
-} from '@heroicons/react/24/outline'
-import { DatabaseService } from '../services/database'
-import type { SystemStatus } from '../lib/supabase'
+} from '@heroicons/react/24/outline';
+import { DatabaseService } from '../services/database';
+import type { SystemStatus } from '../lib/supabase';
 
 const SERVICES = [
   {
@@ -57,7 +57,7 @@ const SERVICES = [
     icon: ChartBarIcon,
     critical: false
   }
-]
+];
 
 const STATUS_COLORS = {
   operational: {
@@ -78,7 +78,7 @@ const STATUS_COLORS = {
     icon: XCircleIcon,
     dot: 'bg-red-500'
   }
-}
+};
 
 const UPTIME_DATA = [
   { date: '2024-01-01', uptime: 99.9 },
@@ -111,76 +111,76 @@ const UPTIME_DATA = [
   { date: '2024-01-28', uptime: 100 },
   { date: '2024-01-29', uptime: 100 },
   { date: '2024-01-30', uptime: 100 }
-]
+];
 
 export default function StatusPage() {
-  const [systemStatus, setSystemStatus] = useState<SystemStatus[]>([])
-  const [loading, setLoading] = useState(true)
-  const [lastUpdated, setLastUpdated] = useState<Date>(new Date())
+  const [systemStatus, setSystemStatus] = useState<SystemStatus[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [lastUpdated, setLastUpdated] = useState<Date>(new Date());
 
   useEffect(() => {
-    loadSystemStatus()
+    loadSystemStatus();
     
     // Auto-refresh every 30 seconds
-    const interval = setInterval(loadSystemStatus, 30000)
-    return () => clearInterval(interval)
-  }, [])
+    const interval = setInterval(loadSystemStatus, 30000);
+    return () => clearInterval(interval);
+  }, []);
 
   const loadSystemStatus = async () => {
     try {
-      setLoading(true)
-      const status = await DatabaseService.getSystemStatus()
-      setSystemStatus(status)
-      setLastUpdated(new Date())
+      setLoading(true);
+      const status = await DatabaseService.getSystemStatus();
+      setSystemStatus(status);
+      setLastUpdated(new Date());
     } catch (error) {
-      console.error('Error loading system status:', error)
+      console.error('Error loading system status:', error);
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   const getServiceStatus = (serviceId: string) => {
-    const status = systemStatus.find(s => s.service_name === serviceId)
-    return status?.status || 'operational'
-  }
+    const status = systemStatus.find(s => s.service_name === serviceId);
+    return status?.status || 'operational';
+  };
 
   const getOverallStatus = () => {
-    const criticalServices = SERVICES.filter(s => s.critical)
-    const hasOutage = criticalServices.some(s => getServiceStatus(s.id) === 'outage')
-    const hasDegraded = criticalServices.some(s => getServiceStatus(s.id) === 'degraded')
+    const criticalServices = SERVICES.filter(s => s.critical);
+    const hasOutage = criticalServices.some(s => getServiceStatus(s.id) === 'outage');
+    const hasDegraded = criticalServices.some(s => getServiceStatus(s.id) === 'degraded');
     
-    if (hasOutage) return 'outage'
-    if (hasDegraded) return 'degraded'
-    return 'operational'
-  }
+    if (hasOutage) return 'outage';
+    if (hasDegraded) return 'degraded';
+    return 'operational';
+  };
 
   const getOverallStatusMessage = () => {
-    const status = getOverallStatus()
+    const status = getOverallStatus();
     switch (status) {
       case 'operational':
-        return 'All systems operational'
+        return 'All systems operational';
       case 'degraded':
-        return 'Some systems experiencing issues'
+        return 'Some systems experiencing issues';
       case 'outage':
-        return 'Service disruption detected'
+        return 'Service disruption detected';
       default:
-        return 'Status unknown'
+        return 'Status unknown';
     }
-  }
+  };
 
   const calculateAverageUptime = () => {
-    const total = UPTIME_DATA.reduce((sum, day) => sum + day.uptime, 0)
-    return (total / UPTIME_DATA.length).toFixed(2)
-  }
+    const total = UPTIME_DATA.reduce((sum, day) => sum + day.uptime, 0);
+    return (total / UPTIME_DATA.length).toFixed(2);
+  };
 
   const getUptimeColor = (uptime: number) => {
-    if (uptime >= 99.9) return 'bg-green-500'
-    if (uptime >= 99.5) return 'bg-yellow-500'
-    return 'bg-red-500'
-  }
+    if (uptime >= 99.9) return 'bg-green-500';
+    if (uptime >= 99.5) return 'bg-yellow-500';
+    return 'bg-red-500';
+  };
 
-  const overallStatus = getOverallStatus()
-  const statusConfig = STATUS_COLORS[overallStatus as keyof typeof STATUS_COLORS]
+  const overallStatus = getOverallStatus();
+  const statusConfig = STATUS_COLORS[overallStatus as keyof typeof STATUS_COLORS];
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -229,10 +229,10 @@ export default function StatusPage() {
           </div>
           <div className="divide-y divide-gray-200">
             {SERVICES.map((service) => {
-              const status = getServiceStatus(service.id)
-              const config = STATUS_COLORS[status as keyof typeof STATUS_COLORS]
-              const StatusIcon = config.icon
-              const ServiceIcon = service.icon
+              const status = getServiceStatus(service.id);
+              const config = STATUS_COLORS[status as keyof typeof STATUS_COLORS];
+              const StatusIcon = config.icon;
+              const ServiceIcon = service.icon;
               
               return (
                 <div key={service.id} className="px-6 py-4">
@@ -261,7 +261,7 @@ export default function StatusPage() {
                     </div>
                   </div>
                 </div>
-              )
+              );
             })}
           </div>
         </div>
@@ -363,5 +363,5 @@ export default function StatusPage() {
         </div>
       </div>
     </div>
-  )
+  );
 }

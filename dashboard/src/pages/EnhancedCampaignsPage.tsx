@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect } from 'react';
 import { 
   PlusIcon, 
   PlayIcon, 
@@ -9,12 +9,12 @@ import {
   ChartBarIcon,
   ArrowDownTrayIcon,
   MagnifyingGlassIcon
-} from '@heroicons/react/24/outline'
-import { useUser, usePermissions } from '../contexts/UserContext'
-import { DatabaseService } from '../services/database'
-import { RealtimeService } from '../services/realtime'
-import type { Campaign, CampaignLead } from '../lib/supabase'
-import toast from 'react-hot-toast'
+} from '@heroicons/react/24/outline';
+import { useUser, usePermissions } from '../contexts/UserContext';
+import { DatabaseService } from '../services/database';
+import { RealtimeService } from '../services/realtime';
+import type { Campaign, CampaignLead } from '../lib/supabase';
+import toast from 'react-hot-toast';
 
 // Removed unused interface
 
@@ -27,85 +27,85 @@ interface DialerStatus {
 }
 
 export default function EnhancedCampaignsPage() {
-  const { user } = useUser()
-  const { canUseOutboundDialer } = usePermissions()
-  const [campaigns, setCampaigns] = useState<Campaign[]>([])
-  const [filteredCampaigns, setFilteredCampaigns] = useState<Campaign[]>([])
-  const [loading, setLoading] = useState(true)
+  const { user } = useUser();
+  const { canUseOutboundDialer } = usePermissions();
+  const [campaigns, setCampaigns] = useState<Campaign[]>([]);
+  const [filteredCampaigns, setFilteredCampaigns] = useState<Campaign[]>([]);
+  const [loading, setLoading] = useState(true);
   // Removed unused state variables
-  const [dialerStatuses, setDialerStatuses] = useState<Map<string, DialerStatus>>(new Map())
-  const [searchTerm, setSearchTerm] = useState('')
-  const [statusFilter, setStatusFilter] = useState<string>('all')
-  const [sortBy, setSortBy] = useState<'name' | 'created' | 'performance'>('created')
+  const [dialerStatuses, setDialerStatuses] = useState<Map<string, DialerStatus>>(new Map());
+  const [searchTerm, setSearchTerm] = useState('');
+  const [statusFilter, setStatusFilter] = useState<string>('all');
+  const [sortBy, setSortBy] = useState<'name' | 'created' | 'performance'>('created');
 
   useEffect(() => {
     if (user && canUseOutboundDialer) {
-      loadCampaigns()
-      setupRealtimeSubscriptions()
+      loadCampaigns();
+      setupRealtimeSubscriptions();
       
       // Refresh dialer statuses every 10 seconds
-      const interval = setInterval(updateDialerStatuses, 10000)
-      return () => clearInterval(interval)
+      const interval = setInterval(updateDialerStatuses, 10000);
+      return () => clearInterval(interval);
     }
-  }, [user, canUseOutboundDialer])
+  }, [user, canUseOutboundDialer]);
 
   useEffect(() => {
-    filterAndSortCampaigns()
-  }, [campaigns, searchTerm, statusFilter, sortBy])
+    filterAndSortCampaigns();
+  }, [campaigns, searchTerm, statusFilter, sortBy]);
 
   const loadCampaigns = async () => {
-    if (!user) return
+    if (!user) return;
 
     try {
-      setLoading(true)
-      const campaignsData = await DatabaseService.getCampaigns(user.id)
-      setCampaigns(campaignsData)
-      await updateDialerStatuses()
+      setLoading(true);
+      const campaignsData = await DatabaseService.getCampaigns(user.id);
+      setCampaigns(campaignsData);
+      await updateDialerStatuses();
     } catch (error) {
-      console.error('Error loading campaigns:', error)
-      toast.error('Failed to load campaigns')
+      console.error('Error loading campaigns:', error);
+      toast.error('Failed to load campaigns');
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   const filterAndSortCampaigns = () => {
-    let filtered = campaigns
+    let filtered = campaigns;
 
     // Apply search filter
     if (searchTerm) {
       filtered = filtered.filter(campaign =>
         campaign.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
         campaign.description?.toLowerCase().includes(searchTerm.toLowerCase())
-      )
+      );
     }
 
     // Apply status filter
     if (statusFilter !== 'all') {
-      filtered = filtered.filter(campaign => campaign.status === statusFilter)
+      filtered = filtered.filter(campaign => campaign.status === statusFilter);
     }
 
     // Apply sorting
     filtered.sort((a, b) => {
       switch (sortBy) {
         case 'name':
-          return a.name.localeCompare(b.name)
+          return a.name.localeCompare(b.name);
         case 'created':
-          return new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+          return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
         case 'performance':
-          const aRate = (a.leads_answered || 0) / (a.leads_called || 1)
-          const bRate = (b.leads_answered || 0) / (b.leads_called || 1)
-          return bRate - aRate
+          const aRate = (a.leads_answered || 0) / (a.leads_called || 1);
+          const bRate = (b.leads_answered || 0) / (b.leads_called || 1);
+          return bRate - aRate;
         default:
-          return 0
+          return 0;
       }
-    })
+    });
 
-    setFilteredCampaigns(filtered)
-  }
+    setFilteredCampaigns(filtered);
+  };
 
   const updateDialerStatuses = async () => {
-    const statuses = new Map<string, DialerStatus>()
+    const statuses = new Map<string, DialerStatus>();
     
     for (const campaign of campaigns) {
       if (campaign.status === 'active') {
@@ -116,15 +116,15 @@ export default function EnhancedCampaignsPage() {
           queuedLeads: Math.floor(Math.random() * 100),
           callsPerHour: 45,
           estimatedCompletion: '2 hours'
-        })
+        });
       }
     }
     
-    setDialerStatuses(statuses)
-  }
+    setDialerStatuses(statuses);
+  };
 
   const setupRealtimeSubscriptions = () => {
-    if (!user) return
+    if (!user) return;
 
     const subscription = RealtimeService.subscribeToCampaignUpdates(
       user.id,
@@ -133,59 +133,59 @@ export default function EnhancedCampaignsPage() {
           prev.map(campaign => 
             campaign.id === updatedCampaign.id ? updatedCampaign : campaign
           )
-        )
+        );
       },
       (newCampaign) => {
-        setCampaigns(prev => [...prev, newCampaign])
+        setCampaigns(prev => [...prev, newCampaign]);
       },
       (deletedCampaignId) => {
-        setCampaigns(prev => prev.filter(campaign => campaign.id !== deletedCampaignId))
+        setCampaigns(prev => prev.filter(campaign => campaign.id !== deletedCampaignId));
       }
-    )
+    );
 
     return () => {
       if (subscription) {
-        RealtimeService.unsubscribe(subscription)
+        RealtimeService.unsubscribe(subscription);
       }
-    }
-  }
+    };
+  };
 
   const handleStartCampaign = async (campaign: Campaign) => {
     try {
-      await DatabaseService.updateCampaign(campaign.id, { status: 'active' })
-      toast.success(`Campaign "${campaign.name}" started`)
-      loadCampaigns()
+      await DatabaseService.updateCampaign(campaign.id, { status: 'active' });
+      toast.success(`Campaign "${campaign.name}" started`);
+      loadCampaigns();
     } catch (error) {
-      console.error('Error starting campaign:', error)
-      toast.error('Failed to start campaign')
+      console.error('Error starting campaign:', error);
+      toast.error('Failed to start campaign');
     }
-  }
+  };
 
   const handlePauseCampaign = async (campaign: Campaign) => {
     try {
-      await DatabaseService.updateCampaign(campaign.id, { status: 'paused' })
-      toast.success(`Campaign "${campaign.name}" paused`)
-      loadCampaigns()
+      await DatabaseService.updateCampaign(campaign.id, { status: 'paused' });
+      toast.success(`Campaign "${campaign.name}" paused`);
+      loadCampaigns();
     } catch (error) {
-      console.error('Error pausing campaign:', error)
-      toast.error('Failed to pause campaign')
+      console.error('Error pausing campaign:', error);
+      toast.error('Failed to pause campaign');
     }
-  }
+  };
 
   const handleStopCampaign = async (campaign: Campaign) => {
     if (!confirm(`Are you sure you want to stop "${campaign.name}"? This will end all active calls.`)) {
-      return
+      return;
     }
 
     try {
-      await DatabaseService.updateCampaign(campaign.id, { status: 'completed' })
-      toast.success(`Campaign "${campaign.name}" stopped`)
-      loadCampaigns()
+      await DatabaseService.updateCampaign(campaign.id, { status: 'completed' });
+      toast.success(`Campaign "${campaign.name}" stopped`);
+      loadCampaigns();
     } catch (error) {
-      console.error('Error stopping campaign:', error)
-      toast.error('Failed to stop campaign')
+      console.error('Error stopping campaign:', error);
+      toast.error('Failed to stop campaign');
     }
-  }
+  };
 
   // Removed unused function
 
@@ -197,18 +197,18 @@ export default function EnhancedCampaignsPage() {
 
   const exportCampaignData = async (campaign: Campaign) => {
     try {
-      const leads = await DatabaseService.getCampaignLeads(campaign.id)
-      const csvContent = generateCSV(leads)
-      downloadCSV(csvContent, `${campaign.name}_leads.csv`)
-      toast.success('Campaign data exported successfully')
+      const leads = await DatabaseService.getCampaignLeads(campaign.id);
+      const csvContent = generateCSV(leads);
+      downloadCSV(csvContent, `${campaign.name}_leads.csv`);
+      toast.success('Campaign data exported successfully');
     } catch (error) {
-      console.error('Error exporting campaign data:', error)
-      toast.error('Failed to export campaign data')
+      console.error('Error exporting campaign data:', error);
+      toast.error('Failed to export campaign data');
     }
-  }
+  };
 
   const generateCSV = (leads: CampaignLead[]): string => {
-    const headers = ['Name', 'Phone', 'Email', 'Company', 'Status', 'Outcome', 'Call Attempts', 'Last Called']
+    const headers = ['Name', 'Phone', 'Email', 'Company', 'Status', 'Outcome', 'Call Attempts', 'Last Called'];
     const rows = leads.map(lead => [
       `${lead.first_name || ''} ${lead.last_name || ''}`.trim(),
       lead.phone_number,
@@ -218,32 +218,32 @@ export default function EnhancedCampaignsPage() {
       lead.outcome || '',
       lead.call_attempts.toString(),
       lead.last_call_at || ''
-    ])
+    ]);
     
-    return [headers, ...rows].map(row => row.map(field => `"${field}"`).join(',')).join('\n')
-  }
+    return [headers, ...rows].map(row => row.map(field => `"${field}"`).join(',')).join('\n');
+  };
 
   const downloadCSV = (content: string, filename: string) => {
-    const blob = new Blob([content], { type: 'text/csv' })
-    const url = window.URL.createObjectURL(blob)
-    const a = document.createElement('a')
-    a.href = url
-    a.download = filename
-    a.click()
-    window.URL.revokeObjectURL(url)
-  }
+    const blob = new Blob([content], { type: 'text/csv' });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    a.click();
+    window.URL.revokeObjectURL(url);
+  };
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'active': return 'text-green-600 bg-green-100'
-      case 'paused': return 'text-yellow-600 bg-yellow-100'
-      case 'completed': return 'text-blue-600 bg-blue-100'
-      case 'cancelled': return 'text-red-600 bg-red-100'
-      default: return 'text-gray-600 bg-gray-100'
+      case 'active': return 'text-green-600 bg-green-100';
+      case 'paused': return 'text-yellow-600 bg-yellow-100';
+      case 'completed': return 'text-blue-600 bg-blue-100';
+      case 'cancelled': return 'text-red-600 bg-red-100';
+      default: return 'text-gray-600 bg-gray-100';
     }
-  }
+  };
 
-  const formatPercentage = (value: number) => `${value.toFixed(1)}%`
+  const formatPercentage = (value: number) => `${value.toFixed(1)}%`;
   // Removed unused function
 
   if (!canUseOutboundDialer) {
@@ -255,7 +255,7 @@ export default function EnhancedCampaignsPage() {
           Your current plan doesn't include outbound campaign features.
         </p>
       </div>
-    )
+    );
   }
 
   if (loading) {
@@ -263,7 +263,7 @@ export default function EnhancedCampaignsPage() {
       <div className="flex items-center justify-center h-64">
         <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-indigo-600"></div>
       </div>
-    )
+    );
   }
 
   return (
@@ -327,9 +327,9 @@ export default function EnhancedCampaignsPage() {
       {/* Campaigns Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
         {filteredCampaigns.map((campaign) => {
-          const dialerStatus = dialerStatuses.get(campaign.id)
-          const contactRate = ((campaign.leads_called || 0) / (campaign.total_leads || 1)) * 100
-          const answerRate = ((campaign.leads_answered || 0) / (campaign.leads_called || 1)) * 100
+          const dialerStatus = dialerStatuses.get(campaign.id);
+          const contactRate = ((campaign.leads_called || 0) / (campaign.total_leads || 1)) * 100;
+          const answerRate = ((campaign.leads_answered || 0) / (campaign.leads_called || 1)) * 100;
 
           return (
             <div key={campaign.id} className="bg-white rounded-lg shadow hover:shadow-lg transition-shadow">
@@ -476,7 +476,7 @@ export default function EnhancedCampaignsPage() {
                 </div>
               </div>
             </div>
-          )
+          );
         })}
       </div>
 
@@ -495,5 +495,5 @@ export default function EnhancedCampaignsPage() {
 
       {/* Modals would go here - CreateCampaignModal, LeadsModal, StatsModal */}
     </div>
-  )
+  );
 }

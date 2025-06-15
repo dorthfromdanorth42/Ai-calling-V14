@@ -1,40 +1,40 @@
-import { useState } from 'react'
+import { useState } from 'react';
 
 export default function SimpleLoginForm() {
-  const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
-  const [loading, setLoading] = useState(false)
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [loading, setLoading] = useState(false);
 
   const handleLogin = () => {
     if (email === 'demo@example.com' && password === 'demo123') {
-      setLoading(true)
+      setLoading(true);
       // Store demo user in localStorage
       const demoUser = {
         id: 'demo-user-id',
         email: 'demo@example.com',
         user_metadata: { name: 'Demo User' }
-      }
-      localStorage.setItem('demo_user', JSON.stringify(demoUser))
+      };
+      localStorage.setItem('demo_user', JSON.stringify(demoUser));
       localStorage.setItem('demo_session', JSON.stringify({
         user: demoUser,
         access_token: 'demo-token',
         expires_at: Date.now() + (24 * 60 * 60 * 1000)
-      }))
+      }));
       
       // Reload page to trigger auth state change
       setTimeout(() => {
-        window.location.reload()
-      }, 1000)
+        window.location.reload();
+      }, 1000);
     } else {
-      alert('Invalid credentials. Use demo@example.com / demo123')
+      alert('Invalid credentials. Use demo@example.com / demo123');
     }
-  }
+  };
 
   const handleDemoLogin = () => {
-    setEmail('demo@example.com')
-    setPassword('demo123')
-    setTimeout(() => handleLogin(), 100)
-  }
+    setEmail('demo@example.com');
+    setPassword('demo123');
+    setTimeout(() => handleLogin(), 100);
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-blue-900 to-gray-900 flex items-center justify-center py-12 px-4">
@@ -123,5 +123,5 @@ export default function SimpleLoginForm() {
         </div>
       </div>
     </div>
-  )
+  );
 }

@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect } from 'react';
 import { 
   CalendarIcon, 
   UserIcon, 
@@ -7,12 +7,12 @@ import {
   TrashIcon,
   CheckIcon,
   XMarkIcon
-} from '@heroicons/react/24/outline'
-import { useUser } from '../contexts/UserContext'
-import { DatabaseService } from '../services/database'
-import { RealtimeService } from '../services/realtime'
-import type { Appointment } from '../lib/supabase'
-import toast from 'react-hot-toast'
+} from '@heroicons/react/24/outline';
+import { useUser } from '../contexts/UserContext';
+import { DatabaseService } from '../services/database';
+import { RealtimeService } from '../services/realtime';
+import type { Appointment } from '../lib/supabase';
+import toast from 'react-hot-toast';
 
 const APPOINTMENT_TYPES = [
   'Consultation',
@@ -23,7 +23,7 @@ const APPOINTMENT_TYPES = [
   'Technical Review',
   'Strategy Session',
   'Training Session'
-]
+];
 
 const APPOINTMENT_STATUSES = [
   { value: 'scheduled', label: 'Scheduled', color: 'bg-blue-100 text-blue-800' },
@@ -32,41 +32,41 @@ const APPOINTMENT_STATUSES = [
   { value: 'completed', label: 'Completed', color: 'bg-gray-100 text-gray-800' },
   { value: 'no_show', label: 'No Show', color: 'bg-yellow-100 text-yellow-800' },
   { value: 'rescheduled', label: 'Rescheduled', color: 'bg-purple-100 text-purple-800' }
-]
+];
 
 export default function AppointmentsPage() {
-  const { user } = useUser()
-  const [appointments, setAppointments] = useState<Appointment[]>([])
-  const [loading, setLoading] = useState(true)
-  const [showCreateModal, setShowCreateModal] = useState(false)
-  const [showEditModal, setShowEditModal] = useState(false)
-  const [selectedAppointment, setSelectedAppointment] = useState<Appointment | null>(null)
-  const [filter, setFilter] = useState<'all' | 'today' | 'upcoming' | 'past'>('upcoming')
+  const { user } = useUser();
+  const [appointments, setAppointments] = useState<Appointment[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [showCreateModal, setShowCreateModal] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [selectedAppointment, setSelectedAppointment] = useState<Appointment | null>(null);
+  const [filter, setFilter] = useState<'all' | 'today' | 'upcoming' | 'past'>('upcoming');
 
   useEffect(() => {
     if (user) {
-      loadAppointments()
-      setupRealtimeSubscriptions()
+      loadAppointments();
+      setupRealtimeSubscriptions();
     }
-  }, [user])
+  }, [user]);
 
   const loadAppointments = async () => {
-    if (!user) return
+    if (!user) return;
 
     try {
-      setLoading(true)
-      const appointmentsData = await DatabaseService.getAppointments(user.id)
-      setAppointments(appointmentsData)
+      setLoading(true);
+      const appointmentsData = await DatabaseService.getAppointments(user.id);
+      setAppointments(appointmentsData);
     } catch (error) {
-      console.error('Error loading appointments:', error)
-      toast.error('Failed to load appointments')
+      console.error('Error loading appointments:', error);
+      toast.error('Failed to load appointments');
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   const setupRealtimeSubscriptions = () => {
-    if (!user) return
+    if (!user) return;
 
     const subscription = RealtimeService.subscribeToAppointmentUpdates(
       user.id,
@@ -75,56 +75,56 @@ export default function AppointmentsPage() {
           prev.map(appointment => 
             appointment.id === updatedAppointment.id ? updatedAppointment : appointment
           )
-        )
+        );
       },
       (newAppointment) => {
-        setAppointments(prev => [newAppointment, ...prev])
+        setAppointments(prev => [newAppointment, ...prev]);
       },
       (appointmentId) => {
-        setAppointments(prev => prev.filter(appointment => appointment.id !== appointmentId))
+        setAppointments(prev => prev.filter(appointment => appointment.id !== appointmentId));
       }
-    )
+    );
 
     return () => {
-      RealtimeService.unsubscribe(subscription)
-    }
-  }
+      RealtimeService.unsubscribe(subscription);
+    };
+  };
 
   const handleStatusChange = async (appointmentId: string, newStatus: string) => {
     try {
-      await DatabaseService.updateAppointment(appointmentId, { status: newStatus })
-      toast.success(`Appointment ${newStatus}`)
+      await DatabaseService.updateAppointment(appointmentId, { status: newStatus });
+      toast.success(`Appointment ${newStatus}`);
     } catch (error) {
-      console.error('Error updating appointment:', error)
-      toast.error('Failed to update appointment')
+      console.error('Error updating appointment:', error);
+      toast.error('Failed to update appointment');
     }
-  }
+  };
 
   const handleDeleteAppointment = async (appointmentId: string) => {
     if (!confirm('Are you sure you want to delete this appointment?')) {
-      return
+      return;
     }
 
     try {
-      await DatabaseService.deleteAppointment(appointmentId)
-      toast.success('Appointment deleted successfully')
+      await DatabaseService.deleteAppointment(appointmentId);
+      toast.success('Appointment deleted successfully');
     } catch (error) {
-      console.error('Error deleting appointment:', error)
-      toast.error('Failed to delete appointment')
+      console.error('Error deleting appointment:', error);
+      toast.error('Failed to delete appointment');
     }
-  }
+  };
 
   const handleEditAppointment = (appointment: Appointment) => {
-    setSelectedAppointment(appointment)
-    setShowEditModal(true)
-  }
+    setSelectedAppointment(appointment);
+    setShowEditModal(true);
+  };
 
   const getStatusInfo = (status: string) => {
-    return APPOINTMENT_STATUSES.find(s => s.value === status) || APPOINTMENT_STATUSES[0]
-  }
+    return APPOINTMENT_STATUSES.find(s => s.value === status) || APPOINTMENT_STATUSES[0];
+  };
 
   const formatDateTime = (dateString: string) => {
-    const date = new Date(dateString)
+    const date = new Date(dateString);
     return {
       date: date.toLocaleDateString('en-US', { 
         weekday: 'short', 
@@ -136,43 +136,43 @@ export default function AppointmentsPage() {
         hour: '2-digit', 
         minute: '2-digit' 
       })
-    }
-  }
+    };
+  };
 
   const filterAppointments = (appointments: Appointment[]) => {
-    const now = new Date()
-    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate())
-    const tomorrow = new Date(today.getTime() + 24 * 60 * 60 * 1000)
+    const now = new Date();
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const tomorrow = new Date(today.getTime() + 24 * 60 * 60 * 1000);
 
     switch (filter) {
       case 'today':
         return appointments.filter(apt => {
-          const aptDate = new Date(`${apt.appointment_date}T${apt.appointment_time}`)
-          return aptDate >= today && aptDate < tomorrow
-        })
+          const aptDate = new Date(`${apt.appointment_date}T${apt.appointment_time}`);
+          return aptDate >= today && aptDate < tomorrow;
+        });
       case 'upcoming':
         return appointments.filter(apt => {
-          const aptDate = new Date(`${apt.appointment_date}T${apt.appointment_time}`)
-          return aptDate >= now && apt.status !== 'completed' && apt.status !== 'cancelled'
-        })
+          const aptDate = new Date(`${apt.appointment_date}T${apt.appointment_time}`);
+          return aptDate >= now && apt.status !== 'completed' && apt.status !== 'cancelled';
+        });
       case 'past':
         return appointments.filter(apt => {
-          const aptDate = new Date(`${apt.appointment_date}T${apt.appointment_time}`)
-          return aptDate < now || apt.status === 'completed'
-        })
+          const aptDate = new Date(`${apt.appointment_date}T${apt.appointment_time}`);
+          return aptDate < now || apt.status === 'completed';
+        });
       default:
-        return appointments
+        return appointments;
     }
-  }
+  };
 
-  const filteredAppointments = filterAppointments(appointments)
+  const filteredAppointments = filterAppointments(appointments);
 
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
       </div>
-    )
+    );
   }
 
   return (
@@ -234,8 +234,8 @@ export default function AppointmentsPage() {
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
                 {filteredAppointments.map((appointment) => {
-                  const dateTime = formatDateTime(`${appointment.appointment_date}T${appointment.appointment_time}`)
-                  const statusInfo = getStatusInfo(appointment.status)
+                  const dateTime = formatDateTime(`${appointment.appointment_date}T${appointment.appointment_time}`);
+                  const statusInfo = getStatusInfo(appointment.status);
                   
                   return (
                     <tr key={appointment.id} className="hover:bg-gray-50">
@@ -309,7 +309,7 @@ export default function AppointmentsPage() {
                         </div>
                       </td>
                     </tr>
-                  )
+                  );
                 })}
               </tbody>
             </table>
@@ -351,20 +351,20 @@ export default function AppointmentsPage() {
         <EditAppointmentModal
           appointment={selectedAppointment}
           onClose={() => {
-            setShowEditModal(false)
-            setSelectedAppointment(null)
+            setShowEditModal(false);
+            setSelectedAppointment(null);
           }}
           onSuccess={loadAppointments}
         />
       )}
     </div>
-  )
+  );
 }
 
 // Create Appointment Modal Component
 function CreateAppointmentModal({ onClose, onSuccess }: { onClose: () => void; onSuccess: () => void }) {
-  const { user } = useUser()
-  const [loading, setLoading] = useState(false)
+  const { user } = useUser();
+  const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
     customer_name: '',
     customer_phone: '',
@@ -373,30 +373,30 @@ function CreateAppointmentModal({ onClose, onSuccess }: { onClose: () => void; o
     appointment_date: '',
     appointment_time: '10:00',
     notes: ''
-  })
+  });
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    if (!user) return
+    e.preventDefault();
+    if (!user) return;
 
-    setLoading(true)
+    setLoading(true);
     try {
       await DatabaseService.createAppointment({
         ...formData,
         profile_id: user.id,
         status: 'scheduled'
-      })
+      });
       
-      toast.success('Appointment scheduled successfully')
-      onSuccess()
-      onClose()
+      toast.success('Appointment scheduled successfully');
+      onSuccess();
+      onClose();
     } catch (error) {
-      console.error('Error creating appointment:', error)
-      toast.error('Failed to schedule appointment')
+      console.error('Error creating appointment:', error);
+      toast.error('Failed to schedule appointment');
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   return (
     <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
@@ -521,7 +521,7 @@ function CreateAppointmentModal({ onClose, onSuccess }: { onClose: () => void; o
         </div>
       </div>
     </div>
-  )
+  );
 }
 
 // Edit Appointment Modal Component (similar structure to Create)
@@ -534,7 +534,7 @@ function EditAppointmentModal({
   onClose: () => void; 
   onSuccess: () => void 
 }) {
-  const [loading, setLoading] = useState(false)
+  const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
     customer_name: appointment.customer_name,
     customer_phone: appointment.customer_phone,
@@ -544,28 +544,28 @@ function EditAppointmentModal({
     appointment_time: '60',
     notes: appointment.notes || '',
     status: appointment.status
-  })
+  });
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
+    e.preventDefault();
 
-    setLoading(true)
+    setLoading(true);
     try {
       await DatabaseService.updateAppointment(appointment.id, {
         ...formData,
         appointment_date: new Date(formData.appointment_date).toISOString()
-      })
+      });
       
-      toast.success('Appointment updated successfully')
-      onSuccess()
-      onClose()
+      toast.success('Appointment updated successfully');
+      onSuccess();
+      onClose();
     } catch (error) {
-      console.error('Error updating appointment:', error)
-      toast.error('Failed to update appointment')
+      console.error('Error updating appointment:', error);
+      toast.error('Failed to update appointment');
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   return (
     <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
@@ -629,5 +629,5 @@ function EditAppointmentModal({
         </div>
       </div>
     </div>
-  )
+  );
 }

@@ -1,54 +1,54 @@
-import { useEffect, useState } from 'react'
-import { useSearchParams, useNavigate } from 'react-router-dom'
-import { supabase } from '../lib/supabase'
-import toast from 'react-hot-toast'
+import { useEffect, useState } from 'react';
+import { useSearchParams, useNavigate } from 'react-router-dom';
+import { supabase } from '../lib/supabase';
+import toast from 'react-hot-toast';
 
 export default function VerifyPage() {
-  const [searchParams] = useSearchParams()
-  const navigate = useNavigate()
-  const [status, setStatus] = useState<'verifying' | 'success' | 'error'>('verifying')
-  const [message, setMessage] = useState('')
+  const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
+  const [status, setStatus] = useState<'verifying' | 'success' | 'error'>('verifying');
+  const [message, setMessage] = useState('');
 
   useEffect(() => {
     const verifyUser = async () => {
-      const token = searchParams.get('token')
-      const type = searchParams.get('type')
+      const token = searchParams.get('token');
+      const type = searchParams.get('type');
 
       if (!token || !type) {
-        setStatus('error')
-        setMessage('Invalid verification link')
-        return
+        setStatus('error');
+        setMessage('Invalid verification link');
+        return;
       }
 
       try {
         const { error } = await supabase.auth.verifyOtp({
           token_hash: token,
           type: type as any
-        })
+        });
 
         if (error) {
-          console.error('Verification error:', error)
-          setStatus('error')
-          setMessage(error.message || 'Verification failed')
+          console.error('Verification error:', error);
+          setStatus('error');
+          setMessage(error.message || 'Verification failed');
         } else {
-          setStatus('success')
-          setMessage('Email verified successfully! You can now sign in.')
-          toast.success('Email verified successfully!')
+          setStatus('success');
+          setMessage('Email verified successfully! You can now sign in.');
+          toast.success('Email verified successfully!');
           
           // Redirect to login after 3 seconds
           setTimeout(() => {
-            navigate('/', { replace: true })
-          }, 3000)
+            navigate('/', { replace: true });
+          }, 3000);
         }
       } catch (error) {
-        console.error('Verification error:', error)
-        setStatus('error')
-        setMessage('An unexpected error occurred')
+        console.error('Verification error:', error);
+        setStatus('error');
+        setMessage('An unexpected error occurred');
       }
-    }
+    };
 
-    verifyUser()
-  }, [searchParams, navigate])
+    verifyUser();
+  }, [searchParams, navigate]);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
@@ -101,5 +101,5 @@ export default function VerifyPage() {
         )}
       </div>
     </div>
-  )
+  );
 }
