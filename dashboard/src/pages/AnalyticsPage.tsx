@@ -1,14 +1,12 @@
 import { useState, useEffect } from 'react'
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line, PieChart, Pie, Cell } from 'recharts'
 import { useUser } from '../contexts/UserContext'
-import { useApp } from '../contexts/AppContext'
 import { DatabaseService } from '../services/database'
 import type { AnalyticsData } from '../lib/supabase'
 import toast from 'react-hot-toast'
 
 export default function AnalyticsPage() {
   const { user } = useUser()
-  const { isDemo } = useApp()
   const [loading, setLoading] = useState(true)
   const [timeRange, setTimeRange] = useState('7d')
   const [analytics, setAnalytics] = useState<AnalyticsData | null>(null)

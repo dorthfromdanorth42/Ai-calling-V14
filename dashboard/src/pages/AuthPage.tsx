@@ -124,28 +124,7 @@ export default function AuthPage() {
     }
   }
 
-  const handleResendVerification = async () => {
-    if (!formData.email) {
-      toast.error('Please enter your email address first')
-      return
-    }
-
-    setIsLoading(true)
-    try {
-      const { error } = await AuthService.resendConfirmation({ email: formData.email })
-      
-      if (error) {
-        toast.error(error.message)
-      } else {
-        toast.success('Verification email sent! Check your inbox.')
-      }
-    } catch (error) {
-      console.error('Resend verification error:', error)
-      toast.error('Failed to send verification email')
-    } finally {
-      setIsLoading(false)
-    }
-  }
+  // Removed unused function
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-purple-50 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">

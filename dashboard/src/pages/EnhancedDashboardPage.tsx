@@ -2,25 +2,17 @@ import { useState, useEffect } from 'react'
 import { 
   PhoneIcon, 
   UserGroupIcon,
-  ClockIcon,
-  CheckCircleIcon,
-  PlayIcon,
-  StopIcon,
-  ChartBarIcon,
-  ExclamationTriangleIcon,
   CurrencyDollarIcon,
   ArrowTrendingUpIcon,
   ArrowTrendingDownIcon,
   CalendarIcon,
-  StarIcon,
-  BoltIcon,
   SignalIcon
 } from '@heroicons/react/24/outline'
-import { useUser, usePermissions } from '../contexts/UserContext'
+import { useUser } from '../contexts/UserContext'
 import { DatabaseService } from '../services/database'
 import { RealtimeService } from '../services/realtime'
 import UsageTracker from '../components/UsageTracker'
-import type { CallLog, AnalyticsData } from '../lib/supabase'
+import type { CallLog } from '../lib/supabase'
 import toast from 'react-hot-toast'
 
 interface BusinessMetrics {
@@ -73,7 +65,7 @@ interface RealtimeStats {
 
 export default function EnhancedDashboardPage() {
   const { user } = useUser()
-  const { canUseInbound } = usePermissions()
+  // Removed unused variable
   const [recentCalls, setRecentCalls] = useState<CallLog[]>([])
   const [businessMetrics, setBusinessMetrics] = useState<BusinessMetrics | null>(null)
   const [realtimeStats, setRealtimeStats] = useState<RealtimeStats>({
@@ -103,7 +95,7 @@ export default function EnhancedDashboardPage() {
       setLoading(true)
       
       // Load recent calls
-      const calls = await DatabaseService.getCallLogs(user.id, 10)
+      const calls = await DatabaseService.getCallLogs(user!.id, 10)
       setRecentCalls(calls)
 
       // Load business metrics
@@ -124,7 +116,7 @@ export default function EnhancedDashboardPage() {
 
   const loadBusinessMetrics = async (): Promise<BusinessMetrics> => {
     // Load real analytics data from database - NO MOCK DATA
-    const analytics = await DatabaseService.getAnalytics(user.id)
+    const analytics = await DatabaseService.getAnalytics(user!.id)
     
     // Calculate metrics from available data
     const totalCalls = analytics.totalCalls || 0
@@ -179,9 +171,9 @@ export default function EnhancedDashboardPage() {
 
   const loadRealtimeStats = async (): Promise<RealtimeStats> => {
     try {
-      const activeCalls = await DatabaseService.getActiveCalls(user.id)
-      const agentStatuses = await DatabaseService.getAgentStatuses(user.id)
-      const callQueue = await DatabaseService.getCallQueue(user.id)
+      const activeCalls = await DatabaseService.getActiveCalls(user!.id)
+      const agentStatuses = await DatabaseService.getAgentStatuses(user!.id)
+      const callQueue = await DatabaseService.getCallQueue(user!.id)
 
       const availableAgents = agentStatuses.filter(agent => 
         agent.is_active && agent.status === 'available'
@@ -212,7 +204,7 @@ export default function EnhancedDashboardPage() {
 
     // Subscribe to call updates for realtime stats
     const callSubscription = RealtimeService.subscribeToCallUpdates(
-      user.id,
+      user!.id,
       () => {
         // Refresh realtime stats when calls update
         loadRealtimeStats().then(setRealtimeStats)

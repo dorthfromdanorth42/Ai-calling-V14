@@ -531,11 +531,16 @@ function CreateCampaignModal({ onClose, onSuccess }: { onClose: () => void; onSu
         custom_voice_name: formData.custom_voice_name as Campaign['custom_voice_name'],
         // Convert empty strings to null for timestamp fields
         scheduled_start_date: formData.scheduled_start_date || undefined,
-        scheduled_end_date: formData.scheduled_end_date || undefined
+        scheduled_end_date: formData.scheduled_end_date || undefined,
+        // Initialize lead counters
+        total_leads: 0,
+        leads_called: 0,
+        leads_answered: 0,
+        leads_completed: 0
       })
 
       // Add leads to campaign
-      if (leads.length > 0) {
+      if (campaign && leads.length > 0) {
         for (const lead of leads) {
           await DatabaseService.createCampaignLead({
             campaign_id: campaign.id,
@@ -563,18 +568,7 @@ function CreateCampaignModal({ onClose, onSuccess }: { onClose: () => void; onSu
     }
   }
 
-  const addManualLead = () => {
-    const newLead = {
-      id: `temp-${Date.now()}`,
-      phone_number: '',
-      first_name: '',
-      last_name: '',
-      email: '',
-      company: '',
-      status: 'pending'
-    }
-    setLeads([...leads, newLead])
-  }
+  // Removed unused function
 
   const downloadCSVTemplate = () => {
     const csvContent = [
@@ -597,15 +591,9 @@ function CreateCampaignModal({ onClose, onSuccess }: { onClose: () => void; onSu
     toast.success('CSV template downloaded!')
   }
 
-  const updateLead = (index: number, field: string, value: string) => {
-    const updatedLeads = [...leads]
-    updatedLeads[index] = { ...updatedLeads[index], [field]: value }
-    setLeads(updatedLeads)
-  }
+  // Removed unused function
 
-  const removeLead = (index: number) => {
-    setLeads(leads.filter((_, i) => i !== index))
-  }
+  // Removed unused function
 
   return (
     <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">

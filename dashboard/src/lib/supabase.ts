@@ -151,6 +151,7 @@ export interface Appointment {
   customer_email?: string
   appointment_date: string
   appointment_time: string
+  scheduled_date?: string
   service_type?: string
   notes?: string
   status: string
@@ -202,6 +203,9 @@ export interface AnalyticsData {
   totalAppointments?: number
   appointmentsThisMonth?: number
   appointmentConversionRate?: number
+  appointmentsScheduled?: number
+  salesCompleted?: number
+  customerSatisfactionAvg?: number
   activeCampaigns?: number
   totalLeads?: number
   contactedLeads?: number
@@ -298,4 +302,25 @@ export interface SystemStatus {
   started_at: string
   resolved_at?: string
   created_at: string
+}
+
+export interface ActiveCall extends CallLog {
+  agent_name?: string
+  call_quality?: 'excellent' | 'good' | 'fair' | 'poor'
+}
+
+export interface SystemMetrics {
+  total_active_calls: number
+  total_queued_calls: number
+  average_wait_time: number
+  system_health: 'healthy' | 'warning' | 'critical'
+  uptime_percentage: number
+}
+
+export interface LeadToCall {
+  id: string
+  phoneNumber: string
+  callAttempts: number
+  lastCallAt?: string
+  [key: string]: any
 }

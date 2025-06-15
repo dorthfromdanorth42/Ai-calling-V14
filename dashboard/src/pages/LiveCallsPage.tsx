@@ -8,8 +8,7 @@ import {
   ClockIcon,
   UserIcon,
   SignalIcon,
-  CheckCircleIcon,
-  XCircleIcon
+  CheckCircleIcon
 } from '@heroicons/react/24/outline'
 import { useUser } from '../contexts/UserContext'
 import { DatabaseService } from '../services/database'
@@ -87,23 +86,23 @@ export default function LiveCallsPage() {
       setLoading(true)
       
       // Load active calls
-      const calls = await DatabaseService.getActiveCalls(user.id)
+      const calls = await DatabaseService.getActiveCalls(user!.id)
       setActiveCalls(calls)
       
       // Load agent statuses
-      const agents = await DatabaseService.getAgentStatuses(user.id)
+      const agents = await DatabaseService.getAgentStatuses(user!.id)
       setAgentStatuses(agents)
       
       // Load call queue
-      const queue = await DatabaseService.getCallQueue(user.id)
+      const queue = await DatabaseService.getCallQueue(user!.id)
       setCallQueue(queue)
       
       // Calculate system metrics
-      const metrics = {
+      const metrics: SystemMetrics = {
         total_active_calls: calls.length,
         total_queued_calls: queue.length,
         average_wait_time: queue.reduce((sum, call) => sum + call.wait_time_seconds, 0) / (queue.length || 1),
-        system_health: calls.length > 10 ? 'warning' : 'healthy' as const,
+        system_health: (calls.length > 10 ? 'warning' : 'healthy') as 'healthy' | 'warning' | 'critical',
         uptime_percentage: 99.9
       }
       setSystemMetrics(metrics)
@@ -121,14 +120,22 @@ export default function LiveCallsPage() {
 
     // Subscribe to call updates
     const callSubscription = RealtimeService.subscribeToCallUpdates(
-      user.id,
+      user!.id,
       (updatedCall) => {
         setActiveCalls(prev => {
           const existing = prev.find(call => call.id === updatedCall.id)
           if (existing) {
-            return prev.map(call => call.id === updatedCall.id ? updatedCall : call)
-          } else if (updatedCall.status === 'in_progress') {
-            return [...prev, updatedCall]
+            // Convert RealtimeCallUpdate to ActiveCall
+            const activeCall: ActiveCall = {
+              ...existing,
+              status: updatedCall.status,
+              duration_seconds: updatedCall.duration_seconds,
+              ...(updatedCall.transcript && { transcript: updatedCall.transcript }),
+              ...(updatedCall.call_summary && { call_summary: updatedCall.call_summary }),
+              ...(updatedCall.sentiment_score && { sentiment_score: updatedCall.sentiment_score }),
+              ...(updatedCall.outcome && { outcome: updatedCall.outcome })
+            }
+            return prev.map(call => call.id === updatedCall.id ? activeCall : call)
           }
           return prev
         })
@@ -137,19 +144,29 @@ export default function LiveCallsPage() {
 
     // Subscribe to agent status updates
     const agentSubscription = RealtimeService.subscribeToAgentUpdates(
-      user.id,
+      user!.id,
       (updatedAgent) => {
         setAgentStatuses(prev => 
           prev.map(agent => 
             agent.id === updatedAgent.id ? { ...agent, ...updatedAgent } : agent
           )
         )
+      },
+      (newAgent) => {
+        setAgentStatuses(prev => [...prev, newAgent])
+      },
+      (agentId) => {
+        setAgentStatuses(prev => prev.filter(agent => agent.id !== agentId))
       }
     )
 
     return () => {
-      callSubscription?.unsubscribe()
-      agentSubscription?.unsubscribe()
+      if (typeof callSubscription === 'object' && callSubscription?.unsubscribe) {
+        callSubscription.unsubscribe()
+      }
+      if (typeof agentSubscription === 'string') {
+        RealtimeService.unsubscribe(agentSubscription)
+      }
     }
   }
 
@@ -159,7 +176,7 @@ export default function LiveCallsPage() {
     }
 
     try {
-      await DatabaseService.emergencyStopAllCalls(user.id)
+      await DatabaseService.emergencyStopAllCalls(user!.id)
       toast.success('All calls stopped successfully')
       loadLiveData()
     } catch (error) {

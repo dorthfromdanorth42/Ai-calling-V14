@@ -3,43 +3,20 @@ import {
   PlusIcon, 
   PlayIcon, 
   PauseIcon, 
-  StopIcon, 
-  TrashIcon,
-  DocumentArrowUpIcon,
+  StopIcon,
   EyeIcon,
-  PencilIcon,
   MegaphoneIcon,
   ChartBarIcon,
-  ClockIcon,
-  PhoneIcon,
-  UserGroupIcon,
-  CalendarIcon,
-  CogIcon,
   ArrowDownTrayIcon,
-  FunnelIcon,
   MagnifyingGlassIcon
 } from '@heroicons/react/24/outline'
 import { useUser, usePermissions } from '../contexts/UserContext'
 import { DatabaseService } from '../services/database'
 import { RealtimeService } from '../services/realtime'
-import { AutoDialerEngine } from '../services/auto-dialer'
-import type { Campaign, CampaignLead, AIAgent } from '../lib/supabase'
+import type { Campaign, CampaignLead } from '../lib/supabase'
 import toast from 'react-hot-toast'
 
-interface CampaignStats {
-  totalLeads: number
-  contacted: number
-  answered: number
-  appointments: number
-  conversions: number
-  contactRate: number
-  answerRate: number
-  conversionRate: number
-  avgCallDuration: number
-  cost: number
-  revenue: number
-  roi: number
-}
+// Removed unused interface
 
 interface DialerStatus {
   isRunning: boolean
@@ -55,12 +32,7 @@ export default function EnhancedCampaignsPage() {
   const [campaigns, setCampaigns] = useState<Campaign[]>([])
   const [filteredCampaigns, setFilteredCampaigns] = useState<Campaign[]>([])
   const [loading, setLoading] = useState(true)
-  const [showCreateModal, setShowCreateModal] = useState(false)
-  const [showLeadsModal, setShowLeadsModal] = useState(false)
-  const [showStatsModal, setShowStatsModal] = useState(false)
-  const [selectedCampaign, setSelectedCampaign] = useState<Campaign | null>(null)
-  const [campaignLeads, setCampaignLeads] = useState<CampaignLead[]>([])
-  const [campaignStats, setCampaignStats] = useState<CampaignStats | null>(null)
+  // Removed unused state variables
   const [dialerStatuses, setDialerStatuses] = useState<Map<string, DialerStatus>>(new Map())
   const [searchTerm, setSearchTerm] = useState('')
   const [statusFilter, setStatusFilter] = useState<string>('all')
@@ -215,65 +187,13 @@ export default function EnhancedCampaignsPage() {
     }
   }
 
-  const handleDeleteCampaign = async (campaign: Campaign) => {
-    if (!confirm(`Are you sure you want to delete "${campaign.name}"? This action cannot be undone.`)) {
-      return
-    }
+  // Removed unused function
 
-    try {
-      await DatabaseService.deleteCampaign(campaign.id)
-      toast.success(`Campaign "${campaign.name}" deleted`)
-      loadCampaigns()
-    } catch (error) {
-      console.error('Error deleting campaign:', error)
-      toast.error('Failed to delete campaign')
-    }
-  }
+  // Removed unused function
 
-  const handleViewLeads = async (campaign: Campaign) => {
-    try {
-      setSelectedCampaign(campaign)
-      const leads = await DatabaseService.getCampaignLeads(campaign.id)
-      setCampaignLeads(leads)
-      setShowLeadsModal(true)
-    } catch (error) {
-      console.error('Error loading campaign leads:', error)
-      toast.error('Failed to load campaign leads')
-    }
-  }
+  // Removed unused function
 
-  const handleViewStats = async (campaign: Campaign) => {
-    try {
-      setSelectedCampaign(campaign)
-      const stats = await loadCampaignStats(campaign.id)
-      setCampaignStats(stats)
-      setShowStatsModal(true)
-    } catch (error) {
-      console.error('Error loading campaign stats:', error)
-      toast.error('Failed to load campaign statistics')
-    }
-  }
-
-  const loadCampaignStats = async (campaignId: string): Promise<CampaignStats> => {
-    // In a real implementation, this would call a specific analytics endpoint
-    const campaign = campaigns.find(c => c.id === campaignId)
-    if (!campaign) throw new Error('Campaign not found')
-
-    return {
-      totalLeads: campaign.total_leads || 0,
-      contacted: campaign.leads_called || 0,
-      answered: campaign.leads_answered || 0,
-      appointments: Math.floor((campaign.leads_answered || 0) * 0.3),
-      conversions: campaign.leads_completed || 0,
-      contactRate: ((campaign.leads_called || 0) / (campaign.total_leads || 1)) * 100,
-      answerRate: ((campaign.leads_answered || 0) / (campaign.leads_called || 1)) * 100,
-      conversionRate: ((campaign.leads_completed || 0) / (campaign.leads_answered || 1)) * 100,
-      avgCallDuration: 180, // 3 minutes average
-      cost: (campaign.leads_called || 0) * 0.85, // $0.85 per call
-      revenue: (campaign.leads_completed || 0) * 150, // $150 per conversion
-      roi: 0 // Will be calculated
-    }
-  }
+  // Removed unused function
 
   const exportCampaignData = async (campaign: Campaign) => {
     try {
@@ -324,7 +244,7 @@ export default function EnhancedCampaignsPage() {
   }
 
   const formatPercentage = (value: number) => `${value.toFixed(1)}%`
-  const formatCurrency = (value: number) => `$${value.toFixed(2)}`
+  // Removed unused function
 
   if (!canUseOutboundDialer) {
     return (
@@ -355,7 +275,7 @@ export default function EnhancedCampaignsPage() {
           <p className="text-gray-600">Manage and monitor your outbound calling campaigns</p>
         </div>
         <button
-          onClick={() => setShowCreateModal(true)}
+          onClick={() => {/* TODO: Implement create modal */}}
           className="bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition-colors flex items-center space-x-2"
         >
           <PlusIcon className="h-5 w-5" />
@@ -531,7 +451,7 @@ export default function EnhancedCampaignsPage() {
                   )}
                   
                   <button
-                    onClick={() => handleViewLeads(campaign)}
+                    onClick={() => {/* TODO: Implement view leads */}}
                     className="flex items-center space-x-1 px-3 py-1 bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 transition-colors text-sm"
                   >
                     <EyeIcon className="h-4 w-4" />
@@ -539,7 +459,7 @@ export default function EnhancedCampaignsPage() {
                   </button>
                   
                   <button
-                    onClick={() => handleViewStats(campaign)}
+                    onClick={() => {/* TODO: Implement view stats */}}
                     className="flex items-center space-x-1 px-3 py-1 bg-purple-100 text-purple-700 rounded-lg hover:bg-purple-200 transition-colors text-sm"
                   >
                     <ChartBarIcon className="h-4 w-4" />

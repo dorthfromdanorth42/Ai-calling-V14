@@ -274,6 +274,26 @@ export class DatabaseService {
     return data || []
   }
 
+  static async getCampaign(campaignId: string): Promise<Campaign | null> {
+    if (this.isDemoMode()) {
+      const campaigns = this.getDemoCampaigns()
+      return campaigns.find(c => c.id === campaignId) || null
+    }
+
+    const { data, error } = await supabase
+      .from('outbound_campaigns')
+      .select('*')
+      .eq('id', campaignId)
+      .single()
+
+    if (error) {
+      console.error('Error fetching campaign:', error)
+      return null
+    }
+
+    return data
+  }
+
   static async createCampaign(campaign: Omit<Campaign, 'id' | 'created_at' | 'updated_at'>): Promise<Campaign | null> {
     if (this.isDemoMode()) {
       console.log('Demo mode: Campaign creation simulated')
@@ -452,127 +472,8 @@ export class DatabaseService {
     return true
   }
 
-  // Live Call Monitoring operations
-  static async getActiveCalls(profileId: string): Promise<any[]> {
-    if (this.isDemoMode()) {
-      return this.getDemoActiveCalls()
-    }
 
-    const { data, error } = await supabase
-      .from('call_logs')
-      .select(`
-        *,
-        ai_agents!inner(name, agent_type, voice_name)
-      `)
-      .eq('profile_id', profileId)
-      .eq('status', 'in_progress')
-      .order('started_at', { ascending: false })
 
-    if (error) {
-      console.error('Error fetching active calls:', error)
-      return []
-    }
-
-    return (data || []).map(call => ({
-      id: call.id,
-      agent_id: call.agent_id,
-      agent_name: call.ai_agents?.name || 'Unknown Agent',
-      phone_number_from: call.phone_number_from,
-      phone_number_to: call.phone_number_to,
-      direction: call.direction,
-      status: call.status,
-      started_at: call.started_at,
-      duration_seconds: Math.floor((new Date().getTime() - new Date(call.started_at).getTime()) / 1000),
-      customer_name: call.customer_name,
-      call_quality: this.getRandomCallQuality()
-    }))
-  }
-
-  static async getAgentStatuses(profileId: string): Promise<any[]> {
-    if (this.isDemoMode()) {
-      return this.getDemoAgentStatuses()
-    }
-
-    const { data, error } = await supabase
-      .from('ai_agents')
-      .select(`
-        *,
-        call_logs!left(id, status)
-      `)
-      .eq('profile_id', profileId)
-
-    if (error) {
-      console.error('Error fetching agent statuses:', error)
-      return []
-    }
-
-    return (data || []).map(agent => {
-      const activeCalls = agent.call_logs?.filter((call: any) => call.status === 'in_progress') || []
-      return {
-        id: agent.id,
-        name: agent.name,
-        agent_type: agent.agent_type,
-        voice_name: agent.voice_name,
-        is_active: agent.is_active,
-        current_calls: activeCalls.length,
-        max_concurrent_calls: agent.max_concurrent_calls || 1,
-        status: agent.is_active ? (activeCalls.length > 0 ? 'busy' : 'available') : 'offline',
-        last_call_at: agent.updated_at
-      }
-    })
-  }
-
-  static async getCallQueue(profileId: string): Promise<any[]> {
-    if (this.isDemoMode()) {
-      return this.getDemoCallQueue()
-    }
-
-    const { data, error } = await supabase
-      .from('call_queues')
-      .select('*')
-      .eq('profile_id', profileId)
-      .eq('status', 'waiting')
-      .order('priority', { ascending: false })
-      .order('created_at', { ascending: true })
-
-    if (error) {
-      console.error('Error fetching call queue:', error)
-      return []
-    }
-
-    return (data || []).map(item => ({
-      id: item.id,
-      phone_number: item.phone_number,
-      customer_name: item.customer_name,
-      priority: item.priority || 'normal',
-      wait_time_seconds: Math.floor((new Date().getTime() - new Date(item.created_at).getTime()) / 1000),
-      agent_type_requested: item.agent_type_requested
-    }))
-  }
-
-  static async emergencyStopAllCalls(profileId: string): Promise<boolean> {
-    if (this.isDemoMode()) {
-      console.log('Demo mode: Emergency stop simulated')
-      return true
-    }
-
-    const { error } = await supabase
-      .from('call_logs')
-      .update({ 
-        status: 'failed',
-        ended_at: new Date().toISOString(),
-        outcome: 'emergency_stop'
-      })
-      .eq('profile_id', profileId)
-      .eq('status', 'in_progress')
-
-    if (error) {
-      console.error('Error stopping calls:', error)
-      throw error
-    }
-
-    return true
-  }
 
   static async toggleAgent(agentId: string, isActive: boolean): Promise<boolean> {
     if (this.isDemoMode()) {
@@ -1793,5 +1694,94 @@ export class DatabaseService {
         recorded_at: new Date().toISOString()
       }
     ]
+  }
+
+  // Live calls operations
+  static async getActiveCalls(profileId: string): Promise<ActiveCall[]> {
+    if (this.isDemoMode()) {
+      return this.getDemoCallLogs()
+        .filter(call => call.status === 'in_progress')
+        .map(call => ({
+          ...call,
+          agent_name: 'Demo Agent',
+          call_quality: 'good' as const
+        }))
+    }
+
+    const { data, error } = await supabase
+      .from('call_logs')
+      .select(`
+        *,
+        ai_agents(name)
+      `)
+      .eq('profile_id', profileId)
+      .eq('status', 'in_progress')
+
+    if (error) {
+      console.error('Error fetching active calls:', error)
+      return []
+    }
+
+    return (data || []).map(call => ({
+      ...call,
+      agent_name: call.ai_agents?.name || 'Unknown Agent',
+      call_quality: 'good' as const
+    }))
+  }
+
+  static async getAgentStatuses(profileId: string): Promise<AIAgent[]> {
+    if (this.isDemoMode()) {
+      return this.getDemoAgents()
+    }
+
+    const { data, error } = await supabase
+      .from('ai_agents')
+      .select('*')
+      .eq('profile_id', profileId)
+
+    if (error) {
+      console.error('Error fetching agent statuses:', error)
+      return []
+    }
+
+    return data || []
+  }
+
+  static async getCallQueue(profileId: string): Promise<CallLog[]> {
+    if (this.isDemoMode()) {
+      return []
+    }
+
+    const { data, error } = await supabase
+      .from('call_logs')
+      .select('*')
+      .eq('profile_id', profileId)
+      .eq('status', 'pending')
+      .order('created_at', { ascending: true })
+
+    if (error) {
+      console.error('Error fetching call queue:', error)
+      return []
+    }
+
+    return data || []
+  }
+
+  static async emergencyStopAllCalls(profileId: string): Promise<void> {
+    if (this.isDemoMode()) {
+      console.log('Demo mode: Emergency stop simulated')
+      return
+    }
+
+    const { error } = await supabase
+      .from('call_logs')
+      .update({ status: 'failed' })
+      .eq('profile_id', profileId)
+      .eq('status', 'in_progress')
+
+    if (error) {
+      console.error('Error stopping calls:', error)
+      throw error
+    }
   }
 }
