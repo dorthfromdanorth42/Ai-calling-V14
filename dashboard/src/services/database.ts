@@ -13,7 +13,8 @@ import type {
   SystemStatus,
   AIAgent,
   Appointment,
-  FunctionCallLog
+  ActiveCall,
+  // FunctionCallLog
 } from '../lib/supabase'
 
 export class DatabaseService {
@@ -826,12 +827,14 @@ export class DatabaseService {
         customer_name: 'Jane Smith',
         customer_phone: '+1 (555) 333-4444',
         customer_email: 'jane.smith@example.com',
+        appointment_date: '2024-01-20',
+        appointment_time: '14:00',
         service_type: 'Product Demo',
         scheduled_date: '2024-01-20T14:00:00Z',
         duration_minutes: 30,
-        location: 'Zoom Meeting',
+        // location: 'Zoom Meeting', // Property not in Appointment interface
         status: 'scheduled',
-        reminder_sent: false,
+        // reminder_sent: false, // Property not in Appointment interface
         created_at: '2024-01-15T00:00:00Z',
         updated_at: '2024-01-15T00:00:00Z'
       }
@@ -974,98 +977,11 @@ export class DatabaseService {
     ]
   }
 
-  private static getDemoAgentStatuses(): any[] {
-    return [
-      {
-        id: 'agent-1',
-        name: 'Customer Service Agent',
-        agent_type: 'customer_service',
-        voice_name: 'Puck',
-        is_active: true,
-        current_calls: 1,
-        max_concurrent_calls: 3,
-        status: 'busy',
-        last_call_at: new Date(Date.now() - 120000).toISOString()
-      },
-      {
-        id: 'agent-2',
-        name: 'Sales Agent',
-        agent_type: 'sales',
-        voice_name: 'Charon',
-        is_active: true,
-        current_calls: 1,
-        max_concurrent_calls: 2,
-        status: 'busy',
-        last_call_at: new Date(Date.now() - 45000).toISOString()
-      },
-      {
-        id: 'agent-3',
-        name: 'After Hours Support',
-        agent_type: 'after_hours',
-        voice_name: 'Kore',
-        is_active: true,
-        current_calls: 0,
-        max_concurrent_calls: 5,
-        status: 'available',
-        last_call_at: new Date(Date.now() - 3600000).toISOString()
-      },
-      {
-        id: 'agent-4',
-        name: 'Appointment Scheduler',
-        agent_type: 'appointment_booking',
-        voice_name: 'Aoede',
-        is_active: false,
-        current_calls: 0,
-        max_concurrent_calls: 2,
-        status: 'offline',
-        last_call_at: new Date(Date.now() - 86400000).toISOString()
-      }
-    ]
-  }
 
-  private static getDemoCallQueue(): any[] {
-    return [
-      {
-        id: 'queue-1',
-        phone_number: '+1 (555) 111-2222',
-        customer_name: 'David Wilson',
-        priority: 'high',
-        wait_time_seconds: 45,
-        agent_type_requested: 'sales'
-      },
-      {
-        id: 'queue-2',
-        phone_number: '+1 (555) 333-4444',
-        customer_name: 'Lisa Brown',
-        priority: 'normal',
-        wait_time_seconds: 23,
-        agent_type_requested: 'customer_service'
-      },
-      {
-        id: 'queue-3',
-        phone_number: '+1 (555) 555-6666',
-        priority: 'urgent',
-        wait_time_seconds: 67,
-        agent_type_requested: 'support'
-      }
-    ]
-  }
 
-  private static getRandomCallQuality(): 'excellent' | 'good' | 'fair' | 'poor' {
-    const qualities = ['excellent', 'good', 'fair', 'poor'] as const
-    const weights = [0.4, 0.35, 0.2, 0.05] // 40% excellent, 35% good, 20% fair, 5% poor
-    const random = Math.random()
-    let cumulative = 0
-    
-    for (let i = 0; i < weights.length; i++) {
-      cumulative += weights[i]
-      if (random <= cumulative) {
-        return qualities[i]
-      }
-    }
-    
-    return 'good'
-  }
+
+
+
 
   // Additional helper methods
   static async getAllCallLogs(profileId: string): Promise<CallLog[]> {

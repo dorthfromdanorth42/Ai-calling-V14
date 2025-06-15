@@ -376,7 +376,7 @@ export class AutoDialerEngine {
       const now = Date.now()
       const timeoutMs = this.config.callTimeoutSeconds * 1000
 
-      for (const [callId, call] of this.activeCalls.entries()) {
+      for (const [, call] of this.activeCalls.entries()) {
         const callAge = now - new Date(call.startedAt).getTime()
         
         if (callAge > timeoutMs) {
@@ -404,7 +404,9 @@ export class AutoDialerEngine {
             await this.resume()
           }
         }
-      }
+      },
+      () => {}, // onInsert
+      () => {}  // onDelete
     )
   }
 

@@ -54,6 +54,7 @@ export interface AIAgent {
   escalation_type?: 'human_agent' | 'supervisor' | 'voicemail' | 'callback'
   escalation_phone_number?: string
   escalation_email?: string
+  status?: 'available' | 'busy' | 'offline'
   created_at: string
   updated_at: string
 }
@@ -153,6 +154,8 @@ export interface Appointment {
   appointment_time: string
   scheduled_date?: string
   service_type?: string
+  duration_minutes?: number
+  location?: string
   notes?: string
   status: string
   created_at: string
@@ -315,6 +318,24 @@ export interface SystemMetrics {
   average_wait_time: number
   system_health: 'healthy' | 'warning' | 'critical'
   uptime_percentage: number
+}
+
+export interface AgentStatus {
+  id: string
+  name: string
+  status: 'available' | 'busy' | 'offline'
+  current_calls: number
+  calls_today: number
+  avg_call_duration: number
+}
+
+export interface CallQueueItem {
+  id: string
+  phone_number: string
+  customer_name?: string
+  priority: number
+  wait_time_seconds: number
+  estimated_wait: number
 }
 
 export interface LeadToCall {

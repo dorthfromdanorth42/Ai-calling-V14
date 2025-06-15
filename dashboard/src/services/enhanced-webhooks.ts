@@ -218,7 +218,7 @@ export class EnhancedWebhookService {
 
   private static async attemptDelivery(delivery: WebhookDelivery, endpoint: WebhookEndpoint): Promise<void> {
     try {
-      const startTime = Date.now()
+      // const startTime = Date.now()
       
       // Prepare payload with metadata
       const webhookPayload = {
@@ -255,7 +255,7 @@ export class EnhancedWebhookService {
 
         clearTimeout(timeoutId)
 
-        const responseTime = Date.now() - startTime
+        // const responseTime = Date.now() - startTime
         const responseBody = await response.text()
 
         // Update delivery record
