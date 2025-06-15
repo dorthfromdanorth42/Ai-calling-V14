@@ -87,9 +87,9 @@ export class ExportService {
 
     const rows = appointments.map(appointment => [
       appointment.customer_name,
-      appointment.customer_phone,
+      appointment.customer_phone || '',
       appointment.customer_email || '',
-      appointment.service_type,
+      appointment.service_type || '',
       new Date(appointment.appointment_date + 'T' + appointment.appointment_time).toLocaleString(),
       '60',
       appointment.status,

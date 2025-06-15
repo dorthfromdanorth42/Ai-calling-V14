@@ -21,7 +21,7 @@ export default function VerifyPage() {
       }
 
       try {
-        const { data, error } = await supabase.auth.verifyOtp({
+        const { error } = await supabase.auth.verifyOtp({
           token_hash: token,
           type: type as any
         })

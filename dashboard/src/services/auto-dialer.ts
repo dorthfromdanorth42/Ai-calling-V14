@@ -1,5 +1,6 @@
 import { DatabaseService } from './database'
 import { RealtimeService } from './realtime'
+import type { CampaignLead } from '../lib/supabase'
 
 interface DialerConfig {
   campaignId: string
@@ -14,18 +15,7 @@ interface DialerConfig {
   dialingRate: number // calls per minute
 }
 
-interface LeadToCall {
-  id: string
-  phoneNumber: string
-  firstName?: string
-  lastName?: string
-  email?: string
-  company?: string
-  priority: 'low' | 'normal' | 'high' | 'urgent'
-  callAttempts: number
-  lastCallAt?: string
-  customData?: any
-}
+// Using CampaignLead from supabase types instead of custom interface
 
 interface ActiveCall {
   id: string
@@ -41,7 +31,7 @@ export class AutoDialerEngine {
   private config: DialerConfig
   private isRunning: boolean = false
   private activeCalls: Map<string, ActiveCall> = new Map()
-  private dialingQueue: LeadToCall[] = []
+  private dialingQueue: CampaignLead[] = []
   private dialingInterval?: NodeJS.Timeout
   private statusCheckInterval?: NodeJS.Timeout
   private userId: string
@@ -156,8 +146,8 @@ export class AutoDialerEngine {
           }
           
           // If same priority, call older attempts first
-          const aLastCall = a.lastCallAt ? new Date(a.lastCallAt).getTime() : 0
-          const bLastCall = b.lastCallAt ? new Date(b.lastCallAt).getTime() : 0
+          const aLastCall = a.last_call_at ? new Date(a.last_call_at).getTime() : 0
+          const bLastCall = b.last_call_at ? new Date(b.last_call_at).getTime() : 0
           return aLastCall - bLastCall
         })
 
@@ -168,15 +158,15 @@ export class AutoDialerEngine {
     }
   }
 
-  private shouldCallLead(lead: LeadToCall): boolean {
+  private shouldCallLead(lead: CampaignLead): boolean {
     // Check if lead has exceeded retry attempts
-    if (lead.callAttempts >= this.config.retryAttempts) {
+    if ((lead.call_attempts || 0) >= this.config.retryAttempts) {
       return false
     }
 
     // Check if enough time has passed since last call attempt
-    if (lead.lastCallAt) {
-      const lastCallTime = new Date(lead.lastCallAt).getTime()
+    if (lead.last_call_at) {
+      const lastCallTime = new Date(lead.last_call_at).getTime()
       const retryDelayMs = this.config.retryDelayMinutes * 60 * 1000
       const now = Date.now()
       
@@ -237,16 +227,16 @@ export class AutoDialerEngine {
     }, intervalMs)
   }
 
-  private getNextLead(): LeadToCall | null {
+  private getNextLead(): CampaignLead | null {
     // Remove leads that are no longer valid
     this.dialingQueue = this.dialingQueue.filter(lead => this.shouldCallLead(lead))
     
     return this.dialingQueue.shift() || null
   }
 
-  private async initiateCall(lead: LeadToCall): Promise<void> {
+  private async initiateCall(lead: CampaignLead): Promise<void> {
     try {
-      console.log(`Initiating call to ${lead.phoneNumber} (${lead.firstName} ${lead.lastName})`)
+      console.log(`Initiating call to ${lead.phone_number} (${lead.first_name} ${lead.last_name})`)
 
       // Get campaign details for agent assignment
       const campaign = await DatabaseService.getCampaign(this.campaignId)
@@ -259,9 +249,9 @@ export class AutoDialerEngine {
       const activeCall: ActiveCall = {
         id: callId,
         leadId: lead.id,
-        phoneNumber: lead.phoneNumber,
+        phoneNumber: lead.phone_number,
         startedAt: new Date().toISOString(),
-        agentId: campaign.agent_id,
+        agentId: campaign.agent_id || '',
         status: 'dialing'
       }
 
@@ -269,23 +259,23 @@ export class AutoDialerEngine {
 
       // Update lead status
       await DatabaseService.updateCampaignLead(lead.id, {
-        status: 'calling',
-        call_attempts: lead.callAttempts + 1,
+        status: 'called',
+        call_attempts: (lead.call_attempts || 0) + 1,
         last_call_at: activeCall.startedAt
       })
 
       // Create call log entry
       await DatabaseService.createCallLog({
-        id: callId,
         profile_id: this.userId,
         agent_id: campaign.agent_id,
-        phone_number_from: campaign.caller_id,
-        phone_number_to: lead.phoneNumber,
+        phone_number_from: campaign.caller_id || '',
+        phone_number_to: lead.phone_number,
         direction: 'outbound',
         status: 'pending',
         started_at: activeCall.startedAt,
-        customer_name: `${lead.firstName || ''} ${lead.lastName || ''}`.trim(),
-        priority: lead.priority,
+        duration_seconds: 0,
+        priority: lead.priority || 'normal',
+        follow_up_required: false,
         campaign_id: this.campaignId,
         lead_id: lead.id
       })
@@ -339,7 +329,7 @@ export class AutoDialerEngine {
       })
 
       // Update lead status
-      const leadStatus = outcome === 'answered' ? 'completed' : 'retry'
+      const leadStatus = outcome === 'answered' ? 'completed' : 'failed'
       await DatabaseService.updateCampaignLead(call.leadId, {
         status: leadStatus,
         outcome: outcome
@@ -386,7 +376,7 @@ export class AutoDialerEngine {
       const now = Date.now()
       const timeoutMs = this.config.callTimeoutSeconds * 1000
 
-      for (const [callId, call] of this.activeCalls.entries()) {
+      for (const [, call] of this.activeCalls.entries()) {
         const callAge = now - new Date(call.startedAt).getTime()
         
         if (callAge > timeoutMs) {
@@ -414,7 +404,9 @@ export class AutoDialerEngine {
             await this.resume()
           }
         }
-      }
+      },
+      () => {}, // onInsert
+      () => {}  // onDelete
     )
   }
 

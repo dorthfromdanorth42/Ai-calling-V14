@@ -236,7 +236,7 @@ export class PrivacySecurityService {
     }
   }
 
-  static async withdrawConsent(consentId: string, withdrawalReason?: string): Promise<boolean> {
+  static async withdrawConsent(consentId: string, _withdrawalReason?: string): Promise<boolean> {
     try {
       const { error } = await supabase
         .from('data_processing_consents')

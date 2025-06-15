@@ -105,7 +105,7 @@ export default function DashboardPage() {
 
     // Cleanup on unmount
     return () => {
-      RealtimeService.unsubscribe(callSubscription)
+      callSubscription.unsubscribe()
     }
   }
 
